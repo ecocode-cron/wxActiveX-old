@@ -16,9 +16,7 @@ use strict ;
 
 use vars qw(@ISA $VERSION);
 @ISA = qw(Wx::ActiveX);
-$VERSION = '0.01';
-
-my $id = 100 ;
+$VERSION = '0.02';
 
 #######
 # NEW #
@@ -27,8 +25,7 @@ my $id = 100 ;
 sub new {
   my $class = shift ;
   my $parent = shift ;
-  my $id = shift || ++$id ;
-  my $activex = Wx::ActiveX->new( $parent , "ShockwaveFlash.ShockwaveFlash" , $id , @_ ) ;
+  my $activex = Wx::ActiveX->new( $parent , "ShockwaveFlash.ShockwaveFlash" , @_ ) ;
   $activex = Wx::ActiveX::hash_ref($activex,'Wx::ActiveX::Flash') ;
   return( $activex ) ;
 }
@@ -79,13 +76,87 @@ See L<Wx:ActiveX>.
 
 All the events use EVT_ACTIVEX.
 
+=head1 ActivexInfos
+
+  <EVENTS>
+    OnReadyStateChange
+    FSCommand
+    OnProgress
+  </EVENTS>
+  
+  <PROPS>
+    AlignMode
+    AllowScriptAccess
+    BackgroundColor
+    Base
+    BGColor
+    DeviceFont
+    EmbedMovie
+    FlashVars
+    FrameNum
+    Loop
+    Menu
+    Movie
+    Playing
+    Quality
+    Quality2
+    ReadyState
+    SAlign
+    Scale
+    ScaleMode
+    SWRemote
+    TotalFrames
+    WMode
+  </PROPS>
+  
+  <METHODS>
+    AddRef()
+    Back()
+    CurrentFrame()
+    FlashVersion()
+    Forward()
+    FrameLoaded(FrameNum)
+    GetIDsOfNames(riid , rgszNames , cNames , lcid , rgdispid)
+    GetTypeInfo(itinfo , lcid , pptinfo)
+    GetTypeInfoCount(pctinfo)
+    GetVariable(name)
+    GotoFrame(FrameNum)
+    Invoke(dispidMember , riid , lcid , wFlags , pdispparams , pvarResult , pexcepinfo , puArgErr)
+    IsPlaying()
+    LoadMovie(layer , url)
+    Pan(x , y , mode)
+    PercentLoaded()
+    Play()
+    QueryInterface(riid , ppvObj)
+    Release()
+    Rewind()
+    SetVariable(name , value)
+    SetZoomRect(left , top , right , bottom)
+    Stop()
+    StopPlay()
+    TCallFrame(target , FrameNum)
+    TCallLabel(target , label)
+    TCurrentFrame(target)
+    TCurrentLabel(target)
+    TGetProperty(target , property)
+    TGetPropertyAsNumber(target , property)
+    TGetPropertyNum(target , property)
+    TGotoFrame(target , FrameNum)
+    TGotoLabel(target , label)
+    TPlay(target)
+    TSetProperty(target , property , value)
+    TSetPropertyNum(target , property , value)
+    TStopPlay(target)
+    Zoom(factor)
+  </METHODS>
+
 =head1 NOTE
 
 This package only works for Win32, since it use AtiveX.
 
 =head1 SEE ALSO
 
-L<Wx:ActiveX>, L<Wx>
+L<Wx::ActiveX>, L<Wx>
 
 =head1 AUTHOR
 

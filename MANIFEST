@@ -1,4 +1,5 @@
 ActiveX.xs
+Changes
 MANIFEST
 Makefile.PL
 README.txt
@@ -12,9 +13,11 @@ demo/dumy.fla
 demo/dumy.swf
 demo/wxFlash.pl
 demo/wxIE.pl
+demo/wxWMPlayer.pl
 t/01_load.t
 XS/IEHtmlWin.xs
 lib/Wx/ActiveX.pm
 lib/Wx/ActiveX/Event.pm
 lib/Wx/ActiveX/Flash.pm
 lib/Wx/ActiveX/IE.pm
+lib/Wx/ActiveX/WMPlayer.pm

@@ -46,6 +46,9 @@ public:
     bool GetEditMode();
     wxString GetStringSelection(bool asHTML = false);
 	wxString GetText(bool asHTML = false);
+ 
+    void Print(bool WithPrompt = false);
+    void PrintPreview();
 
 	bool GoBack();
 	bool GoForward();

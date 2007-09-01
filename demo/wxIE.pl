@@ -1,5 +1,5 @@
 #############################################################################
-## Name:        wxIE.pm
+## Name:        wxIE.pl
 ## Purpose:     wxIE minimal demo
 ## Author:      Graciliano M. P.
 ## Created:     06/02/2003
@@ -21,7 +21,7 @@ sub OnInit {
 
   my( $frame ) = MyFrame->new( "wxIE Minimal demo",
 			       Wx::Point->new( 50, 50 ),
-			       Wx::Size->new( 450, 350 )
+			       Wx::Size->new( 550, 350 )
                              );
 
   $this->SetTopWindow( $frame );
@@ -92,6 +92,8 @@ sub new {
   my $GetStringSelection = Wx::Button->new( $this, -1, 'GetStringSelection' );
   my $GetText = Wx::Button->new( $this, -1, 'GetText' );
   my $GetTextHTML = Wx::Button->new( $this, -1, 'GetTextHTML' );
+  my $Print = Wx::Button->new( $this, -1, 'Print' );
+  my $PrintPreview = Wx::Button->new( $this, -1, 'PrintPreview' );
   
   my $status_txt = Wx::TextCtrl->new( $this , -1, "IE Status", wxDefaultPosition, [200,-1] , wxTE_READONLY );
   
@@ -108,6 +110,8 @@ sub new {
   $but_s2->Add( $GetStringSelection );
   $but_s2->Add( $GetText );
   $but_s2->Add( $GetTextHTML );
+  $but_s2->Add( $Print );
+  $but_s2->Add( $PrintPreview );
 
   $top_s->Add( $IE, 1, wxGROW|wxALL, 5 );
   $top_s->Add( $status_txt , 0, wxGROW|wxALL, 0);
@@ -128,10 +132,12 @@ sub new {
   EVT_BUTTON( $this, $GetStringSelection, \&OnGetStringSelection );
   EVT_BUTTON( $this, $GetText, \&OnGetText );
   EVT_BUTTON( $this, $GetTextHTML, \&OnGetTextHTML );
+  EVT_BUTTON( $this, $Print, \&OnPrint );
+  EVT_BUTTON( $this, $PrintPreview, \&OnPrintPreview );
+  
+  print $IE->ActivexInfos ;
   
   return( $this ) ;
-
-  $this;
 }
 
 
@@ -175,6 +181,16 @@ sub Query {
   $dialog->Destroy() ;
 
   return( $val ) ;
+}
+
+sub OnPrint {
+  my ($this, $event) = @_ ;
+  $this->{IE}->Print(1) ;
+}
+
+sub OnPrintPreview {
+  my ($this, $event) = @_ ;
+  $this->{IE}->PrintPreview ;
 }
 
 sub OnLoadUrl {

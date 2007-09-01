@@ -468,3 +468,35 @@ wxString wxIEHtmlWin::GetText(bool asHTML)
     return s;	
 };
 
+void wxIEHtmlWin::Print(bool WithPrompt)
+{
+  tagVARIANT vIn, vOut;
+  
+  if (WithPrompt) {
+    m_webBrowser->ExecWB(
+    OLECMDID_PRINT,
+    OLECMDEXECOPT_PROMPTUSER ,
+    &vIn, &vOut
+    );
+  }
+  else {
+    m_webBrowser->ExecWB(
+    OLECMDID_PRINT,
+    OLECMDEXECOPT_DONTPROMPTUSER ,
+    &vIn, &vOut
+    );
+  }
+}
+
+void wxIEHtmlWin::PrintPreview()
+{
+  tagVARIANT vIn, vOut;
+
+  m_webBrowser->ExecWB(
+  OLECMDID_PRINTPREVIEW,
+  OLECMDEXECOPT_DONTPROMPTUSER ,
+  &vIn, &vOut
+  );
+
+}
+

@@ -73,4 +73,11 @@ wxIEHtmlWin::Refresh( level = 0 )
 bool
 wxIEHtmlWin::Stop()
 
+void
+wxIEHtmlWin::Print( WithPrompt = false )
+  bool WithPrompt
+
+void
+wxIEHtmlWin::PrintPreview()
+
 

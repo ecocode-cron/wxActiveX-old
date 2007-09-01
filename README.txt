@@ -1,8 +1,10 @@
-################################
-# WXACTIVEX & WXIE 0.02-stable #
-################################
+####################
+# Wx::ActiveX 0.04 #
+####################
 
   This is the source of wxAtiveX, including wxIE & Wx::ActiveX::Flash.
+
+  See POD for more...
   
 ###########
 # COMPILE #

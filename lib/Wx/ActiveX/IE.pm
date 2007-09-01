@@ -16,7 +16,7 @@ use strict ;
 
 use vars qw(@ISA $VERSION);
 @ISA = qw(Wx::ActiveX);
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 #######
 # NEW #
@@ -129,6 +129,14 @@ Refresh the URL. You can set the LEVELs, from 0 to 3, of the refresh:
 
 Stop the download process.
 
+=item Print(Prompt)
+
+Print the page. If Prompt is TRUE, will prompt for configurations, if FALSE will print directly.
+
+=item PrintPreview
+
+Show the Print Preview window.
+
 =back
 
 =head1 EVENTS
@@ -136,31 +144,31 @@ Stop the download process.
 All the events use EVT_ACTIVEX. For example, the event BeforeNavigate2 can be declared usgin EVT_ACTIVEX:
 
   EVT_ACTIVEX($parent , $IE , "BeforeNavigate2" , sub{...} ) ;
-  
+
 or using the ACTIVEX_IE event table:
 
   EVT_ACTIVEX_IE_BEFORENAVIGATE2($parent , $IE , sub{...} ) ;
-  
+
 To import the events use:
 
   use Wx::ActiveX::Event qw(EVT_ACTIVEX EVT_ACTIVEX_IE_NEWWINDOW2 EVT_ACTIVEX_IE_STATUSTEXTCHANGE) ;
   ... or ...
   use Wx::ActiveX::Event qw(:all) ;
-  
+
 You can get the list of ActiveX events using GetEventName():
 
   for(0..($IE->GetEventCount)) {
     my $evt_name = $IE->GetEventName($_) ;
     print "$_> $evt_name\n" ;
   }
-  
+
 Eache ActiveX event has their own argument list (hash), and the Key 'Cancel' can be used to ignore the event. In this example any new window will be canceled, seting $evt->{Cancel} to true:
 
   EVT_ACTIVEX_IE_NEWWINDOW2($this,$IE,sub{
     my ( $obj , $evt ) = @_ ;
     $evt->{Cancel} = 1 ;
   }) ;
-  
+
 Here are the event table for ACTIVEX_IE:
 
   EVT_ACTIVEX_IE_BEFORENAVIGATE2
@@ -190,6 +198,104 @@ Here are the event table for ACTIVEX_IE:
   EVT_ACTIVEX_IE_WINDOWSETRESIZABLE
   EVT_ACTIVEX_IE_WINDOWSETTOP
   EVT_ACTIVEX_IE_WINDOWSETWIDTH
+
+=head1 ActivexInfos
+
+  <EVENTS>
+    StatusTextChange
+    DownloadComplete
+    CommandStateChange
+    DownloadBegin
+    ProgressChange
+    PropertyChange
+    TitleChange
+    PrintTemplateInstantiation
+    PrintTemplateTeardown
+    UpdatePageStatus
+    BeforeNavigate2
+    NewWindow2
+    NavigateComplete2
+    OnQuit
+    OnVisible
+    OnToolBar
+    OnMenuBar
+    OnStatusBar
+    OnFullScreen
+    DocumentComplete
+    OnTheaterMode
+    WindowSetResizable
+    WindowClosing
+    WindowSetLeft
+    WindowSetTop
+    WindowSetWidth
+    WindowSetHeight
+    ClientToHostWindow
+    SetSecureLockIcon
+    FileDownload
+    NavigateError
+    PrivacyImpactedStateChange
+  </EVENTS>
+  
+  <PROPS>
+    AddressBar
+    Application
+    Busy
+    Container
+    Document
+    FullName
+    FullScreen
+    Height
+    HWND
+    Left
+    LocationName
+    LocationURL
+    MenuBar
+    Name
+    Offline
+    Parent
+    Path
+    ReadyState
+    RegisterAsBrowser
+    RegisterAsDropTarget
+    Resizable
+    Silent
+    StatusBar
+    StatusText
+    TheaterMode
+    ToolBar
+    Top
+    TopLevelContainer
+    Type
+    Visible
+    Width
+  </PROPS>
+  
+  <METHODS>
+    AddRef()
+    ClientToWindow(pcx , pcy)
+    ExecWB(cmdID , cmdexecopt , pvaIn , pvaOut)
+    GetIDsOfNames(riid , rgszNames , cNames , lcid , rgdispid)
+    GetProperty(Property)
+    GetTypeInfo(itinfo , lcid , pptinfo)
+    GetTypeInfoCount(pctinfo)
+    GoBack()
+    GoForward()
+    GoHome()
+    GoSearch()
+    Invoke(dispidMember , riid , lcid , wFlags , pdispparams , pvarResult , pexcepinfo , puArgErr)
+    Navigate(URL , Flags , TargetFrameName , PostData , Headers)
+    Navigate2(URL , Flags , TargetFrameName , PostData , Headers)
+    PutProperty(Property , vtValue)
+    QueryInterface(riid , ppvObj)
+    QueryStatusWB(cmdID)
+    Quit()
+    Refresh()
+    Refresh2(Level)
+    Release()
+    ShowBrowserBar(pvaClsid , pvarShow , pvarSize)
+    Stop()
+  </METHODS>
+
 
 =head1 NOTE
 

@@ -1,6 +1,6 @@
 #############################################################################
-## Name:        wxFlash.pl
-## Purpose:     wxFlash minimal demo
+## Name:        wxWMPlayer.pl
+## Purpose:     WMPlayer minimal demo
 ## Author:      Graciliano M. P.
 ## Created:     06/02/2003
 ## RCS-ID:
@@ -19,7 +19,7 @@ package MyApp;
 sub OnInit {
   my( $this ) = @_;
 
-  my( $frame ) = MyFrame->new( "wxFlash Minimal demo",
+  my( $frame ) = MyFrame->new( "wxWMPlayer Minimal demo",
 			       Wx::Point->new( 50, 50 ),
 			       Wx::Size->new( 450, 350 )
                              );
@@ -34,12 +34,10 @@ package MyFrame;
   use vars qw(@ISA);
   @ISA=qw(Wx::Frame);
 
-  use Wx::ActiveX::Flash ;
+  use Wx::ActiveX::WMPlayer ;
   use Wx qw(:sizer);
-  use Wx::Event qw(EVT_BUTTON) ;
-  use Wx::ActiveX::Event qw(EVT_ACTIVEX) ;
   
-  use Wx qw(wxDefaultPosition wxDefaultSize wxDEFAULT wxNORMAL wxTE_MULTILINE wxTE_READONLY);
+  use Wx qw(wxDefaultPosition wxDefaultSize);
   
   use FindBin ;
 
@@ -48,39 +46,24 @@ sub new {
   my( $this ) = $class->SUPER::new( undef, -1, $_[0], $_[1], $_[2] );
   
   $|=1;
-  
+
+  my $wmplayer = Wx::ActiveX::WMPlayer->new( $this , -1 , wxDefaultPosition , wxDefaultSize );
+
   my $file_base = "file:///$FindBin::RealBin" ;
+  $wmplayer->PropSet("FileName","$file_base/movie.mpg") ;
+  $wmplayer->Play ;
 
-  my $flash = Wx::ActiveX::Flash->new( $this , -1 , wxDefaultPosition , wxDefaultSize );
-  
-  $flash->LoadMovie(0,"$file_base/dumy.swf") ;
-  $flash->Play ;
-  
   my $top_s = Wx::BoxSizer->new( wxVERTICAL );
-
-  my $status_txt = Wx::TextCtrl->new( $this , -1, "", wxDefaultPosition, [200,100] , wxTE_READONLY|wxTE_MULTILINE  );
-  $this->{STATUS} = $status_txt ;
-  
-  EVT_ACTIVEX($this, $flash ,"FSCommand", sub{
-    my ( $this , $evt ) = @_ ;
-    my $status = $this->{STATUS} ;
-    
-    my $cmd = $evt->{command} ;
-    my $args = $evt->{args} ;
-    
-    $status->AppendText( "[". ++$this->{CMDX} . "] FSCOMMAND>> $cmd( $args )\n");
-  }) ;
-
-  $top_s->Add( $flash, 1, wxGROW|wxALL, 5 );
-  $top_s->Add( $status_txt , 0, wxGROW|wxALL, 0);
+  $top_s->Add( $wmplayer, 1, wxGROW|wxALL, 5 );
 
   $this->SetSizer( $top_s );
   $this->SetAutoLayout( 1 );
-
-  print $flash->ActivexInfos ;
+  
+  print $wmplayer->ActivexInfos ;
   
   return( $this ) ;
 }
+
 
 package main;
 
@@ -89,6 +72,4 @@ package main;
 
 exit ;
 
-# Local variables: #
-# mode: cperl #
-# End: #
+

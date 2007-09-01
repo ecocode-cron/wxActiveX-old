@@ -1,0 +1,13 @@
+Revision history for Perl extension XML::Smart.
+
+0.04  15/06/2003
+    - Added Print() and PrintPreviw() to Wx::ActiveX::IE
+    - Added ListEvents(), ListProps(), ListMethods(),
+      ListMethods_and_Args(), ListMethods_and_Args_Hash() and
+      ActivexInfos() to Wx::ActiveX.
+    - Added Wx::ActiveX::WMPlayer
+    - Fixed compatibility with wxPerl-0.15!
+
+
+from 0.01 to 0.003 - No "Changes" notes! sorry.
+

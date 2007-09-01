@@ -15,9 +15,19 @@
 #include "cpp/wxapi.h"
 #include "activex/wxactivex.cpp"
 
-#undef THIS
 // do it _AFTER_ OLE headers have been included
 #undef THIS
+
+#if WXPL_API_VERSION < 0015
+
+struct my_magic {
+  my_magic() : object( NULL ), deleteable( TRUE ) { }
+  wxObject*  object ;
+  bool       deleteable ;
+};
+
+#endif
+
 
 MODULE=Wx__ActiveX
 
@@ -29,6 +39,58 @@ BOOT:
 #undef THIS
 
 MODULE=Wx PACKAGE=Wx::ActiveX
+
+
+SV*
+XS_hash_ref(obj , klass)
+    SV* obj
+    const char* klass
+  CODE:
+    HV* stash = gv_stashpv(klass , 1);
+
+    // already an hash ref, only needs to (re)bless it in
+    // the correct class
+    if (SvROK(obj) && SvTYPE(SvRV(obj)) >= SVt_PVHV) {
+      sv_bless(obj, stash);
+      SvREFCNT_inc(obj); // for SV* typemap
+      RETVAL = obj;
+    }
+    else {
+      HV* hv = newHV();
+
+      RETVAL = newRV_noinc((SV*)hv);
+      sv_bless(RETVAL, stash);
+#if defined(WXPL_API_VERSION) && (WXPL_API_VERSION >= 0015)
+      void* cpp_obj;
+
+      if (SvROK(obj))
+          cpp_obj = wxPli_detach_object( aTHX_ obj );
+      else
+          cpp_obj = (void*)SvIV(obj);
+
+      wxPli_attach_object( aTHX_ RETVAL, cpp_obj );
+#else
+      void* cpp_obj;
+      if (SvROK(obj)) {
+        cpp_obj = (void*)SvIV(SvRV(obj));
+        // avoid ->DESTROY
+        SvIVX(SvRV(obj)) = 0;
+      }
+      else
+          cpp_obj = (void*)SvIV(obj);
+
+      MAGIC* magic;
+
+      while( !( magic = mg_find( (SV*)hv, '~' ) ) ) {
+        my_magic tmp;
+        sv_magic( (SV*)hv, 0, '~', (char*)&tmp, sizeof( tmp ) );
+      }
+
+      my_magic* ptr = (my_magic*)magic->mg_ptr;
+      ptr->object = (wxObject*)cpp_obj;
+#endif
+    }
+  OUTPUT: RETVAL
 
 wxActiveX*
 wxActiveX::new( parent, progId , id, pos = wxDefaultPosition, size = wxDefaultSize, style = 0, name = wxPanelNameStr )

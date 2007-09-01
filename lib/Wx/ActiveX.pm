@@ -32,7 +32,7 @@ sub AUTOLOAD {
 
 sub BEGIN {
   @ISA = qw(Wx::Window);
-  $VERSION = '0.03';
+  $VERSION = '0.04';
   Wx::wx_boot( 'Wx::ActiveX', $VERSION ) ;
   $XS_NEW = \&new ;
   *new = \&PLnew ;
@@ -73,53 +73,133 @@ sub PropSet {
   else { $activex->PropSetString($name , $val) ;}
 }
 
+##############
+# LISTEVENTS #
+##############
+
+sub ListEvents {
+  my $this = shift ;
+  my @events ;
+  
+  for my $i (0..($this->GetEventCount-1)) {
+    my $evt_name = $this->GetEventName($i) ;
+    push(@events , $evt_name) if $evt_name ne '' ;
+  }
+  
+  return( @events ) ;
+}
+
+#############
+# LISTPROPS #
+#############
+
+sub ListProps {
+  my $this = shift ;
+  my @props ;
+  
+  for my $i (0..($this->GetPropCount-1)) {
+    my $name = $this->GetPropName($i) ;
+    push(@props , $name) if $name ne '' ;
+  }
+  
+  return( @props ) ;
+}
+
+###############
+# LISTMETHODS #
+###############
+
+sub ListMethods {
+  my $this = shift ;
+  my @methods ;
+  
+  for my $i (0..($this->GetMethodCount-1)) {
+    my $method = $this->GetMethodName($i) ;
+    push(@methods , $method) if $method ne '' ;
+  }
+  
+  return( @methods ) ;
+}
+
+########################
+# LISTMETHODS_AND_ARGS #
+########################
+
+sub ListMethods_and_Args {
+  my $this = shift ;
+  my @methods ;
+  
+  for my $i (0..($this->GetMethodCount-1)) {
+    my $method = $this->GetMethodName($i) ;
+    
+    my @args ;
+    for my $j (0..($this->GetMethodArgCount($i)-1)) {
+      my $arg = $this->GetMethodArgName($i,$j) ;
+      push(@args , $arg) if $arg ne '' ;
+    }
+    
+    push(@methods , "$method(". join(" , ", @args) .")") if $method ne '' ;
+  }
+  
+  return( @methods ) ;
+}
+
+#############################
+# LISTMETHODS_AND_ARGS_HASH #
+#############################
+
+sub ListMethods_and_Args_Hash {
+  my $this = shift ;
+  my @methods ;
+  
+  for my $i (0..($this->GetMethodCount-1)) {
+    my $method = $this->GetMethodName($i) ;
+    
+    my @args ;
+    for my $j (0..($this->GetMethodArgCount($i)-1)) {
+      my $arg = $this->GetMethodArgName($i,$j) ;
+      push(@args , $arg) if $arg ne '' ;
+    }
+    
+    push(@methods , $method , [$method]) if $method ne '' ;
+  }
+  
+  return( @methods ) ;
+}
+
+################
+# ACTIVEXINFOS #
+################
+
+sub ActivexInfos {
+  my $this = shift ;
+  my @evts = $this->ListEvents ;
+  my @props = $this->ListProps ;
+  my @methods = $this->ListMethods_and_Args ;
+  
+  my $ret ;
+  
+  $ret .= "<EVENTS>\n" ;
+  foreach my $i ( @evts ) { $ret .= "  $i\n" ;}
+  $ret .= "</EVENTS>\n" ;
+  
+  $ret .= "\n<PROPS>\n" ;
+  foreach my $i ( @props ) { $ret .= "  $i\n" ;}
+  $ret .= "</PROPS>\n" ;
+  
+  $ret .= "\n<METHODS>\n" ;
+  foreach my $i ( @methods ) { $ret .= "  $i\n" ;}
+  $ret .= "</METHODS>\n" ;
+  
+  return( $ret ) ;
+}
+
 ############
 # HASH_REF #
 ############
 
 sub hash_ref {
-  my ( $obj ) = @_ ;
-  my $class = ref($_[1]) || $_[1] ;
-         
-  if ( UNIVERSAL::isa($obj,'SCALAR') ) {
-    my $hash = {} ;
-    bless($hash , $class) ;
-    $hash->{_WXTHIS} = ${$obj} ;
-    $hash->{OBJ} = $obj ;
-    return( $hash ) ;
-  }
-  elsif ( !UNIVERSAL::isa($obj,$class) && ref($obj) ) {
-    my $hash = {} ;
-    bless($hash , $class) ;
-    $hash->{_WXTHIS} = $obj->{_WXTHIS} ;
-    $hash->{OBJ} = $obj ;
-    return( $hash ) ;  
-  }
-  elsif (! ref($obj)) {
-    my $hash = {} ;
-    bless($hash , $class) ;
-    $hash->{_WXTHIS} = $obj ;
-    return( $hash ) ;  
-  }
-  
-  return( $obj ) ;
-}
-
-##############
-# SCALAR_REF #
-##############
-
-sub scalar_ref {
-  my ( $obj ) = @_ ;
-  my $class = ref($_[1]) || $_[1] ;
-
-  if ($obj !~ /^$class=/ || ref($obj) ne 'SCALAR') {
-    my $scalar = \${$obj} ;
-    bless($scalar , $class) ;
-    return( $obj ) ;
-  }
-  
-  return( $obj ) ;
+  return XS_hash_ref($_[0], ref($_[1]) || $_[1]);
 }
 
 ####################
@@ -276,18 +356,57 @@ Returnt the number of arguments of the MethodX.
 
 Returnt the name of the ArgX of MethodX.
 
+=head2 ListEvents()
+
+Return an ARRAY with all the events names.
+
+=head2 ListProps()
+
+Return an ARRAY with all the proprieties names.
+
+=head2 ListMethods()
+
+Return an ARRAY with all the methods names.
+
+=head2 ListMethods_and_Args()
+
+Return an ARRAY with all the methods names and arguments. like:
+
+  foo(argx, argy)
+
+=head2 ListMethods_and_Args_Hash()
+
+Return a HASH with all the methods names (keys) and arguments (values). The arguments are inside a ARRAY ref:
+
+  my %methods = $activex->ListMethods_and_Args_Hash ;
+  my @args = @{ $methods{foo} } ;
+
+=head2 ActivexInfos()
+
+Return a string with all the informations about the ActiveX Control:
+
+  <EVENTS>
+    MouseUp
+    MouseMove
+    MouseDown
+  </EVENTS>
+  
+  <PROPS>
+    FileName
+  </PROPS>
+  
+  <METHODS>
+    Close()
+    Load(file)
+  </METHODS>
+
 =head1 EVENTS
 
 All the events use EVT_ACTIVEX.
 
   EVT_ACTIVEX($parent , $activex , "EventName" , sub{...} ) ;
   
-You can get the list of ActiveX events using GetEventName():
-
-  for(0..($activex->GetEventCount)) {
-    my $evt_name = $activex->GetEventName($_) ;
-    print "$_> $evt_name\n" ;
-  }
+** You can get the list of ActiveX events using ListEvents():
   
 Eache ActiveX event has their own argument list (hash), and the Key 'Cancel' can be used to ignore the event. In this example any new window will be canceled, seting $evt->{Cancel} to true:
 
@@ -302,7 +421,7 @@ This package only works for Win32, since it use ActiveX.
 
 =head1 SEE ALSO
 
-L<Wx:ActiveX::IE>, L<Wx:ActiveX::Flash>, L<Wx>
+L<Wx::ActiveX::IE>, L<Wx::ActiveX::Flash>, L<Wx::ActiveX::WMPlayer>, L<Wx>
 
 =head1 AUTHOR
 
