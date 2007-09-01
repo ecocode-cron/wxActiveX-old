@@ -4,20 +4,26 @@
 
 #ifndef WX_ACTIVE_X
 #define WX_ACTIVE_X
-#pragma warning( disable : 4101 4786)
-#pragma warning( disable : 4786)
-#pragma warning( disable : 4530)
+
+#ifdef _MSC_VER
+#    pragma warning( disable : 4101 4786)
+#    pragma warning( disable : 4786)
+#    pragma warning( disable : 4530)
+#endif
 
 /////////// #include <wx/setup.h>
 #include <wx/wx.h>
 #include <wx/variant.h>
 #include <wx/datetime.h>
+#include <windows.h>
+#include <ole2.h>
 #include <oleidl.h>
 #include <exdisp.h>
 #include <docobj.h>
 #include <iostream>
 #include <vector>
 #include <map>
+
 using namespace std;
 
 /// wxActiveX Namespace for stuff I want to keep out of other tools way
@@ -331,6 +337,9 @@ class wxActiveX : public wxWindow {
 public:
     /// General parameter and return type infoformation for Events, Properties and Methods.
     /// refer to ELEMDESC, IDLDESC in MSDN
+    
+	IDispatch* GetOLEDispatch() { return m_Dispatch; };
+    
 	class ParamX 
 	{
 	public:

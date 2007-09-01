@@ -32,7 +32,7 @@ sub AUTOLOAD {
 
 sub BEGIN {
   @ISA = qw(Wx::Window);
-  $VERSION = '0.04';
+  $VERSION = '0.05';
   Wx::wx_boot( 'Wx::ActiveX', $VERSION ) ;
   $XS_NEW = \&new ;
   *new = \&PLnew ;
@@ -400,6 +400,20 @@ Return a string with all the informations about the ActiveX Control:
     Load(file)
   </METHODS>
 
+=head1 Win32::OLE
+
+From version 0.5 Wx::ActiveX is compatible with Win32::OLE objects:
+
+  use Wx::ActiveX ;
+  use Win32::OLE ;
+  
+  my $activex = Wx::ActiveX->new( $this , "ShockwaveFlash.ShockwaveFlash" , 101 , wxDefaultPosition , wxDefaultSize ) ;
+
+  my $OLE = $activex->GetOLE() ;
+  $OLE->LoadMovie('0' , "file:///F:/swf/test.swf") ;
+  $OLE->Play() ;
+
+
 =head1 EVENTS
 
 All the events use EVT_ACTIVEX.
@@ -427,9 +441,11 @@ L<Wx::ActiveX::IE>, L<Wx::ActiveX::Flash>, L<Wx::ActiveX::WMPlayer>, L<Wx>
 
 Graciliano M. P. <gm@virtuasites.com.br>
 
+Thanks to Simon Flack <sf@flacks.net>, for the compatibility of Wx::ActiveX objetc with Win32::OLE and MingW tests.
+
 Thanks to wxWindows peoples and Mattia Barbon for wxPerl! ;-P
 
-Thanks to Justin Bradford <justin@maxwell.ucsf.edu> and Lindsay Mathieson <lmathieson@optusnet.com.au>, that wrote the C classes for wxActiveX and wxIEHtmlWin.
+Thanks to Justin Bradford <justin@maxwell.ucsf.edu> and Lindsay Mathieson <lmathieson@optusnet.com.au>, that wrote the original C++ classes for wxActiveX and wxIEHtmlWin.
 
 =head1 COPYRIGHT
 

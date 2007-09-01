@@ -182,12 +182,44 @@ void
 wxActiveX::PropSetInt(name , val)
     wxString name
     long val
-    
+
 void    
 wxActiveX::PropSetString(name , val)
     wxString name
     wxString val
-    
+
+void
+wxActiveX::GetOLE()
+CODE:
+{
+#ifdef PERL_5005
+  typedef SV* (*MYPROC)(CPERLarg_ HV *, IDispatch *, SV *);
+#else
+  typedef SV* (*MYPROC)(pTHX_ HV *, IDispatch *, SV *);
+#endif
+
+  HMODULE hmodule;
+  MYPROC pCreatePerlObject;
+  IDispatch * pDispatch;
+
+  ST(0) = &PL_sv_undef;
+  hmodule = LoadLibrary("OLE");
+  if (hmodule != 0) {
+    pCreatePerlObject = (MYPROC) GetProcAddress(hmodule, "CreatePerlObject");
+    if (pCreatePerlObject != 0)  {
+      HV *stash = gv_stashpv("Win32::OLE", TRUE);
+      pDispatch = THIS->GetOLEDispatch();
+      pDispatch->AddRef();
+#ifdef PERL_5005
+      ST(0) = (pCreatePerlObject)(PERL_OBJECT_THIS_ stash, pDispatch, NULL);
+#else
+      ST(0) = (pCreatePerlObject)(aTHX_ stash, pDispatch, NULL);
+#endif
+    }
+    FreeLibrary(hmodule);
+  }
+}
+
 
 ######### EVENTS:
 

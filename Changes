@@ -1,4 +1,10 @@
-Revision history for Perl extension XML::Smart.
+Revision history for Perl extension Wx::ActiveX.
+
+0.05  08/2003
+    - Added compatibility with MingW.
+    - Added method GetOLE(), that returns a Win32::OLE object of
+      the Wx::ActiveX control.
+    - New module Wx::ActiveX::Acrobat (Acrobat Reader).
 
 0.04  15/06/2003
     - Added Print() and PrintPreviw() to Wx::ActiveX::IE

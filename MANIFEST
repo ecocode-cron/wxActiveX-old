@@ -11,13 +11,17 @@ activex/wxactivex.h
 cpp/activex.h
 demo/dumy.fla
 demo/dumy.swf
+demo/test.pdf
+demo/wxAcrobat.pl
 demo/wxFlash.pl
 demo/wxIE.pl
 demo/wxWMPlayer.pl
 t/01_load.t
 XS/IEHtmlWin.xs
 lib/Wx/ActiveX.pm
+lib/Wx/ActiveX/Acrobat.pm
 lib/Wx/ActiveX/Event.pm
 lib/Wx/ActiveX/Flash.pm
 lib/Wx/ActiveX/IE.pm
 lib/Wx/ActiveX/WMPlayer.pm
+

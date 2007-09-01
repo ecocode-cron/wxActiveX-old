@@ -164,7 +164,7 @@ Graciliano M. P. <gm@virtuasites.com.br>
 
 Thanks to wxWindows peoples and Mattia Barbon for wxPerl! :P
 
-Thanks to Justin Bradford <justin@maxwell.ucsf.edu> and Lindsay Mathieson <lmathieson@optusnet.com.au>, that wrote the C classes for wxActiveX and wxIEHtmlWin.
+Thanks to Justin Bradford <justin@maxwell.ucsf.edu> and Lindsay Mathieson <lmathieson@optusnet.com.au>, that wrote the original C++ classes for wxActiveX and wxIEHtmlWin.
 
 =head1 COPYRIGHT
 

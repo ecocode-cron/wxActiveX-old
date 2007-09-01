@@ -4,11 +4,18 @@
 #include <wx/event.h>
 #include <wx/string.h>
 #include <wx/datetime.h>
+#include <windows.h>
+#include <ole2.h>
 #include <oleidl.h>
 #include <winerror.h>
 #include <idispids.h>
 #include <exdispid.h>
 #include <servprov.h>
+
+#ifndef _MSC_VER
+#    include <oleauto.h>
+#endif
+
 #include <olectl.h>
 #include <Mshtml.h>
 #include <sstream>
@@ -813,9 +820,9 @@ bool VariantToMSWVariant(const wxVariant& vx, VARIANTARG& va)
 
     case VT_BSTR:
 		if (byRef)
-			*va.pbstrVal = SysAllocString(vx.GetString().wc_str(wxMBConv()));
+			*va.pbstrVal = SysAllocString(vx.GetString().wc_str(wxConvUTF8));
 		else
-			va.bstrVal = SysAllocString(vx.GetString().wc_str(wxMBConv()));
+			va.bstrVal = SysAllocString(vx.GetString().wc_str(wxConvUTF8));
         return true;
 
 	case VT_UNKNOWN: // should do a custom wxVariantData for this
@@ -1038,7 +1045,8 @@ wxVariant& wxActiveXEvent::operator[] (int idx)
 
 wxVariant& wxActiveXEvent::operator[] (wxString name)
 {
-    for (int i = 0; i < m_params.GetCount(); i++)
+    int i;
+    for (i = 0; i < m_params.GetCount(); i++)
     {
         if (name.CmpNoCase(m_params[i].GetName()) == 0)
             return m_params[i];
@@ -1349,7 +1357,7 @@ const wxActiveX::FuncX& wxActiveX::GetEventDesc(int idx) const
 const wxActiveX::PropX& wxActiveX::GetPropDesc(int idx) const
 {
     if (idx < 0 || idx >= GetPropCount())
-        throw exception("Property index out of bounds");
+        croak("Property index out of bounds");
 
 	PropXMap::const_iterator it = m_props.begin();
 	while (idx > 0)
@@ -1367,7 +1375,7 @@ const wxActiveX::PropX& wxActiveX::GetPropDesc(wxString name) const
     {
         wxString s;
         s << "property <" << name << "> not found";
-        throw exception(s.mb_str());
+        croak(s.mb_str());
     };
 
     return it->second;
@@ -1376,7 +1384,7 @@ const wxActiveX::PropX& wxActiveX::GetPropDesc(wxString name) const
 const wxActiveX::FuncX& wxActiveX::GetMethodDesc(int idx) const
 {
     if (idx < 0 || idx >= GetMethodCount())
-        throw exception("Method index out of bounds");
+        croak("Method index out of bounds");
 
 
 	FuncXStringMap::const_iterator it = m_methods.begin();
@@ -1396,7 +1404,7 @@ const wxActiveX::FuncX& wxActiveX::GetMethodDesc(wxString name) const
     {
         wxString s;
         s << "method <" << name << "> not found";
-        throw exception(s.mb_str());
+        croak(s.mb_str());
     };
 
     return it->second;
@@ -1427,7 +1435,7 @@ void wxActiveX::SetProp(const wxString &name, const wxVariant &value)
     {
         wxString s;
         s << "property <" << name << "> is readonly";
-        throw exception(s.mb_str());
+        croak(s.mb_str());
     };
 
     VARIANT v = {prop.arg.vt};
@@ -1464,7 +1472,7 @@ VARIANT wxActiveX::GetPropAsVariant(const wxString& name)
     {
         wxString s;
         s << "property <" << name << "> is writeonly";
-        throw exception(s.mb_str());
+		croak(s.mb_str());
     };
 
     return GetPropAsVariant(prop.memid);
@@ -1475,7 +1483,7 @@ wxVariant wxActiveX::GetPropAsWxVariant(const wxString& name)
     VARIANT v = GetPropAsVariant(name);
     HRESULT hr = VariantChangeType(&v, &v, 0, VT_BSTR);
     if (! SUCCEEDED(hr))
-        throw exception("Unable to convert variant");
+        croak("Unable to convert variant");
 
     wxVariant wv;
     MSWVariantToVariant(v, wv);
@@ -1490,7 +1498,7 @@ wxString wxActiveX::GetPropAsString(const wxString& name)
     VARIANT v = GetPropAsVariant(name);
     HRESULT hr = VariantChangeType(&v, &v, 0, VT_BSTR);
     if (! SUCCEEDED(hr))
-        throw exception("Unable to convert variant");
+        croak("Unable to convert variant");
 
     wxString s = v.bstrVal;
     VariantClear(&v);
@@ -1503,7 +1511,7 @@ char wxActiveX::GetPropAsChar(const wxString& name)
     VARIANT v = GetPropAsVariant(name);
     HRESULT hr = VariantChangeType(&v, &v, 0, VT_I1);
     if (! SUCCEEDED(hr))
-        throw exception("Unable to convert variant");
+        croak("Unable to convert variant");
 
     return v.cVal;
 };
@@ -1513,7 +1521,7 @@ long wxActiveX::GetPropAsLong(const wxString& name)
     VARIANT v = GetPropAsVariant(name);
     HRESULT hr = VariantChangeType(&v, &v, 0, VT_I4);
     if (! SUCCEEDED(hr))
-        throw exception("Unable to convert variant");
+        croak("Unable to convert variant");
 
     return v.iVal;
 };
@@ -1523,7 +1531,7 @@ bool wxActiveX::GetPropAsBool(const wxString& name)
     VARIANT v = GetPropAsVariant(name);
     HRESULT hr = VariantChangeType(&v, &v, 0, VT_BOOL);
     if (! SUCCEEDED(hr))
-        throw exception("Unable to convert variant");
+        croak("Unable to convert variant");
 
     return v.boolVal != 0;
 };
@@ -1533,7 +1541,7 @@ double wxActiveX::GetPropAsDouble(const wxString& name)
     VARIANT v = GetPropAsVariant(name);
     HRESULT hr = VariantChangeType(&v, &v, 0, VT_R8);
     if (! SUCCEEDED(hr))
-        throw exception("Unable to convert variant");
+        croak("Unable to convert variant");
 
     return v.dblVal;
 };
@@ -1544,7 +1552,7 @@ wxDateTime wxActiveX::GetPropAsDateTime(const wxString& name)
     VARIANT v = GetPropAsVariant(name);
 
 	if (! VariantToWxDateTime(v, dt))
-        throw exception("Unable to convert variant to wxDateTime");
+        croak("Unable to convert variant to wxDateTime");
 
     return dt;
 };
@@ -1554,7 +1562,7 @@ void *wxActiveX::GetPropAsPointer(const wxString& name)
     VARIANT v = GetPropAsVariant(name);
     HRESULT hr = VariantChangeType(&v, &v, 0, VT_BYREF);
     if (! SUCCEEDED(hr))
-        throw exception("Unable to convert variant");
+        croak("Unable to convert variant");
 
     return v.byref;
 };
@@ -1614,20 +1622,21 @@ wxVariant wxActiveX::CallMethod(wxString name, wxVariant args)
     const FuncX& func = GetMethodDesc(name);
 
     VARIANTARG *vargs = NULL;
-    int nargs = min(unsigned int(args.GetCount()), func.params.size());
+    int nargs = min(int (args.GetCount()), int (func.params.size()));
     if (nargs > 0)
         vargs = new VARIANTARG[nargs];
 
     if (vargs)
     {
         // init type of vargs
-        for (int i = 0; i < nargs; i++)
+        int i;
+        for (i = 0; i < nargs; i++)
             vargs[nargs - i - 1].vt = func.params[i].vt;
 
         // put data
         if (args.GetType() == wxT("list"))
         {
-            for (int i = 0; i < nargs; i++)
+            for (i = 0; i < nargs; i++)
                 VariantToMSWVariant(args[i], vargs[nargs - i - 1]);
         }
         else
@@ -1668,7 +1677,8 @@ wxVariant wxActiveX::CallMethod(wxString name, wxVariant args[], int nargs)
     if (vargs)
     {
         // init type of vargs
-        for (int i = 0; i < nargs; i++)
+		int i;
+        for (i = 0; i < nargs; i++)
             vargs[nargs - i - 1].vt = func.params[i].vt;
 
         // put data
@@ -2738,7 +2748,9 @@ wxString GetIIDName(REFIID riid)
 
   static const KNOWN_IID aKnownIids[] = 
   {
+#ifdef _MSC_VER
     ADD_KNOWN_IID(ServiceProvider),
+#endif
     ADD_KNOWN_IID(AdviseSink),
     ADD_KNOWN_IID(AdviseSink2),
     ADD_KNOWN_IID(BindCtx),
@@ -2851,3 +2863,4 @@ wxString GetIIDName(REFIID riid)
   else
       return "StringFromIID() error";
 }
+
