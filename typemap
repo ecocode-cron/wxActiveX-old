@@ -14,5 +14,4 @@ TYPEMAP
 wxActiveX *              O_WXOBJECT
 wxActiveXEvent *         O_WXOBJECT
 wxIEHtmlWin *            O_WXOBJECT
-## wxIEHtmlRefreshLevel *   O_NON_WXOBJECT
 

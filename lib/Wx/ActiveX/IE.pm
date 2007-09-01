@@ -16,7 +16,7 @@ use strict ;
 
 use vars qw(@ISA $VERSION);
 @ISA = qw(Wx::ActiveX);
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 #######
 # NEW #

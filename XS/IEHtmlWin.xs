@@ -9,6 +9,8 @@
 ##              modify it under the same terms as Perl itself
 #############################################################################
 
+#include "activex/IEHtmlWin.cpp"
+
 MODULE=Wx PACKAGE=Wx::IEHtmlWin
 
 wxIEHtmlWin*

@@ -13,156 +13,10 @@
 #include <sstream>
 using namespace std;
 
-DEFINE_EVENT_TYPE(wxEVT_COMMAND_MSHTML_BEFORENAVIGATE2);
-DEFINE_EVENT_TYPE(wxEVT_COMMAND_MSHTML_NEWWINDOW2);
-DEFINE_EVENT_TYPE(wxEVT_COMMAND_MSHTML_DOCUMENTCOMPLETE);
-DEFINE_EVENT_TYPE(wxEVT_COMMAND_MSHTML_PROGRESSCHANGE);
-DEFINE_EVENT_TYPE(wxEVT_COMMAND_MSHTML_STATUSTEXTCHANGE);
-DEFINE_EVENT_TYPE(wxEVT_COMMAND_MSHTML_TITLECHANGE);
-
-IMPLEMENT_DYNAMIC_CLASS(wxMSHTMLEvent, wxNotifyEvent);
-
 
 //////////////////////////////////////////////////////////////////////
 BEGIN_EVENT_TABLE(wxIEHtmlWin, wxActiveX)
 END_EVENT_TABLE()
-
-class FS_DWebBrowserEvents2 : public IDispatch
-{
-private:
-    DECLARE_OLE_UNKNOWN(FS_DWebBrowserEvents2);
-
-
-    wxIEHtmlWin *m_iewin;
-
-public:
-    FS_DWebBrowserEvents2(wxIEHtmlWin *iewin) : m_iewin(iewin) {}
-	virtual ~FS_DWebBrowserEvents2() 
-    {
-    }
-
-	//IDispatch
-	STDMETHODIMP GetIDsOfNames(REFIID r, OLECHAR** o, unsigned int i, LCID l, DISPID* d)
-	{ 
-        return E_NOTIMPL;
-    };
-
-	STDMETHODIMP GetTypeInfo(unsigned int i, LCID l, ITypeInfo** t)
-	{ 
-        return E_NOTIMPL;
-    };
-
-	STDMETHODIMP GetTypeInfoCount(unsigned int* i)
-	{ 
-        return E_NOTIMPL;
-    };
-
-	void Post(WXTYPE etype, wxString text, long l1 = 0, long l2 = 0)
-	{
-		if (! m_iewin || ! m_iewin->GetParent())
-			return;
-
-		wxMSHTMLEvent event;
-		event.SetId(m_iewin->GetId());
-		event.SetEventType(etype);
-		event.m_text1 = text;
-		event.m_long1 = l1;
-		event.m_long2 = l2;
-
-		m_iewin->GetParent()->AddPendingEvent(event);
-	};
-
-	bool Process(WXTYPE etype, wxString text = "", long l1 = 0, long l2 = 0)
-	{
-		if (! m_iewin || ! m_iewin->GetParent())
-			return true;
-
-		wxMSHTMLEvent event;
-		event.SetId(m_iewin->GetId());
-		event.SetEventType(etype);
-		event.m_text1 = text;
-		event.m_long1 = l1;
-		event.m_long2 = l2;
-
-		m_iewin->GetParent()->ProcessEvent(event);
-
-		return event.IsAllowed();
-	};
-
-	wxString GetStrArg(VARIANT& v)
-	{
-		VARTYPE vt = v.vt & ~VT_BYREF;
-
-		if (vt == VT_VARIANT)
-			return GetStrArg(*v.pvarVal);
-		else if (vt == VT_BSTR)
-		{
-			if (v.vt & VT_BYREF)
-				return (v.pbstrVal ? *v.pbstrVal : L"");
-			else
-				return v.bstrVal;
-		}
-		else
-			return "";
-	};
-
-#define STR_ARG(arg) GetStrArg(pDispParams->rgvarg[arg])
-
-#define LONG_ARG(arg)\
-			(pDispParams->rgvarg[arg].lVal)
-
-
-	STDMETHODIMP Invoke(DISPID dispIdMember, REFIID riid, LCID lcid,
-						  WORD wFlags, DISPPARAMS * pDispParams,
-						  VARIANT * pVarResult, EXCEPINFO * pExcepInfo,
-						  unsigned int * puArgErr)
-	{ 
-	    if (wFlags & DISPATCH_PROPERTYGET)
-            return E_NOTIMPL;
-
-	    switch (dispIdMember)
-	    {
-		    case DISPID_BEFORENAVIGATE2:
-				if (Process(wxEVT_COMMAND_MSHTML_BEFORENAVIGATE2, STR_ARG(5)))
-					*pDispParams->rgvarg->pboolVal = VARIANT_FALSE;
-				else 
-					*pDispParams->rgvarg->pboolVal = VARIANT_TRUE;
-				break;
-
-		    case DISPID_NEWWINDOW2:
-				if (Process(wxEVT_COMMAND_MSHTML_NEWWINDOW2))
-					*pDispParams->rgvarg->pboolVal = VARIANT_FALSE;
-				else 
-					*pDispParams->rgvarg->pboolVal = VARIANT_TRUE;
-				break;
-
-            case DISPID_PROGRESSCHANGE:
-				Post(wxEVT_COMMAND_MSHTML_PROGRESSCHANGE, "", LONG_ARG(1), LONG_ARG(0));
-				break;
-		    
-            case DISPID_DOCUMENTCOMPLETE:
-				Post(wxEVT_COMMAND_MSHTML_DOCUMENTCOMPLETE, STR_ARG(0));
-				break;
-
-            case DISPID_STATUSTEXTCHANGE:
-				Post(wxEVT_COMMAND_MSHTML_STATUSTEXTCHANGE, STR_ARG(0));
-				break;
-
-            case DISPID_TITLECHANGE:
-				Post(wxEVT_COMMAND_MSHTML_TITLECHANGE, STR_ARG(0));
-				break;
-	    }
-
-    	return S_OK;
-    }
-};
-
-#undef STR_ARG
-
-DEFINE_OLE_TABLE(FS_DWebBrowserEvents2)
-	OLE_IINTERFACE(IUnknown)
-	OLE_INTERFACE(DIID_DWebBrowserEvents2, DWebBrowserEvents2)
-END_OLE_TABLE;
 
 
 static const CLSID CLSID_MozillaBrowser =
@@ -201,12 +55,6 @@ void wxIEHtmlWin::SetupBrowser()
 	// Get IWebBrowser2 Interface
 	hret = m_webBrowser.QueryInterface(IID_IWebBrowser2, m_ActiveX);
 	assert(SUCCEEDED(hret));
-
-	// Web Browser Events
-	FS_DWebBrowserEvents2 *events = new FS_DWebBrowserEvents2(this);
-	hret = ConnectAdvise(DIID_DWebBrowserEvents2, events);
-	if (! SUCCEEDED(hret))
-		delete events;
 
 	// web browser setup
 	m_webBrowser->put_MenuBar(VARIANT_FALSE);
@@ -256,11 +104,35 @@ private:
     DECLARE_OLE_UNKNOWN(IStreamAdaptorBase);
 
 public:
+	string prepend;
+
     IStreamAdaptorBase() {}
     virtual ~IStreamAdaptorBase() {}
 
+	virtual int Read(char *buf, int cb) = 0;
+
+
     // ISequentialStream
-    HRESULT STDMETHODCALLTYPE Read(void __RPC_FAR *pv, ULONG cb, ULONG __RPC_FAR *pcbRead) = 0;
+    HRESULT STDMETHODCALLTYPE Read(void __RPC_FAR *pv, ULONG cb, ULONG __RPC_FAR *pcbRead)
+	{
+		if (prepend.size() > 0)
+		{
+			int n = min(prepend.size(), cb);
+			prepend.copy((char *) pv, n);
+			prepend = prepend.substr(n);
+			if (pcbRead)
+				*pcbRead = n;
+
+			return S_OK;
+		};
+
+		int rc = Read((char *) pv, cb);
+		if (pcbRead)
+			*pcbRead = rc;
+
+		return S_OK;
+	};
+
     HRESULT STDMETHODCALLTYPE Write(const void __RPC_FAR *pv, ULONG cb, ULONG __RPC_FAR *pcbWritten) {return E_NOTIMPL;}
 
     // IStream
@@ -288,7 +160,7 @@ private:
 
 public:
     
-    IStreamAdaptor(istream *is)	: IStreamAdaptorBase(), m_is(is) 
+    IStreamAdaptor(istream *is)	: IStreamAdaptorBase(), m_is(is)
     {
         wxASSERT(m_is != NULL);
     }
@@ -297,14 +169,10 @@ public:
         delete m_is;
     }
 
-    // ISequentialStream
-    HRESULT STDMETHODCALLTYPE Read(void __RPC_FAR *pv, ULONG cb, ULONG __RPC_FAR *pcbRead)
+    int Read(char *buf, int cb)
 	{
-		m_is->read((char *) pv, cb);
-		if (pcbRead)
-			*pcbRead = m_is->gcount();
-
-		return S_OK;
+		m_is->read(buf, cb);
+		return m_is->gcount();
 	};
 };
 
@@ -325,13 +193,10 @@ public:
     }
 
     // ISequentialStream
-    HRESULT STDMETHODCALLTYPE Read(void __RPC_FAR *pv, ULONG cb, ULONG __RPC_FAR *pcbRead)
+    int Read(char *buf, int cb)
 	{
-		m_is->Read((char *) pv, cb);
-		if (pcbRead)
-			*pcbRead = m_is->LastRead();
-
-		return S_OK;
+		m_is->Read(buf, cb);
+		return m_is->LastRead();
 	};
 };
 
@@ -378,6 +243,12 @@ bool  wxIEHtmlWin::LoadString(wxString html)
 
 bool wxIEHtmlWin::LoadStream(IStreamAdaptorBase *pstrm)
 {
+	// need to prepend this as poxy MSHTML will not recognise a HTML comment
+	// as starting a html document and treats it as plain text
+	// Does nayone know how to force it to html mode ?
+	pstrm->prepend = "<html>";
+
+	// strip leading whitespace as it can confuse MSHTML
 	wxAutoOleInterface<IStream>	strm(pstrm);
 
     // Document Interface
@@ -439,9 +310,21 @@ bool wxIEHtmlWin::GoForward()
 
 bool wxIEHtmlWin::GoHome()
 {
-    HRESULT hret = 0;
-    hret = m_webBrowser->GoHome();
-    return hret == S_OK;
+    try
+    {
+        CallMethod("GoHome");
+        return true;
+    }
+    catch(exception&)
+    {
+        return false;
+    };
+
+  /*
+   HRESULT hret = 0;
+   hret = m_webBrowser->GoHome();
+   return hret == S_OK;
+  */
 }
 
 bool wxIEHtmlWin::GoSearch()
@@ -451,8 +334,7 @@ bool wxIEHtmlWin::GoSearch()
     return hret == S_OK;
 }
 
-// bool wxIEHtmlWin::Refresh(wxIEHtmlRefreshLevel level)
-
+/// bool wxIEHtmlWin::Refresh(wxIEHtmlRefreshLevel level)
 bool wxIEHtmlWin::Refresh(int level)
 {
     VARIANTARG levelArg;
@@ -585,3 +467,4 @@ wxString wxIEHtmlWin::GetText(bool asHTML)
 
     return s;	
 };
+

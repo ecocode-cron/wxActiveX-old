@@ -2,10 +2,13 @@
 #include "wxActiveX.h"
 #include <wx/strconv.h>
 #include <wx/event.h>
+#include <wx/string.h>
+#include <wx/datetime.h>
 #include <oleidl.h>
 #include <winerror.h>
 #include <idispids.h>
 #include <exdispid.h>
+#include <servprov.h>
 #include <olectl.h>
 #include <Mshtml.h>
 #include <sstream>
@@ -14,13 +17,13 @@ using namespace std;
 // Depending on compilation mode, the wx headers may have undef'd
 // this, but in this case we need it so the virtual method in
 // FrameSite will match what is in oleidl.h.
-//#ifndef GetObject
-//    #ifdef _UNICODE
-//        #define GetObject GetObjectW
-//    #else
-//        #define GetObject GetObjectA
-//    #endif
-//#endif
+// #ifndef GetObject
+//     #ifdef _UNICODE
+//         #define GetObject GetObjectW
+//     #else
+//         #define GetObject GetObjectA
+//     #endif
+// #endif
 
 
 //////////////////////////////////////////////////////////////////////
@@ -186,8 +189,8 @@ DEFINE_OLE_TABLE(FrameSite)
     OLE_IINTERFACE(IAdviseSink)
 
     OLE_IINTERFACE(IOleControlSite)
-END_OLE_TABLE;
 
+END_OLE_TABLE;
 
 wxActiveX::wxActiveX(wxWindow * parent, REFCLSID clsid, wxWindowID id,
         const wxPoint& pos,
@@ -244,6 +247,54 @@ wxActiveX::~wxActiveX()
 	}
 }
 
+wxString VarTypeAsString(VARTYPE vt)
+{
+#define VT(vtype, desc) case vtype : return desc
+
+    if (vt & VT_BYREF)
+        vt -= VT_BYREF;
+
+    if (vt & VT_ARRAY)
+        vt -= VT_ARRAY;
+
+    switch (vt)
+    {
+    VT(VT_SAFEARRAY, "SafeArray");
+    VT(VT_EMPTY, "empty");
+    VT(VT_NULL, "null");
+    VT(VT_UI1, "byte");
+    VT(VT_I1, "char");
+    VT(VT_I2, "short");
+    VT(VT_I4, "long");
+    VT(VT_UI2, "unsigned short");
+    VT(VT_UI4, "unsigned long");
+    VT(VT_INT, "int");
+    VT(VT_UINT, "unsigned int");
+    VT(VT_R4, "real(4)");
+    VT(VT_R8, "real(8)");
+    VT(VT_CY, "Currency");
+    VT(VT_DATE, "wxDate");
+    VT(VT_BSTR, "wxString");
+    VT(VT_DISPATCH, "IDispatch");
+    VT(VT_ERROR, "SCode Error");
+    VT(VT_BOOL, "bool");
+    VT(VT_VARIANT, "wxVariant");
+    VT(VT_UNKNOWN, "IUknown");
+    VT(VT_VOID, "void");
+    VT(VT_PTR, "void *");
+    VT(VT_USERDEFINED, "*user defined*");
+
+    default:
+        {
+            wxString s;
+            s << "Unknown(" << vt << ")";
+            return s;
+        };
+    };
+
+#undef VT
+};
+
 void wxActiveX::CreateActiveX(REFCLSID clsid)
 {
 	SetTransparent();
@@ -264,6 +315,10 @@ void wxActiveX::CreateActiveX(REFCLSID clsid)
 	// // Create Object, get IUnknown interface
     m_ActiveX.CreateInstance(clsid, IID_IUnknown);
 	wxASSERT(m_ActiveX.Ok());
+
+	// Get Dispatch interface
+	hret = m_Dispatch.QueryInterface(IID_IDispatch, m_ActiveX); 
+	WXOLE_WARN(hret, "Unable to get dispatch interface");
 
 	// Type Info
 	GetTypeInfo();
@@ -351,6 +406,11 @@ void wxActiveX::CreateActiveX(REFCLSID clsid)
 	{
 		::SetActiveWindow(m_oleObjectHWND);
 		::ShowWindow(m_oleObjectHWND, SW_SHOW);
+
+		// Update by GBR to resize older controls
+        wxSizeEvent szEvent;
+        szEvent.m_size = wxSize(w, h) ;
+		AddPendingEvent(szEvent);
 	};
 }
 
@@ -363,17 +423,6 @@ void wxActiveX::CreateActiveX(LPOLESTR progId)
     CreateActiveX(clsid);
 };
 
-//int wxActiveX::GetEventCount() { return this->GetEventCount(); }
-
-wxString wxActiveX::GetEventName(int idx) {
-     if (idx < 0 || idx >= this->GetEventCount() ) {
-       wxString tmp = "" ;
-       return( tmp ) ;
-     }
-     const wxActiveX::FuncX& func = this->GetEvent(idx);
-     return( func.name ) ;
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Case Insensitive Map of Event names to eventTypes
 // created dynamically at run time in:
@@ -382,15 +431,7 @@ wxString wxActiveX::GetEventName(int idx) {
 //      const wxEventType& RegisterActiveXEvent(wxString eventName);
 // can return a const reference, which is neccessary for event tables
 // probably should use a wxWindows hash table here, but I'm lazy ...
-struct less_wxStringI
-{
-    bool operator()(const wxString& x, const wxString& y) const
-    {
-        return x.CmpNoCase(y) < 0;
-    };
-};
-
-typedef map<wxString, wxEventType *, less_wxStringI> ActiveXNamedEventMap;
+typedef map<wxString, wxEventType *, NS_wxActiveX::less_wxStringI> ActiveXNamedEventMap;
 static ActiveXNamedEventMap sg_NamedEventMap;
 
 const wxEventType& RegisterActiveXEvent(const wxChar *eventName)
@@ -447,6 +488,7 @@ public:
             delete it->second;
             it++;
         };
+		sg_NamedEventMap.clear();
 
         // DISPID events
         ActiveXDISPIDEventMap::iterator dit = sg_dispIdEventMap.end();
@@ -455,6 +497,7 @@ public:
             delete dit->second;
             dit++;
         };
+		sg_dispIdEventMap.clear();
     };
 };
 
@@ -462,38 +505,211 @@ static ActiveXEventMapFlusher s_dummyActiveXEventMapFlusher;
 
 
 //////////////////////////////////////////////////////
+VARTYPE wxTypeToVType(const wxVariant& v)
+{
+    wxString type = v.GetType();
+    if (type == wxT("bool"))
+        return VT_BOOL;
+    else if (type == wxT("char"))
+        return VT_I1;
+    else if (type == wxT("datetime"))
+        return VT_DATE;
+    else if (type == wxT("double"))
+        return VT_R8;
+    else if (type == wxT("list"))
+        return VT_ARRAY;
+    else if (type == wxT("long"))
+        return VT_I4;
+    else if (type == wxT("string"))
+        return VT_BSTR;
+    else if (type == wxT("stringlist"))
+        return VT_ARRAY;
+    else if (type == wxT("date"))
+        return VT_DATE;
+    else if (type == wxT("time"))
+        return VT_DATE;
+    else if (type == wxT("void*"))
+        return VT_VOID | VT_BYREF;
+    else
+        return VT_NULL;
+};
+
+bool wxDateTimeToDATE(wxDateTime dt, DATE& d)
+{
+	SYSTEMTIME st;
+	memset(&st, 0, sizeof(st));
+
+	st.wYear = dt.GetYear();
+	st.wMonth = dt.GetMonth() + 1;
+	st.wDay = dt.GetDay();
+	st.wHour = dt.GetHour();
+	st.wMinute = dt.GetMinute();
+	st.wSecond = dt.GetSecond();
+	st.wMilliseconds = dt.GetMillisecond();
+	return SystemTimeToVariantTime(&st, &d) != FALSE;
+};
+
+bool wxDateTimeToVariant(wxDateTime dt, VARIANTARG& va)
+{
+	return wxDateTimeToDATE(dt, va.date);
+};
+
+bool DATEToWxDateTime(DATE date, wxDateTime& dt)
+{
+    SYSTEMTIME st;
+    if (! VariantTimeToSystemTime(date, &st))
+        return false;
+
+    dt = wxDateTime(
+        st.wDay, 
+        wxDateTime::Month(int(wxDateTime::Jan) + st.wMonth - 1), 
+        st.wYear, 
+        st.wHour, st.wMinute, st.wSecond, st.wMilliseconds);
+
+	return true;
+};
+
+bool VariantToWxDateTime(VARIANTARG va, wxDateTime& dt)
+{
+    HRESULT hr = VariantChangeType(&va, &va, 0, VT_DATE);
+    if (! SUCCEEDED(hr))
+        return false;
+
+	return DATEToWxDateTime(va.date, dt);
+};
+
 bool MSWVariantToVariant(VARIANTARG& va, wxVariant& vx)
 {
-    switch(va.vt)
+	bool byRef = false;
+	VARTYPE vt = va.vt;
+
+	if (vt & VT_ARRAY)
+		return false; // don't support arrays yet
+
+	if (vt & VT_BYREF)
+	{
+		byRef = true;
+		vt &= ~(VT_BYREF);
+	};
+
+
+    switch(vt)
     {
-	case VT_VARIANT | VT_BYREF:
-		return MSWVariantToVariant(*va.pvarVal, vx);
+	case VT_VARIANT:
+		if (byRef)
+			return MSWVariantToVariant(*va.pvarVal, vx);
+		else
+		{
+			VARIANT tmp = va;
+			VariantChangeType(&tmp, &tmp, 0, wxTypeToVType(vx));
+			bool rc = MSWVariantToVariant(tmp, vx);
+			VariantClear(&tmp);
+			return rc;
+		};
 
+	// 1 byte chars
+	case VT_I1:
+	case VT_UI1:
+		if (byRef)
+			vx = (char) *va.pbVal;
+		else
+			vx = (char) va.bVal;
+		return true;
+
+	// 2 byte shorts
     case VT_I2:
+	case VT_UI2:
+		if (byRef)
+			vx = (long) *va.puiVal;
+		else
+			vx = (long) va.uiVal;
+		return true;
+
+	// 4 bytes longs
     case VT_I4:
-        vx = (long) va.iVal;
+	case VT_UI4:
+    case VT_INT:
+	case VT_UINT:
+	case VT_ERROR:
+		if (byRef)
+	        vx = (long) *va.pulVal;
+		else
+	        vx = (long) va.ulVal;
         return true;
+    
 
-    case VT_I2 | VT_BYREF:
-    case VT_I4 | VT_BYREF:
-        vx = (long) *va.piVal;
-        return true;
+	// 4 byte floats
+	case VT_R4:
+		if (byRef)
+			vx = *va.pfltVal;
+		else
+			vx = va.fltVal;
+		return true;
 
-    case VT_BSTR:
-        vx = wxString(va.bstrVal);
-        return true;
-
-    case VT_BSTR | VT_BYREF:
-        vx = wxString(*va.pbstrVal);
-        return true;
+	// 8 byte doubles
+	case VT_R8:
+		if (byRef)
+			vx = *va.pdblVal;
+		else
+			vx = va.dblVal;
+		return true;
 
 	case VT_BOOL:
-		vx = (va.boolVal != FALSE);
+		if (byRef)
+			vx = (*va.pboolVal ? true : false);
+		else
+			vx = (va.boolVal ? true : false);
 		return true;
 
-	case VT_BOOL | VT_BYREF:
-		vx = (*va.pboolVal != FALSE);
-		return true;
+	case VT_CY:
+		vx.MakeNull();
+		return false; // what the hell is a CY ?
+
+	case VT_DECIMAL:
+		{
+			double d = 0;
+			HRESULT hr;
+			if (byRef)
+				hr = VarR8FromDec(va.pdecVal, &d);
+			else
+				hr = VarR8FromDec(&va.decVal, &d);
+
+			vx = d;
+			return SUCCEEDED(hr);
+		};
+
+	case VT_DATE:
+		{
+			wxDateTime dt;
+			bool rc =  false;
+			if (byRef)
+				rc = DATEToWxDateTime(*va.pdate, dt);
+			else
+				rc = VariantToWxDateTime(va, dt);
+			vx = dt;
+			return rc;
+		};
+
+    case VT_BSTR:
+		if (byRef)
+	        vx = wxString(*va.pbstrVal);
+		else
+	        vx = wxString(va.bstrVal);
+        return true;
+
+	case VT_UNKNOWN: // should do a custom wxVariantData for this
+		if (byRef)
+			vx = (void *) *va.ppunkVal;
+		else
+			vx = (void *) va.punkVal;
+		return false;
+
+	case VT_DISPATCH: // should do a custom wxVariantData for this
+		if (byRef)
+			vx = (void *) *va.ppdispVal;
+		else
+			vx = (void *) va.pdispVal;
+		return false;
 
     default:
         vx.MakeNull();
@@ -501,30 +717,120 @@ bool MSWVariantToVariant(VARIANTARG& va, wxVariant& vx)
     };
 };
 
-bool VariantToMSWVariant(wxVariant& vx, VARIANTARG& va)
+bool VariantToMSWVariant(const wxVariant& vx, VARIANTARG& va)
 {
-    switch(va.vt)
+	bool byRef = false;
+	VARTYPE vt = va.vt;
+
+	if (vt & VT_ARRAY)
+		return false; // don't support arrays yet
+
+	if (vt & VT_BYREF)
+	{
+		byRef = true;
+		vt &= ~(VT_BYREF);
+	};
+
+    switch(vt)
     {
-	case VT_VARIANT | VT_BYREF:
-		return VariantToMSWVariant(vx, va);
+	case VT_VARIANT:
+		if (byRef)
+			return VariantToMSWVariant(vx, *va.pvarVal);
+		else
+		{
+			va.vt = wxTypeToVType(vx);
+			return VariantToMSWVariant(vx, va);
+		};
 
+	// 1 byte chars
+	case VT_I1:
+	case VT_UI1:
+		if (byRef)
+			*va.pbVal = (char) vx;
+		else
+			va.bVal = (char) vx;
+		return true;
+
+	// 2 byte shorts
     case VT_I2:
-    case VT_I4:
-        va.iVal = (long) vx;
-        return true;
+	case VT_UI2:
+		if (byRef)
+			*va.puiVal = (long) vx;
+		else
+			va.uiVal = (long) vx;
+		return true;
 
-    case VT_I2 | VT_BYREF:
-    case VT_I4 | VT_BYREF:
-         *va.piVal = (long) vx;
+	// 4 bytes longs
+    case VT_I4:
+	case VT_UI4:
+    case VT_INT:
+	case VT_UINT:
+	case VT_ERROR:
+		if (byRef)
+	        *va.pulVal = (long) vx;
+		else
+	        va.ulVal = (long) vx;
         return true;
+    
+
+	// 4 byte floats
+	case VT_R4:
+		if (byRef)
+			*va.pfltVal = (double) vx;
+		else
+			va.fltVal = (double) vx;
+		return true;
+
+	// 8 byte doubles
+	case VT_R8:
+		if (byRef)
+			*va.pdblVal = (double) vx;
+		else
+			va.dblVal = (double) vx;
+		return true;
 
 	case VT_BOOL:
-		va.boolVal = ((bool) vx) ? TRUE : FALSE;
+		if (byRef)
+			*va.pboolVal = ((bool) vx) ? TRUE : FALSE;
+		else
+			va.boolVal = ((bool) vx) ? TRUE : FALSE;
 		return true;
 
-	case VT_BOOL | VT_BYREF:
-		*va.pboolVal = ((bool) vx) ? TRUE : FALSE;
-		return true;
+	case VT_CY:
+		return false; // what the hell is a CY ?
+
+	case VT_DECIMAL:
+		if (byRef)
+			return SUCCEEDED(VarDecFromR8(vx, va.pdecVal));
+		else
+			return SUCCEEDED(VarDecFromR8(vx, &va.decVal));
+
+	case VT_DATE:
+		if (byRef)
+			return wxDateTimeToDATE(vx, *va.pdate);
+		else
+			return wxDateTimeToVariant(vx,va);
+
+    case VT_BSTR:
+		if (byRef)
+			*va.pbstrVal = SysAllocString(vx.GetString().wc_str(wxMBConv()));
+		else
+			va.bstrVal = SysAllocString(vx.GetString().wc_str(wxMBConv()));
+        return true;
+
+	case VT_UNKNOWN: // should do a custom wxVariantData for this
+		if (byRef)
+			*va.ppunkVal = (IUnknown *) (void *) vx;
+		else
+			va.punkVal = (IUnknown *) (void *) vx;
+		return false;
+
+	case VT_DISPATCH: // should do a custom wxVariantData for this
+		if (byRef)
+			*va.ppdispVal = (IDispatch *) (void *) vx;
+		else
+			va.pdispVal = (IDispatch *) (void *) vx;
+		return false;
 
     default:
         return false;
@@ -537,10 +843,15 @@ private:
     DECLARE_OLE_UNKNOWN(wxActiveXEvents);
 
 
-    wxActiveX *m_activeX;
+    wxActiveX	*m_activeX;
+	IID			m_customId;
+	bool		m_haveCustomId;
+
+	friend bool wxActiveXEventsInterface(wxActiveXEvents *self, REFIID iid, void **_interface, const char *&desc);
 
 public:
-    wxActiveXEvents(wxActiveX *ax) : m_activeX(ax) {}
+    wxActiveXEvents(wxActiveX *ax) : m_activeX(ax), m_haveCustomId(false) {}
+	wxActiveXEvents(wxActiveX *ax, REFIID iid) : m_activeX(ax), m_haveCustomId(true), m_customId(iid) {}
 	virtual ~wxActiveXEvents() 
     {
     }
@@ -562,11 +873,8 @@ public:
     };
 
 
-    void DispatchEvent(int eventIdx, const wxEventType& eventType, DISPPARAMS * pDispParams)
+    void DispatchEvent(wxActiveX::FuncX &func, const wxEventType& eventType, DISPPARAMS * pDispParams)
     {
-        wxASSERT(eventIdx >= 0 && eventIdx < int(m_activeX->m_events.size()));
-        wxActiveX::FuncX &func = m_activeX->m_events[eventIdx];
-
 		wxActiveXEvent  event;
     	event.SetId(m_activeX->GetId());
 	    event.SetEventType(eventType);
@@ -623,13 +931,12 @@ public:
 
         wxASSERT(m_activeX);
 
-        // map dispid to m_eventsIdx
-        wxActiveX::MemberIdList::iterator mid = m_activeX->m_eventsIdx.find((MEMBERID) dispIdMember);
-        if (mid == m_activeX->m_eventsIdx.end())
+        // find event for dispid 
+		wxActiveX::FuncXMap::iterator mit = m_activeX->m_events.find((MEMBERID) dispIdMember);
+        if (mit == m_activeX->m_events.end())
             return S_OK;
 
-        int funcIdx = mid->second;      
-        wxActiveX::FuncX &func = m_activeX->m_events[funcIdx];
+        wxActiveX::FuncX &func = mit->second;
 
 
         // try to find dispid event
@@ -637,7 +944,7 @@ public:
         if (dit != sg_dispIdEventMap.end())
         {
             // Dispatch Event
-            DispatchEvent(funcIdx, *(dit->second), pDispParams);
+            DispatchEvent(func, *(dit->second), pDispParams);
         	return S_OK;
         };
 
@@ -647,15 +954,28 @@ public:
             return S_OK;
 
         // Dispatch Event
-        DispatchEvent(funcIdx, *(nit->second), pDispParams);
+        DispatchEvent(func, *(nit->second), pDispParams);
     	return S_OK;
     }
 };
 
+bool wxActiveXEventsInterface(wxActiveXEvents *self, REFIID iid, void **_interface, const char *&desc)
+{
+    if (self->m_haveCustomId && IsEqualIID(iid, self->m_customId))
+    {
+        WXOLE_TRACE("Found Custom Dispatch Interface");
+    	*_interface = (IUnknown *) (IDispatch *) self;
+    	desc = "Custom Dispatch Interface";
+        return true;
+    };
+
+	return false;
+};
 
 DEFINE_OLE_TABLE(wxActiveXEvents)
 	OLE_IINTERFACE(IUnknown)
 	OLE_INTERFACE(IID_IDispatch, IDispatch)
+	OLE_INTERFACE_CUSTOM(wxActiveXEventsInterface)
 END_OLE_TABLE;
 
 wxString wxActiveXEvent::EventName()
@@ -709,11 +1029,6 @@ void wxActiveXEvent::ParamSetString(int idx , wxString val)
 
 static wxVariant nullVar;
 
-wxVariant wxActiveXEvent::operator[] (int idx) const
-{
-    return operator[] (idx);
-};
-
 wxVariant& wxActiveXEvent::operator[] (int idx)
 {
     wxASSERT(idx >= 0 && idx < ParamCount());
@@ -721,16 +1036,9 @@ wxVariant& wxActiveXEvent::operator[] (int idx)
     return m_params[idx];
 };
 
-wxVariant wxActiveXEvent::operator[] (wxString name) const
-{
-    return operator[] (name);
-};
-
 wxVariant& wxActiveXEvent::operator[] (wxString name)
 {
-    int i;
-
-    for (i = 0; i < m_params.GetCount(); i++)
+    for (int i = 0; i < m_params.GetCount(); i++)
     {
         if (name.CmpNoCase(m_params[i].GetName()) == 0)
             return m_params[i];
@@ -803,6 +1111,7 @@ void wxActiveX::GetTypeInfo()
 			continue;
 
         // check if default event sink
+		bool defInterface = false;
         bool defEventSink = false;
         int impTypeFlags = 0;
         typeInfo->GetImplTypeFlags(i, &impTypeFlags);
@@ -813,16 +1122,22 @@ void wxActiveX::GetTypeInfo()
             {
                 WXOLE_TRACEOUT("Default Event Sink");
                 defEventSink = true;
+				if (impTypeFlags & IMPLTYPEFLAG_FDEFAULTVTABLE)
+				{
+					WXOLE_TRACEOUT("*ERROR* - Default Event Sink is via vTable");
+					defEventSink = false;
+				};
             }
             else
             {
                 WXOLE_TRACEOUT("Default Interface");
+				defInterface = true;
             }
         };
 
 
 		// process
-		GetTypeInfo(ti, defEventSink);
+		GetTypeInfo(ti, defInterface, defEventSink);
 	};
 
 
@@ -830,8 +1145,19 @@ void wxActiveX::GetTypeInfo()
     typeInfo->ReleaseTypeAttr(ta);
 };
 
-void wxActiveX::GetTypeInfo(ITypeInfo *ti, bool defEventSink)
+void ElemDescToParam(const ELEMDESC& ed, wxActiveX::ParamX& param)
 {
+	param.flags = ed.idldesc.wIDLFlags;
+	param.vt = ed.tdesc.vt;
+    param.isPtr = (param.vt == VT_PTR);
+    param.isSafeArray = (param.vt == VT_SAFEARRAY);
+    if (param.isPtr || param.isSafeArray)
+        param.vt = ed.tdesc.lptdesc->vt;
+};
+
+void wxActiveX::GetTypeInfo(ITypeInfo *ti, bool defInterface, bool defEventSink)
+{
+    // wxAutoOleInterface<> assumes a ref has already been added
 	ti->AddRef();
 	wxAutoOleInterface<ITypeInfo> typeInfo(ti);
 
@@ -847,7 +1173,7 @@ void wxActiveX::GetTypeInfo(ITypeInfo *ti, bool defEventSink)
 
         if (defEventSink)
         {
-            wxActiveXEvents *disp = new wxActiveXEvents(this);
+            wxActiveXEvents *disp = new wxActiveXEvents(this, ta->guid);
             ConnectAdvise(ta->guid, disp);
         };
 
@@ -873,7 +1199,7 @@ void wxActiveX::GetTypeInfo(ITypeInfo *ti, bool defEventSink)
 				WXOLE_TRACEOUT("Name " << i << " = " << name.c_str());
 				SysFreeString(anames[0]);
 
-                if (defEventSink)
+                if (defInterface || defEventSink)
                 {
                     FuncX func;
                     func.name = name;
@@ -886,31 +1212,60 @@ void wxActiveX::GetTypeInfo(ITypeInfo *ti, bool defEventSink)
                     BSTR *pnames = new BSTR[maxPNames];
 
                     hret = typeInfo->GetNames(fd->memid, pnames, maxPNames, &nPNames);
-                    wxASSERT(int(nPNames) >= fd->cParams + 1);
 
-                    SysFreeString(pnames[0]);
+					int pbase = 0;
+					if (fd->cParams < int(nPNames))
+					{
+						pbase++;
+	                    SysFreeString(pnames[0]);
+					};
+
 					// params
+                    ElemDescToParam(fd->elemdescFunc, func.retType);
 					for (int p = 0; p < fd->cParams; p++)
 					{
 						ParamX param;
 
-						param.flags = fd->lprgelemdescParam[p].idldesc.wIDLFlags;
-						param.vt = fd->lprgelemdescParam[p].tdesc.vt;
-                        param.isPtr = (param.vt == VT_PTR);
-                        param.isSafeArray = (param.vt == VT_SAFEARRAY);
-                        if (param.isPtr || param.isSafeArray)
-                            param.vt = fd->lprgelemdescParam[p].tdesc.lptdesc->vt;
+						ElemDescToParam(fd->lprgelemdescParam[p], param);
 
-                        param.name = pnames[p + 1];
-                        SysFreeString(pnames[p + 1]);
+                        param.name = pnames[pbase + p];
+                        SysFreeString(pnames[pbase + p]);
 
 						func.hasOut |= (param.IsOut() || param.isPtr);
 						func.params.push_back(param);
 					};
                     delete [] pnames;
 
-                    m_events.push_back(func);
-                    m_eventsIdx[fd->memid] = m_events.size() - 1;
+					if (defEventSink)
+					{
+						m_events[fd->memid] = func;
+					}
+					else
+					{
+						if (fd->invkind == INVOKE_FUNC)
+						{
+							m_methods[func.name] = func;
+						}
+						else
+						{
+							PropXMap::iterator it = m_props.find(func.name);
+							if (it == m_props.end())
+                            {
+								it = m_props.insert(PropXMap::value_type(func.name, PropX())).first;
+                                it->second.name = func.name;
+                                it->second.memid = func.memid;
+                                
+                            };
+							
+							if (fd->invkind == INVOKE_PROPERTYGET)
+								it->second.type = func.retType;
+							else if (func.params.size() > 0)
+							{
+								it->second.arg = func.params[0];
+								it->second.putByRef = (fd->invkind == INVOKE_PROPERTYPUTREF);
+							};
+						};
+					};
                 };
 			};
 
@@ -921,14 +1276,440 @@ void wxActiveX::GetTypeInfo(ITypeInfo *ti, bool defEventSink)
 	typeInfo->ReleaseTypeAttr(ta);
 };
 
+wxString wxActiveX::GetEventName(int idx) {
+     if (idx < 0 || idx >= this->GetEventCount() ) {
+       wxString tmp = "" ;
+       return( tmp ) ;
+     }
+     const wxActiveX::FuncX& func = this->GetEventDesc(idx);
+     return( func.name ) ;
+}
+
+wxString wxActiveX::GetPropName(int idx) {
+     if (idx < 0 || idx >= this->GetPropCount() ) {
+       wxString tmp = "" ;
+       return( tmp ) ;
+     }
+     
+     const wxActiveX::PropX prop = this->GetPropDesc(idx);
+     return( prop.name ) ;
+}
+
+wxString wxActiveX::GetMethodName(int idx) {
+     if (idx < 0 || idx >= this->GetMethodCount() ) {
+       wxString tmp = "" ;
+       return( tmp ) ;
+     }
+     const wxActiveX::FuncX& func = this->GetMethodDesc(idx);
+     return( func.name ) ;
+}
+
+wxString wxActiveX::PropType(wxString name)
+{
+   const wxActiveX::PropX prop = this->GetPropDesc(name);
+   wxString ret = VarTypeAsString(prop.type.vt) ;
+   return( ret ) ;
+};
+
+int wxActiveX::GetMethodArgCount(int idx) {
+     if (idx < 0 || idx >= this->GetMethodCount() ) {
+       int tmp = 0 ;
+       return( tmp ) ;
+     }
+     const wxActiveX::FuncX& func = this->GetMethodDesc(idx);
+     int argsz = func.params.size() ;
+     return( argsz ) ;
+}
+
+wxString wxActiveX::GetMethodArgName(int idx , int argx) {
+     if (idx < 0 || idx >= this->GetMethodCount() ) {
+       wxString tmp = "" ;
+       return( tmp ) ;
+     }
+     const wxActiveX::FuncX& func = this->GetMethodDesc(idx);
+     const wxActiveX::ParamX& param = func.params[argx];
+     return( param.name ) ;
+}
+
 ///////////////////////////////////////////////
 // Type Info exposure
-const wxActiveX::FuncX& wxActiveX::GetEvent(int idx) const
+const wxActiveX::FuncX& wxActiveX::GetEventDesc(int idx) const
 {
     wxASSERT(idx >= 0 && idx < GetEventCount());
 
-    return m_events[idx];
+	FuncXMap::const_iterator it = m_events.begin();
+	while (idx > 0)
+	{
+		it++;
+		idx--;
+	};
+    return it->second;
 };
+
+const wxActiveX::PropX& wxActiveX::GetPropDesc(int idx) const
+{
+    if (idx < 0 || idx >= GetPropCount())
+        throw exception("Property index out of bounds");
+
+	PropXMap::const_iterator it = m_props.begin();
+	while (idx > 0)
+	{
+		it++;
+		idx--;
+	};
+    return it->second;
+};
+
+const wxActiveX::PropX& wxActiveX::GetPropDesc(wxString name) const
+{
+	PropXMap::const_iterator it = m_props.find(name);
+    if (it == m_props.end())
+    {
+        wxString s;
+        s << "property <" << name << "> not found";
+        throw exception(s.mb_str());
+    };
+
+    return it->second;
+};
+
+const wxActiveX::FuncX& wxActiveX::GetMethodDesc(int idx) const
+{
+    if (idx < 0 || idx >= GetMethodCount())
+        throw exception("Method index out of bounds");
+
+
+	FuncXStringMap::const_iterator it = m_methods.begin();
+	while (idx > 0)
+	{
+		it++;
+		idx--;
+	};
+    return it->second;
+};
+
+
+const wxActiveX::FuncX& wxActiveX::GetMethodDesc(wxString name) const
+{
+	FuncXStringMap::const_iterator it = m_methods.find(name);
+    if (it == m_methods.end())
+    {
+        wxString s;
+        s << "method <" << name << "> not found";
+        throw exception(s.mb_str());
+    };
+
+    return it->second;
+};
+
+
+void wxActiveX::SetProp(MEMBERID name, VARIANTARG& value)
+{
+    DISPID pids[1] = {DISPID_PROPERTYPUT};
+	DISPPARAMS params = {&value, pids, 1, 1};
+
+    EXCEPINFO x;
+    memset(&x, 0, sizeof(x));
+    unsigned int argErr = 0;
+
+	HRESULT hr = m_Dispatch->Invoke(
+		name, 
+		IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_PROPERTYPUT,
+		&params, NULL, &x, &argErr);
+
+    WXOLE_WARN(hr, "Invoke Prop(...)");
+};
+
+void wxActiveX::SetProp(const wxString &name, const wxVariant &value)
+{
+    const PropX& prop = GetPropDesc(name);
+    if (! prop.CanSet())
+    {
+        wxString s;
+        s << "property <" << name << "> is readonly";
+        throw exception(s.mb_str());
+    };
+
+    VARIANT v = {prop.arg.vt};
+    VariantToMSWVariant(value, v);
+    SetProp(prop.memid, v);
+    VariantClear(&v); // this releases any BSTR's etc
+};
+
+VARIANT wxActiveX::GetPropAsVariant(MEMBERID name)
+{
+    VARIANT v;
+    VariantInit(&v);
+
+	DISPPARAMS params = {NULL, NULL, 0, 0};
+
+    EXCEPINFO x;
+    memset(&x, 0, sizeof(x));
+    unsigned int argErr = 0;
+
+	HRESULT hr = m_Dispatch->Invoke(
+		name, 
+		IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_PROPERTYGET,
+		&params, &v, &x, &argErr);
+
+    WXOLE_WARN(hr, "Invoke Prop(...)");
+
+    return v;
+};
+
+VARIANT wxActiveX::GetPropAsVariant(const wxString& name)
+{
+    const PropX& prop = GetPropDesc(name);
+    if (! prop.CanGet())
+    {
+        wxString s;
+        s << "property <" << name << "> is writeonly";
+        throw exception(s.mb_str());
+    };
+
+    return GetPropAsVariant(prop.memid);
+};
+    
+wxVariant wxActiveX::GetPropAsWxVariant(const wxString& name)
+{
+    VARIANT v = GetPropAsVariant(name);
+    HRESULT hr = VariantChangeType(&v, &v, 0, VT_BSTR);
+    if (! SUCCEEDED(hr))
+        throw exception("Unable to convert variant");
+
+    wxVariant wv;
+    MSWVariantToVariant(v, wv);
+
+    VariantClear(&v);
+
+    return wv;
+};
+
+wxString wxActiveX::GetPropAsString(const wxString& name)
+{
+    VARIANT v = GetPropAsVariant(name);
+    HRESULT hr = VariantChangeType(&v, &v, 0, VT_BSTR);
+    if (! SUCCEEDED(hr))
+        throw exception("Unable to convert variant");
+
+    wxString s = v.bstrVal;
+    VariantClear(&v);
+
+    return s;
+};
+
+char wxActiveX::GetPropAsChar(const wxString& name)
+{
+    VARIANT v = GetPropAsVariant(name);
+    HRESULT hr = VariantChangeType(&v, &v, 0, VT_I1);
+    if (! SUCCEEDED(hr))
+        throw exception("Unable to convert variant");
+
+    return v.cVal;
+};
+
+long wxActiveX::GetPropAsLong(const wxString& name)
+{
+    VARIANT v = GetPropAsVariant(name);
+    HRESULT hr = VariantChangeType(&v, &v, 0, VT_I4);
+    if (! SUCCEEDED(hr))
+        throw exception("Unable to convert variant");
+
+    return v.iVal;
+};
+
+bool wxActiveX::GetPropAsBool(const wxString& name)
+{
+    VARIANT v = GetPropAsVariant(name);
+    HRESULT hr = VariantChangeType(&v, &v, 0, VT_BOOL);
+    if (! SUCCEEDED(hr))
+        throw exception("Unable to convert variant");
+
+    return v.boolVal != 0;
+};
+
+double wxActiveX::GetPropAsDouble(const wxString& name)
+{
+    VARIANT v = GetPropAsVariant(name);
+    HRESULT hr = VariantChangeType(&v, &v, 0, VT_R8);
+    if (! SUCCEEDED(hr))
+        throw exception("Unable to convert variant");
+
+    return v.dblVal;
+};
+
+wxDateTime wxActiveX::GetPropAsDateTime(const wxString& name)
+{
+	wxDateTime dt;
+    VARIANT v = GetPropAsVariant(name);
+
+	if (! VariantToWxDateTime(v, dt))
+        throw exception("Unable to convert variant to wxDateTime");
+
+    return dt;
+};
+
+void *wxActiveX::GetPropAsPointer(const wxString& name)
+{
+    VARIANT v = GetPropAsVariant(name);
+    HRESULT hr = VariantChangeType(&v, &v, 0, VT_BYREF);
+    if (! SUCCEEDED(hr))
+        throw exception("Unable to convert variant");
+
+    return v.byref;
+};
+
+wxString wxActiveX::PropVal(wxString name)
+{
+    return Prop(name) ;
+};
+
+void wxActiveX::PropSetBool(wxString name , bool val)
+{
+    SetProp(name, val) ;
+};
+    
+void wxActiveX::PropSetInt(wxString name , long val)
+{
+    SetProp(name, val) ;
+};
+
+void wxActiveX::PropSetString(wxString name , wxString val)
+{
+    SetProp(name, val) ;
+};
+
+
+// call methods
+VARIANT wxActiveX::CallMethod(MEMBERID name, VARIANTARG args[], int argc)
+{
+	DISPPARAMS pargs = {args, NULL, argc, 0};
+    VARIANT retVal;
+    VariantInit(&retVal);
+
+    EXCEPINFO x;
+    memset(&x, 0, sizeof(x));
+    unsigned int argErr = 0;
+
+	HRESULT hr = m_Dispatch->Invoke(
+		name, 
+		IID_NULL, LOCALE_USER_DEFAULT, DISPATCH_METHOD,
+		&pargs, &retVal, &x, &argErr);
+
+    WXOLE_WARN(hr, "Invoke Method(...)");
+    return retVal;
+};
+
+VARIANT wxActiveX::CallMethod(wxString name, VARIANTARG args[], int argc)
+{
+    const FuncX& func = GetMethodDesc(name);
+    if (argc < 0)
+        argc = func.params.size();
+
+    return CallMethod(func.memid, args, argc);
+};
+
+wxVariant wxActiveX::CallMethod(wxString name, wxVariant args)
+{
+    const FuncX& func = GetMethodDesc(name);
+
+    VARIANTARG *vargs = NULL;
+    int nargs = min(unsigned int(args.GetCount()), func.params.size());
+    if (nargs > 0)
+        vargs = new VARIANTARG[nargs];
+
+    if (vargs)
+    {
+        // init type of vargs
+        for (int i = 0; i < nargs; i++)
+            vargs[nargs - i - 1].vt = func.params[i].vt;
+
+        // put data
+        if (args.GetType() == wxT("list"))
+        {
+            for (int i = 0; i < nargs; i++)
+                VariantToMSWVariant(args[i], vargs[nargs - i - 1]);
+        }
+        else
+            VariantToMSWVariant(args, vargs[0]);
+    };
+
+    VARIANT rv = CallMethod(func.memid, vargs, nargs);
+
+    if (vargs)
+    {
+        for (int i = 0; i < nargs; i++)
+            VariantClear(&vargs[i]);
+        delete [] vargs;
+    };
+
+    wxVariant ret;
+
+    MSWVariantToVariant(rv, ret);
+    VariantClear(&rv);
+
+    return ret;
+};
+
+wxVariant wxActiveX::CallMethod(wxString name, wxVariant args[], int nargs)
+{
+    const FuncX& func = GetMethodDesc(name);
+
+    if (args == NULL)
+        nargs = 0;
+
+    VARIANTARG *vargs = NULL;
+    if (nargs < 0)
+        nargs = func.params.size();
+
+    if (nargs > 0)
+        vargs = new VARIANTARG[nargs];
+
+    if (vargs)
+    {
+        // init type of vargs
+        for (int i = 0; i < nargs; i++)
+            vargs[nargs - i - 1].vt = func.params[i].vt;
+
+        // put data
+        for (i = 0; i < nargs; i++)
+            VariantToMSWVariant(args[i], vargs[nargs - i - 1]);
+    };
+
+    VARIANT rv = CallMethod(func.memid, vargs, nargs);
+
+	// process any by ref params
+	if (func.hasOut)
+	{
+        for (int i = 0; i < nargs; i++)
+        {
+            VARIANTARG& va = vargs[nargs - i - 1];
+			const wxActiveX::ParamX &px = func.params[i];
+
+			if (px.IsOut())
+			{
+				wxVariant& vx = args[i];
+
+				MSWVariantToVariant(va, vx);
+			};
+		};
+	}
+
+    if (vargs)
+    {
+        for (int i = 0; i < nargs; i++)
+            VariantClear(&vargs[i]);
+        delete [] vargs;
+    };
+
+    wxVariant ret;
+
+    MSWVariantToVariant(rv, ret);
+    VariantClear(&rv);
+
+    return ret;
+};
+
 
 ///////////////////////////////////////////////
 
@@ -949,6 +1730,10 @@ HRESULT wxActiveX::ConnectAdvise(REFIID riid, IUnknown *events)
 
 	if (SUCCEEDED(hret))
 		m_connections.push_back(wxOleConnection(cp, adviseCookie));
+	else
+	{
+		WXOLE_WARN(hret, "ConnectAdvise");
+	};
 
 	return hret;
 };
@@ -1531,11 +2316,46 @@ HRESULT FrameSite::SaveObject()
 	return S_OK;
 }
 
+const char *OleGetMonikerToStr(DWORD dwAssign)
+{
+    switch (dwAssign)
+    {
+    case OLEGETMONIKER_ONLYIFTHERE  : return "OLEGETMONIKER_ONLYIFTHERE";
+    case OLEGETMONIKER_FORCEASSIGN  : return "OLEGETMONIKER_FORCEASSIGN";
+    case OLEGETMONIKER_UNASSIGN     : return "OLEGETMONIKER_UNASSIGN";
+    case OLEGETMONIKER_TEMPFORUSER  : return "OLEGETMONIKER_TEMPFORUSER";    
+    default                         : return "Bad Enum";
+    };
+};
+
+const char *OleGetWhicMonikerStr(DWORD dwWhichMoniker)
+{
+    switch(dwWhichMoniker)
+    {
+    case OLEWHICHMK_CONTAINER   : return "OLEWHICHMK_CONTAINER";
+    case OLEWHICHMK_OBJREL      : return "OLEWHICHMK_OBJREL";
+    case OLEWHICHMK_OBJFULL     : return "OLEWHICHMK_OBJFULL";
+    default                     : return "Bad Enum";
+    };
+};
+
 HRESULT FrameSite::GetMoniker(DWORD dwAssign, DWORD dwWhichMoniker,
 							  IMoniker ** ppmk)
 {
-	WXOLE_TRACE("IOleClientSite::GetMoniker");
-	return E_NOTIMPL;
+	WXOLE_TRACEOUT("IOleClientSite::GetMoniker(" << OleGetMonikerToStr(dwAssign) << ", " << OleGetWhicMonikerStr(dwWhichMoniker) << ")");
+
+
+    if (! ppmk)
+        return E_FAIL;
+
+    /*
+    HRESULT hr = CreateFileMoniker(L"e:\\dev\\wxie\\bug-zap.swf", ppmk);
+    if (SUCCEEDED(hr))
+        return S_OK;
+    */
+    *ppmk = NULL;
+    
+	return E_FAIL ;
 }
 
 HRESULT FrameSite::GetContainer(LPOLECONTAINER * ppContainer)
@@ -1781,7 +2601,6 @@ HRESULT STDMETHODCALLTYPE FrameSite::ActivateMe(
 };
 
 
-
 static IMalloc *iMalloc = NULL;
 
 IMalloc *wxOleInit::GetIMalloc()
@@ -1809,12 +2628,54 @@ wxOleInit::~wxOleInit()
     OleUninitialize();
 }
 
+bool GetSysErrMessage(int err, wxString& s)
+{
+	char buf[256];
+	if (FormatMessage(
+		FORMAT_MESSAGE_FROM_SYSTEM, NULL,
+		err,0, buf, sizeof(buf), NULL) == 0)
+		return false;
+
+	buf[sizeof(buf) - 1] = 0;
+	s = buf;
+	return true;
+};
+
 wxString OLEHResultToString(HRESULT hr)
 {
+	// try formatmessage
+	wxString err;
+	if (GetSysErrMessage(hr, err))
+		return err;
+
     switch (hr)
     {
     case S_OK:
     	return "";
+
+	case CONNECT_E_CANNOTCONNECT:
+		return "Cannot connect to event interface (maybe not there ?) - see MSDN";
+
+    case DISP_E_MEMBERNOTFOUND:
+        return "The requested member does not exist, or the call to Invoke tried to set the value of a read-only property.";
+
+    case DISP_E_BADVARTYPE:
+        return "One of the parameters in rgvarg is not a valid variant type.";
+
+    case DISP_E_BADPARAMCOUNT:
+        return "The number of elements provided to DISPPARAMS is different from the number of parameters accepted by the method or property";
+
+    case DISP_E_EXCEPTION:
+        return "The application needs to raise an exception. In this case, the structure passed in pExcepInfo should be filled in.";
+
+    case DISP_E_TYPEMISMATCH:
+        return "One or more of the parameters could not be coerced. The index within rgvarg of the first parameter with the incorrect type is returned in the puArgErr parameter.";
+
+    case DISP_E_PARAMNOTOPTIONAL:
+        return "A required parameter was omitted.";
+
+	case DISP_E_PARAMNOTFOUND:
+		return "One of the parameter DISPIDs does not correspond to a parameter on the method. In this case, puArgErr should be set to the first parameter that contains the error.";
 
     case OLECMDERR_E_UNKNOWNGROUP:
 		return "The pguidCmdGroup parameter is not NULL but does not specify a recognized command group.";
@@ -1877,6 +2738,7 @@ wxString GetIIDName(REFIID riid)
 
   static const KNOWN_IID aKnownIids[] = 
   {
+    ADD_KNOWN_IID(ServiceProvider),
     ADD_KNOWN_IID(AdviseSink),
     ADD_KNOWN_IID(AdviseSink2),
     ADD_KNOWN_IID(BindCtx),

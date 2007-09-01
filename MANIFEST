@@ -7,9 +7,14 @@ activex/IEHtmlWin.cpp
 activex/IEHtmlWin.h
 activex/wxactivex.cpp
 activex/wxactivex.h
+cpp/activex.h
+demo/dumy.fla
+demo/dumy.swf
+demo/wxFlash.pl
 demo/wxIE.pl
 t/01_load.t
 XS/IEHtmlWin.xs
 lib/Wx/ActiveX.pm
 lib/Wx/ActiveX/Event.pm
+lib/Wx/ActiveX/Flash.pm
 lib/Wx/ActiveX/IE.pm

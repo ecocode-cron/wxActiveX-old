@@ -10,13 +10,10 @@
 //              modify it under the same terms as Perl itself
 /////////////////////////////////////////////////////////////////////////////
 
-#undef bool
 #define PERL_NO_GET_CONTEXT
 
 #include "cpp/wxapi.h"
-
 #include "activex/wxactivex.cpp"
-#include "activex/IEHtmlWin.cpp"
 
 #undef THIS
 // do it _AFTER_ OLE headers have been included
@@ -43,16 +40,94 @@ wxActiveX::new( parent, progId , id, pos = wxDefaultPosition, size = wxDefaultSi
     long style
     wxString name
 
+void
+wxActiveX::Invoke(name , ...)
+    wxString name
+  PREINIT:
+    wxVariant args, ret;
+    int i, max;
+  PPCODE:
+    args.NullList();
+
+    for(i = 2; i < items; i++){
+      wxString argx ;
+      WXSTRING_INPUT(argx, wxString, ST(i) );
+      args.Append( wxVariant(argx) );
+    }
+    
+    ret = THIS->CallMethod(name , args) ;
+    max = ret.GetCount() ;
+      
+    for(i = 0; i < max; i++) {
+      wxString retx = ret[i].GetString() ;
+#if wxUSE_UNICODE
+      SV* tmp = sv_2mortal( newSVpv( retx.mb_str(wxConvUTF8), 0 ) );
+      SvUTF8_on( tmp );
+      PUSHs( tmp );
+#else
+      PUSHs( sv_2mortal( newSVpv( CHAR_P retx.c_str(), 0 ) ) );
+#endif
+    }
+
+
+int
+wxActiveX::GetMethodCount()
+
+wxString
+wxActiveX::GetMethodName(idx)
+    int idx
+
+int
+wxActiveX::GetMethodArgCount(idx)
+    int idx
+
+wxString
+wxActiveX::GetMethodArgName(idx , argx)
+    int idx
+    int argx
+
+
 int
 wxActiveX::GetEventCount()
-  CODE:
-	RETVAL = THIS->GetEventCount();
-  OUTPUT:
-    RETVAL
-    
+
 wxString
 wxActiveX::GetEventName(idx)
     int idx
+
+
+int
+wxActiveX::GetPropCount()
+
+wxString
+wxActiveX::GetPropName(idx)
+    int idx
+
+
+wxString
+wxActiveX::PropType(name)
+    wxString name
+
+wxString
+wxActiveX::PropVal(name)
+    wxString name
+
+void    
+wxActiveX::PropSetBool(name , val)
+    wxString name
+    bool val
+    
+void    
+wxActiveX::PropSetInt(name , val)
+    wxString name
+    long val
+    
+void    
+wxActiveX::PropSetString(name , val)
+    wxString name
+    wxString val
+    
+
+######### EVENTS:
 
 MODULE=Wx PACKAGE=Wx::ActiveXEvent
 

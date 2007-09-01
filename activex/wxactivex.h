@@ -1,16 +1,17 @@
+/*! \file wxactivex.h 
+    \brief implements wxActiveX window class and OLE tools
+*/ 
+
 #ifndef WX_ACTIVE_X
 #define WX_ACTIVE_X
-#ifdef _MSC_VER
 #pragma warning( disable : 4101 4786)
 #pragma warning( disable : 4786)
 #pragma warning( disable : 4530)
-#endif
 
-#include <wx/setup.h>
+/////////// #include <wx/setup.h>
 #include <wx/wx.h>
 #include <wx/variant.h>
-#include <windows.h>
-#include <ole2.h>
+#include <wx/datetime.h>
 #include <oleidl.h>
 #include <exdisp.h>
 #include <docobj.h>
@@ -19,47 +20,61 @@
 #include <map>
 using namespace std;
 
+/// wxActiveX Namespace for stuff I want to keep out of other tools way
+namespace NS_wxActiveX
+{
+    //// STL utilty class specific to wxActiveX, for creating
+    /// case insenstive maps etc
+	struct less_wxStringI
+	{
+		bool operator()(const wxString& x, const wxString& y) const
+		{
+			return x.CmpNoCase(y) < 0;
+		};
+	};
+};
+
+
 //////////////////////////////////////////
-// wxAutoOleInterface<Interface>
-// Template class for smart interface handling
-// - Automatically dereferences ole interfaces
-// - Smart Copy Semantics
-// - Can Create Interfaces
-// - Can query for other interfaces
+/// Template class for smart interface handling.
+/// - Automatically dereferences ole interfaces
+/// - Smart Copy Semantics
+/// - Can Create Interfaces
+/// - Can query for other interfaces
 template <class I> class wxAutoOleInterface
 {
 	protected:
     I *m_interface;
 
 	public:
-	// takes ownership of an existing interface
-	// Assumed to already have a AddRef() applied
+	/// takes ownership of an existing interface
+	/// Assumed to already have a AddRef() applied
     explicit wxAutoOleInterface(I *pInterface = NULL) : m_interface(pInterface) {}
 
-	// queries for an interface 
+	/// queries for an interface 
     wxAutoOleInterface(REFIID riid, IUnknown *pUnk) : m_interface(NULL)
 	{
 		QueryInterface(riid, pUnk);
 	};
-	// queries for an interface 
+	/// queries for an interface 
     wxAutoOleInterface(REFIID riid, IDispatch *pDispatch) : m_interface(NULL)
 	{
 		QueryInterface(riid, pDispatch);
 	};
 
-	// Creates an Interface
+	/// Creates an Interface
 	wxAutoOleInterface(REFCLSID clsid, REFIID riid) : m_interface(NULL)
 	{
 		CreateInstance(clsid, riid);
 	};
 
-	// copy constructor
+	/// copy constructor
     wxAutoOleInterface(const wxAutoOleInterface<I>& ti) : m_interface(NULL)
     {
 		operator = (ti);
     }
 
-	// assignment operator
+	/// assignment operator
     wxAutoOleInterface<I>& operator = (const wxAutoOleInterface<I>& ti)
     {
 		if (ti.m_interface)
@@ -69,8 +84,8 @@ template <class I> class wxAutoOleInterface
         return *this;
     }
 
-	// takes ownership of an existing interface
-	// Assumed to already have a AddRef() applied
+	/// takes ownership of an existing interface
+	/// Assumed to already have a AddRef() applied
     wxAutoOleInterface<I>& operator = (I *&ti)
     {
     	Free();
@@ -78,12 +93,14 @@ template <class I> class wxAutoOleInterface
         return *this;
     }
 
+    /// invokes Free()
     ~wxAutoOleInterface()
     {
     	Free();
     };
 
 
+    /// Releases interface (i.e decrements refCount)
     inline void Free()
     {
     	if (m_interface)
@@ -91,7 +108,7 @@ template <class I> class wxAutoOleInterface
         m_interface = NULL;
     };
 
-	// queries for an interface 
+	/// queries for an interface 
     HRESULT QueryInterface(REFIID riid, IUnknown *pUnk)
 	{
 		Free();
@@ -99,7 +116,7 @@ template <class I> class wxAutoOleInterface
 	    return pUnk->QueryInterface(riid, (void **) &m_interface);
 	};
 
-	// Create a Interface instance
+	/// Create a Interface instance
     HRESULT CreateInstance(REFCLSID clsid, REFIID riid)
     {
 		Free();
@@ -107,16 +124,23 @@ template <class I> class wxAutoOleInterface
     };
 
 
-
+    /// returns the interface pointer
     inline operator I *() const {return m_interface;}
-    inline I* operator ->() {return m_interface;}
-	inline I** GetRef()	{return &m_interface;}
 
+    /// returns the dereferenced interface pointer
+    inline I* operator ->() {return m_interface;}
+    /// returns a pointer to the interface pointer
+	inline I** GetRef()	{return &m_interface;}
+    /// returns true if we have a valid interface pointer
 	inline bool Ok() const	{return m_interface != NULL;}
 };
 
 
+/// \brief Converts a std HRESULT to its error code.
+/// Hardcoded, by no means a definitive list.
 wxString OLEHResultToString(HRESULT hr);
+/// \brief Returns the string description of a IID.
+/// Hardcoded, by no means a definitive list.
 wxString GetIIDName(REFIID riid);
 
 //#define __WXOLEDEBUG
@@ -126,9 +150,9 @@ wxString GetIIDName(REFIID riid);
     #define WXOLE_TRACE(str) {OutputDebugString(str);OutputDebugString("\r\n");}
     #define WXOLE_TRACEOUT(stuff)\
     {\
-        ostringstream os;\
-        os << stuff << ends;\
-        WXOLE_TRACE(os.str().c_str());\
+        wxString os;\
+        os << stuff << "\r\n";\
+        WXOLE_TRACE(os.mb_str());\
     }
 
     #define WXOLE_WARN(__hr,msg)\
@@ -147,7 +171,8 @@ wxString GetIIDName(REFIID riid);
     #define WXOLE_WARN(_proc,msg) {_proc;}
 #endif
 
-// Auto Initialisation
+/// Utility class for automatically initialising/freeing OLE.
+/// Just declare it statically somewhere in your program
 class wxOleInit
 {
 	public:
@@ -256,18 +281,57 @@ class wxOleInit
 
 #define OLE_INTERFACE_CUSTOM(func)\
     if (func(self, iid, _interface, desc))\
-        return
+	{\
+        return;\
+	}
 
 #define END_OLE_TABLE\
 	}
 
 
+/// Main class for embedding a ActiveX control.
+/// Use by itself or derive from it
+/// \note The utility program (wxie) can generate a list of events, methods & properties
+/// for a control. 
+/// First display the control (File|Display), 
+/// then get the type info (ActiveX|Get Type Info) - these are copied to the clipboard. 
+/// Eventually this will be expanded to autogenerate 
+/// wxWindows source files for a control with all methods etc encapsulated.
+/// \par Usage: 
+///     construct using a ProgId or class id
+///     \code new wxActiveX(parent, CLSID_WebBrowser, id, pos, size, style, name)\endcode
+///     \code new wxActiveX(parent, "ShockwaveFlash.ShockwaveFlash", id, pos, size, style, name)\endcode
+/// \par Properties
+/// Properties can be set using \c SetProp() and set/retrieved using \c Prop()
+///         \code SetProp(name, wxVariant(x)) \endcode or 
+///         \code wxString Prop("<name>") = x\endcode
+///         \code wxString result = Prop("<name>")\endcode
+///         \code flash_ctl.Prop("movie") = "file:///movies/test.swf";\endcode
+///         \code flash_ctl.Prop("Playing") = false;\endcode
+///         \code wxString current_movie = flash_ctl.Prop("movie");\endcode
+/// \par Methods
+/// Methods are invoked with \c CallMethod()
+/// \code wxVariant result = CallMethod("<name>", args, nargs = -1)\endcode
+/// \code wxVariant args[] = {0L, "file:///e:/dev/wxie/bug-zap.swf"};
+/// wxVariant result = X->CallMethod("LoadMovie", args);\endcode
+/// \par events
+/// respond to events with the
+///         \c EVT_ACTIVEX(controlId, eventName, handler) & 
+///         \c EVT_ACTIVEX_DISPID(controlId, eventDispId, handler) macros
+/// \code
+/// BEGIN_EVENT_TABLE(wxIEFrame, wxFrame)
+///     EVT_ACTIVEX_DISPID(ID_MSHTML, DISPID_STATUSTEXTCHANGE,  OnMSHTMLStatusTextChangeX)
+///     EVT_ACTIVEX(ID_MSHTML, "BeforeNavigate2",   OnMSHTMLBeforeNavigate2X)
+/// 	EVT_ACTIVEX(ID_MSHTML, "TitleChange",       OnMSHTMLTitleChangeX)
+/// 	EVT_ACTIVEX(ID_MSHTML, "NewWindow2",        OnMSHTMLNewWindow2X)
+/// 	EVT_ACTIVEX(ID_MSHTML, "ProgressChange",    OnMSHTMLProgressChangeX)
+/// END_EVENT_TABLE()\endcode
 
 class wxActiveX : public wxWindow {
 public:
-    ////////////////////////////////////////
-    // type stuff
-	class ParamX // refer to ELEMDESC, IDLDESC in MSDN
+    /// General parameter and return type infoformation for Events, Properties and Methods.
+    /// refer to ELEMDESC, IDLDESC in MSDN
+	class ParamX 
 	{
 	public:
 		USHORT	    flags;
@@ -275,31 +339,48 @@ public:
 		VARTYPE	    vt;
         wxString    name;
 
+        ParamX() : vt(VT_EMPTY) {}
 		inline bool IsIn() const		{return (flags & IDLFLAG_FIN) != 0;}
 		inline bool IsOut() const		{return (flags & IDLFLAG_FOUT) != 0;}
 		inline bool IsRetVal() const	{return (flags & IDLFLAG_FRETVAL) != 0;}
 	};
-
 	typedef vector<ParamX>	ParamXArray;
 
-    class FuncX // refer to FUNCDESC in MSDN
+    /// Type & Parameter info for Events and Methods.
+    /// refer to FUNCDESC in MSDN
+    class FuncX 
     {
     public:
         wxString    name;
         MEMBERID    memid;
 		bool		hasOut;
 
+        ParamX      retType;
 		ParamXArray	params;
     };
 
-    typedef vector<FuncX> FuncXArray;
-    typedef map<MEMBERID, int>  MemberIdList;
+    /// Type info for properties.
+	class PropX
+	{
+	public:
+		wxString	name;
+        MEMBERID    memid;
+        ParamX      type;
+        ParamX      arg;
+		bool		putByRef;
 
+		PropX() : putByRef (false) {}
+		inline bool CanGet() const {return type.vt != VT_EMPTY;}
+		inline bool CanSet() const {return arg.vt != VT_EMPTY;}
+	};
+
+    /// Create using clsid.
     wxActiveX(wxWindow * parent, REFCLSID clsid, wxWindowID id = -1,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize,
         long style = 0,
         const wxString& name = wxPanelNameStr);
+    /// create using progid.
     wxActiveX(wxWindow * parent, wxString progId, wxWindowID id = -1,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize,
@@ -307,15 +388,124 @@ public:
         const wxString& name = wxPanelNameStr);
 	virtual ~wxActiveX();
 
-	void CreateActiveX(REFCLSID clsid);
-    void CreateActiveX(LPOLESTR progId);
-    
-    //int wxActiveX::GetEventCount();
-    wxString GetEventName(int idx);
-
-    // expose type info
+    /// Number of events defined for this control.
     inline int GetEventCount() const {return m_events.size();}
-    const FuncX& GetEvent(int idx) const;
+    /// returns event description by index.
+    /// throws exception for invalid index
+    const FuncX& GetEventDesc(int idx) const;
+    
+    wxString GetEventName(int idx) ;
+    wxString GetPropName(int idx) ;
+    wxString GetMethodName(int idx) ;
+    
+    int GetMethodArgCount(int idx) ;
+    wxString GetMethodArgName(int idx , int argx) ;
+
+    /// Number of properties defined for this control.
+    inline int GetPropCount() const {return m_props.size();}
+    /// returns property description by index.
+    /// throws exception for invalid index
+    const PropX& GetPropDesc(int idx) const;
+    /// returns property description by name.
+    /// throws exception for invalid name
+    const PropX& GetPropDesc(wxString name) const;
+
+    wxString PropType(wxString name) ;
+    wxString PropVal(wxString name) ;
+    void PropSetBool(wxString name , bool val) ;
+    void PropSetInt(wxString name , long val) ;
+    void PropSetString(wxString name , wxString val) ;
+
+    /// Number of methods defined for this control.
+    inline int GetMethodCount() const {return m_methods.size();}
+    /// returns method description by name.
+    /// throws exception for invalid index
+    const FuncX& GetMethodDesc(int idx) const;
+    /// returns method description by name.
+    /// throws exception for invalid name
+    const FuncX& GetMethodDesc(wxString name) const;
+
+	/// Set property VARIANTARG value by MEMBERID.
+    void SetProp(MEMBERID name, VARIANTARG& value);
+    /// Set property using wxVariant by name.
+    void SetProp(const wxString &name, const wxVariant &value);
+    
+    class wxPropertySetter
+    {
+    public:
+        wxActiveX *m_ctl;
+        wxString m_propName;
+
+        wxPropertySetter(wxActiveX *ctl, wxString propName) : 
+            m_ctl(ctl), m_propName(propName) {}
+        
+        inline const wxPropertySetter& operator = (wxVariant v) const
+        {
+            m_ctl->SetProp(m_propName, v);
+            return *this;
+        };
+
+        inline operator wxVariant() const   {return m_ctl->GetPropAsWxVariant(m_propName);};
+        inline operator wxString() const    {return m_ctl->GetPropAsString(m_propName);};
+        inline operator char() const        {return m_ctl->GetPropAsChar(m_propName);};
+        inline operator long() const        {return m_ctl->GetPropAsLong(m_propName);};
+        inline operator bool() const        {return m_ctl->GetPropAsBool(m_propName);};
+        inline operator double() const      {return m_ctl->GetPropAsDouble(m_propName);};
+        inline operator wxDateTime() const  {return m_ctl->GetPropAsDateTime(m_propName);};
+        inline operator void *() const      {return m_ctl->GetPropAsPointer(m_propName);};
+    };
+
+    /// \fn inline wxPropertySetter Prop(wxString name) {return wxPropertySetter(this, name);}
+    /// \param name Property name to read/set
+    /// \return wxPropertySetter, which has overloads for setting/getting the property
+    /// \brief Generic Get/Set Property by name.
+    /// Automatically handles most types
+    /// \par Usage:
+    ///     - Prop("\<name\>") =  \<value\>
+    ///     - var = Prop("\<name\>")
+    ///     - e.g:
+    ///         - \code flash_ctl.Prop("movie") = "file:///movies/test.swf";\endcode
+    ///         - \code flash_ctl.Prop("Playing") = false;\endcode
+    ///         - \code wxString current_movie = flash_ctl.Prop("movie");\endcode
+    /// \exception raises exception if \<name\> is invalid
+    /// \note Have to add a few more type conversions yet ...
+    inline wxPropertySetter Prop(wxString name) {return wxPropertySetter(this, name);}
+
+    VARIANT GetPropAsVariant(MEMBERID name);
+    VARIANT GetPropAsVariant(const wxString& name);
+    wxVariant GetPropAsWxVariant(const wxString& name);
+    wxString GetPropAsString(const wxString& name);
+    char GetPropAsChar(const wxString& name);
+    long GetPropAsLong(const wxString& name);
+    bool GetPropAsBool(const wxString& name);
+    double GetPropAsDouble(const wxString& name);
+    wxDateTime GetPropAsDateTime(const wxString& name);
+    void *GetPropAsPointer(const wxString& name);
+
+    // methods
+    // VARIANTARG form is passed straight to Invoke, 
+    // so args in *REVERSE* order
+    VARIANT CallMethod(MEMBERID name, VARIANTARG args[], int argc);
+    VARIANT CallMethod(wxString name, VARIANTARG args[] = NULL, int argc = -1);
+    wxVariant CallMethod(wxString name, wxVariant args);
+    // args are in *NORMAL* order
+    // args can be a single wxVariant or an array
+    /// \fn wxVariant CallMethod(wxString name, wxVariant args[], int nargs = -1);
+    /// \param name name of method to call
+    /// \param args array of wxVariant's, defaults to NULL (no args)
+    /// \param nargs number of arguments passed via args. Defaults to actual number of args for the method
+    /// \return wxVariant
+    /// \brief Call a method of the ActiveX control.
+    /// Automatically handles most types
+    /// \par Usage:
+    ///     - result = CallMethod("\<name\>", args, nargs)
+    ///     - e.g.
+    ///     - \code
+    ///     wxVariant args[] = {0L, "file:///e:/dev/wxie/bug-zap.swf"};
+    ///     wxVariant result = X->CallMethod("LoadMovie", args);\endcode
+    /// \exception raises exception if \<name\> is invalid
+    /// \note Since wxVariant has built in type conversion, most the std types can be passed easily
+    wxVariant CallMethod(wxString name, wxVariant args[], int nargs = -1);
 
 	HRESULT ConnectAdvise(REFIID riid, IUnknown *eventSink);
 
@@ -331,10 +521,14 @@ protected:
     friend class FrameSite;
     friend class wxActiveXEvents;
 
+	typedef map<MEMBERID, FuncX>	FuncXMap;
+    typedef map<wxString, FuncX, NS_wxActiveX::less_wxStringI>	FuncXStringMap;
+	typedef map<wxString, PropX, NS_wxActiveX::less_wxStringI> PropXMap;
 	typedef wxAutoOleInterface<IConnectionPoint>	wxOleConnectionPoint;
 	typedef pair<wxOleConnectionPoint, DWORD>		wxOleConnection;
 	typedef vector<wxOleConnection>					wxOleConnectionArray;
 
+	wxAutoOleInterface<IDispatch>			m_Dispatch;
     wxAutoOleInterface<IOleClientSite>      m_clientSite;
     wxAutoOleInterface<IUnknown>            m_ActiveX;
 	wxAutoOleInterface<IOleObject>			m_oleObject;
@@ -349,15 +543,22 @@ protected:
     DWORD m_docAdviseCookie;
 	wxOleConnectionArray					m_connections;
 
+	void CreateActiveX(REFCLSID clsid);
+    void CreateActiveX(LPOLESTR progId);
     HRESULT AmbientPropertyChanged(DISPID dispid);
 
 	void GetTypeInfo();
-	void GetTypeInfo(ITypeInfo *ti, bool defEventSink);
+	void GetTypeInfo(ITypeInfo *ti, bool defInterface, bool defEventSink);
 
 
     // events
-    FuncXArray      m_events;
-    MemberIdList    m_eventsIdx;
+    FuncXMap		m_events;
+
+	// properties
+	PropXMap		m_props;
+
+    // Methods
+    FuncXStringMap  m_methods;
 
     long MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
 };
@@ -378,15 +579,13 @@ public:
     int ParamCount() const;
     wxString ParamType(int idx);
     wxString ParamName(int idx);
+    
     wxString ParamVal(int idx);
-
     void ParamSetBool(int idx , bool val);
     void ParamSetInt(int idx , long val);
     void ParamSetString(int idx , wxString val);
     
-    wxVariant  operator[] (int idx) const;
     wxVariant& operator[] (int idx);
-    wxVariant  operator[] (wxString name) const;
     wxVariant& operator[] (wxString name);
 };
 
@@ -395,11 +594,37 @@ const wxEventType& RegisterActiveXEvent(DISPID event);
 
 typedef void (wxEvtHandler::*wxActiveXEventFunction)(wxActiveXEvent&);
 
+/// \def EVT_ACTIVEX(id, eventName, fn)
+/// \brief Event handle for events by name
 #define EVT_ACTIVEX(id, eventName, fn) DECLARE_EVENT_TABLE_ENTRY(RegisterActiveXEvent(wxT(eventName)), id, -1, (wxObjectEventFunction) (wxEventFunction) (wxActiveXEventFunction) & fn, (wxObject *) NULL ),
+/// \def EVT_ACTIVEX_DISPID(id, eventDispId, fn)
+/// \brief Event handle for events by DISPID (dispath id)
 #define EVT_ACTIVEX_DISPID(id, eventDispId, fn) DECLARE_EVENT_TABLE_ENTRY(RegisterActiveXEvent(eventDispId), id, -1, (wxObjectEventFunction) (wxEventFunction) (wxActiveXEventFunction) & fn, (wxObject *) NULL ),
 
 //util
+bool wxDateTimeToVariant(wxDateTime dt, VARIANTARG& va);
+bool VariantToWxDateTime(VARIANTARG va, wxDateTime& dt);
+/// \relates wxActiveX
+/// \fn bool MSWVariantToVariant(VARIANTARG& va, wxVariant& vx);
+/// \param va VARAIANTARG to convert from
+/// \param vx Destination wxVariant
+/// \return success/failure (true/false)
+/// \brief Convert MSW VARIANTARG to wxVariant.
+/// Handles basic types, need to add:
+/// - VT_ARRAY | VT_*
+/// - better support for VT_UNKNOWN (currently treated as void *)
+/// - better support for VT_DISPATCH (currently treated as void *)
 bool MSWVariantToVariant(VARIANTARG& va, wxVariant& vx);
-bool VariantToMSWVariant(wxVariant& vx, VARIANTARG& va);
+/// \relates wxActiveX
+/// \fn bool VariantToMSWVariant(const wxVariant& vx, VARIANTARG& va);
+/// \param vx wxVariant to convert from
+/// \param va Destination VARIANTARG
+/// \return success/failure (true/false)
+/// \brief Convert wxVariant to MSW VARIANTARG.
+/// Handles basic types, need to add:
+/// - VT_ARRAY | VT_*
+/// - better support for VT_UNKNOWN (currently treated as void *)
+/// - better support for VT_DISPATCH (currently treated as void *)
+bool VariantToMSWVariant(const wxVariant& vx, VARIANTARG& va);
 
 #endif /* _IEHTMLWIN_H_ */

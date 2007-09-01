@@ -2,7 +2,7 @@
 # WXACTIVEX & WXIE 0.02-stable #
 ################################
 
-  This is the source of wxAtiveX & wxIE for wxPerl.
+  This is the source of wxAtiveX, including wxIE & Wx::ActiveX::Flash.
   
 ###########
 # COMPILE #
@@ -13,13 +13,6 @@
   You will need wxPerl-0.13+ compiled against wxWindows-2.3.2+ too. And wxWindows source files compiled (like wxPerl).
 
 ##########
-# SOURCE #
-##########
-
-  ./demo/wxIE.pl              The demo of wxIE.
-  ./lib/Wx/ActiveX/Event.pm   Events for Wx::ActiveX & Wx::ActiveX::IE.
-                       
-##########
 # AUTHOR #
 ##########
 
@@ -29,5 +22,5 @@
   Thanks to Justin Bradford <justin@maxwell.ucsf.edu> and Lindsay Mathieson <lmathieson@optusnet.com.au>,
   that wrote the C classes for wxActiveX and wxIEHtmlWin.
 
-Enjoy :-P
+Enjoy ;-P
 
