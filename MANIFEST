@@ -1,0 +1,15 @@
+ActiveX.xs
+MANIFEST
+Makefile.PL
+README.txt
+typemap
+activex/IEHtmlWin.cpp
+activex/IEHtmlWin.h
+activex/wxactivex.cpp
+activex/wxactivex.h
+demo/wxIE.pl
+t/01_load.t
+XS/IEHtmlWin.xs
+lib/Wx/ActiveX.pm
+lib/Wx/ActiveX/Event.pm
+lib/Wx/ActiveX/IE.pm

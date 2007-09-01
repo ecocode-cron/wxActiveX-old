@@ -1,0 +1,74 @@
+#############################################################################
+## Name:        IEHtmlWin.xs
+## Purpose:     XS for Wx::IEHtmlWin
+## Author:      Graciliano M. P.
+## Created:     27/08/2002
+## RCS-ID:
+## Copyright:   (c) 2002 Graciliano M. P. and Mattia Barbon
+## Licence:     This program is free software; you can redistribute it and/or
+##              modify it under the same terms as Perl itself
+#############################################################################
+
+MODULE=Wx PACKAGE=Wx::IEHtmlWin
+
+wxIEHtmlWin*
+wxIEHtmlWin::new( parent, id, pos = wxDefaultPosition, size = wxDefaultSize, style = 0, name = wxPanelNameStr )
+    wxWindow* parent
+    wxWindowID id
+    wxPoint pos
+    wxSize size
+    long style
+    wxString name
+
+
+void
+wxIEHtmlWin::LoadUrl( url )
+  wxString url
+
+bool
+wxIEHtmlWin::LoadString( html )
+  wxString html
+  
+bool
+wxIEHtmlWin::LoadStream( is )
+  Wx_InputStream* is
+  
+void
+wxIEHtmlWin::SetCharset( charset )
+  wxString charset
+  
+void
+wxIEHtmlWin::SetEditMode( seton )
+  bool seton
+  
+bool
+wxIEHtmlWin::GetEditMode()
+
+wxString
+wxIEHtmlWin::GetStringSelection( asHTML = false )
+  bool asHTML
+
+wxString
+wxIEHtmlWin::GetText( asHTML = false )
+  bool asHTML
+
+bool
+wxIEHtmlWin::GoBack()
+
+bool
+wxIEHtmlWin::GoForward()
+
+bool
+wxIEHtmlWin::GoHome()
+
+bool
+wxIEHtmlWin::GoSearch()
+
+bool
+wxIEHtmlWin::Refresh( level = 0 )
+  int level
+
+bool
+wxIEHtmlWin::Stop()
+
+
