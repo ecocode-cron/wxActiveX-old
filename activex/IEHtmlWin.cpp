@@ -312,7 +312,7 @@ bool wxIEHtmlWin::GoHome()
 {
     try
     {
-        CallMethod("GoHome");
+        CallMethod(wxT("GoHome"));
         return true;
     }
     catch(exception&)
@@ -408,7 +408,7 @@ wxString wxIEHtmlWin::GetStringSelection(bool asHTML)
 {
 	wxAutoOleInterface<IHTMLTxtRange> tr(GetSelRange(m_oleObject));
     if (! tr)
-    	return "";
+    	return wxT("");
 
     BSTR text = NULL;
     HRESULT hr = E_FAIL;
@@ -418,7 +418,7 @@ wxString wxIEHtmlWin::GetStringSelection(bool asHTML)
 	else
 		hr = tr->get_text(&text);
     if (hr != S_OK)
-    	return "";
+    	return wxT("");
 
     wxString s = text;
     SysFreeString(text);
@@ -429,26 +429,26 @@ wxString wxIEHtmlWin::GetStringSelection(bool asHTML)
 wxString wxIEHtmlWin::GetText(bool asHTML)
 {
 	if (! m_webBrowser.Ok())
-		return "";
+		return wxT("");
 
 	// get document dispatch interface
 	IDispatch *iDisp = NULL;
     HRESULT hr = m_webBrowser->get_Document(&iDisp);
     if (hr != S_OK)
-    	return "";
+    	return wxT("");
 
 	// Query for Document Interface
     wxAutoOleInterface<IHTMLDocument2> hd(IID_IHTMLDocument2, iDisp);
     iDisp->Release();
 
     if (! hd.Ok())
-		return "";
+		return wxT("");
 
 	// get body element
 	IHTMLElement *_body = NULL;
 	hd->get_body(&_body);
 	if (! _body)
-		return "";
+		return wxT("");
 	wxAutoOleInterface<IHTMLElement> body(_body);
 
 	// get inner text
@@ -460,7 +460,7 @@ wxString wxIEHtmlWin::GetText(bool asHTML)
 	else
 		hr = body->get_innerText(&text);
     if (hr != S_OK)
-    	return "";
+    	return wxT("");
 
     wxString s = text;
     SysFreeString(text);

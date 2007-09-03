@@ -1,5 +1,10 @@
 Revision history for Perl extension Wx::ActiveX.
 
+0.0511 2007-09-03
+    - Various updates from various sources added to allow building 
+      with current Wx / wxWidgets. Attribution will be added with 
+      later update.      
+
 0.05  08/2003
     - Added compatibility with MingW.
     - Added method GetOLE(), that returns a Win32::OLE object of

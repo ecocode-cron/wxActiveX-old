@@ -33,8 +33,8 @@ MODULE=Wx__ActiveX
 
 BOOT:
   INIT_PLI_HELPERS( wx_pli_helpers );
-  wxClassInfo::CleanUpClasses();
-  wxClassInfo::InitializeClasses();
+//  wxClassInfo::CleanUpClasses();
+//  wxClassInfo::InitializeClasses();
 
 #undef THIS
 
@@ -203,7 +203,30 @@ CODE:
   IDispatch * pDispatch;
 
   ST(0) = &PL_sv_undef;
-  hmodule = LoadLibrary("OLE");
+  // hmodule = LoadLibrary(_T("OLE"));  //replaced with GetModuleHandle
+  // Fix for packagers - as per Win32::GUI::AxWindow
+  
+  // Try to find OLE.dll
+    hmodule = GetModuleHandle(_T("OLE"));
+    if (hmodule == 0) {
+      // Try to find using Dynaloader
+      AV* av_modules = get_av("DynaLoader::dl_modules", FALSE);
+      AV* av_librefs = get_av("DynaLoader::dl_librefs", FALSE);
+      if (av_modules && av_librefs) {
+        // Look at Win32::OLE package
+        for (I32 i = 0; i < av_len(av_modules); i++) {
+          SV** sv = av_fetch(av_modules, i, 0);
+          if (sv && SvPOK (*sv) &&
+              strEQ(SvPV_nolen(*sv), "Win32::OLE")) {
+            // Tahe
+            sv = av_fetch(av_librefs, i, 0);
+            hmodule = (HMODULE) (sv && SvIOK (*sv) ? SvIV(*sv) : 0);
+            break;
+          }
+        }
+      }
+  }
+  
   if (hmodule != 0) {
     pCreatePerlObject = (MYPROC) GetProcAddress(hmodule, "CreatePerlObject");
     if (pCreatePerlObject != 0)  {
@@ -216,7 +239,7 @@ CODE:
       ST(0) = (pCreatePerlObject)(aTHX_ stash, pDispatch, NULL);
 #endif
     }
-    FreeLibrary(hmodule);
+  // FreeLibrary(hmodule);  // LoadLibrary no longer called
   }
 }
 

@@ -32,7 +32,7 @@ sub AUTOLOAD {
 
 sub BEGIN {
   @ISA = qw(Wx::Window);
-  $VERSION = '0.05';
+  $VERSION = '0.0511';
   Wx::wx_boot( 'Wx::ActiveX', $VERSION ) ;
   $XS_NEW = \&new ;
   *new = \&PLnew ;

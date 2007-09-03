@@ -266,35 +266,35 @@ wxString VarTypeAsString(VARTYPE vt)
 
     switch (vt)
     {
-    VT(VT_SAFEARRAY, "SafeArray");
-    VT(VT_EMPTY, "empty");
-    VT(VT_NULL, "null");
-    VT(VT_UI1, "byte");
-    VT(VT_I1, "char");
-    VT(VT_I2, "short");
-    VT(VT_I4, "long");
-    VT(VT_UI2, "unsigned short");
-    VT(VT_UI4, "unsigned long");
-    VT(VT_INT, "int");
-    VT(VT_UINT, "unsigned int");
-    VT(VT_R4, "real(4)");
-    VT(VT_R8, "real(8)");
-    VT(VT_CY, "Currency");
-    VT(VT_DATE, "wxDate");
-    VT(VT_BSTR, "wxString");
-    VT(VT_DISPATCH, "IDispatch");
-    VT(VT_ERROR, "SCode Error");
-    VT(VT_BOOL, "bool");
-    VT(VT_VARIANT, "wxVariant");
-    VT(VT_UNKNOWN, "IUknown");
-    VT(VT_VOID, "void");
-    VT(VT_PTR, "void *");
-    VT(VT_USERDEFINED, "*user defined*");
+    VT(VT_SAFEARRAY, wxT("SafeArray"));
+    VT(VT_EMPTY, wxT("empty"));
+    VT(VT_NULL, wxT("null"));
+    VT(VT_UI1, wxT("byte"));
+    VT(VT_I1, wxT("char"));
+    VT(VT_I2, wxT("short"));
+    VT(VT_I4, wxT("long"));
+    VT(VT_UI2, wxT("unsigned short"));
+    VT(VT_UI4, wxT("unsigned long"));
+    VT(VT_INT, wxT("int"));
+    VT(VT_UINT, wxT("unsigned int"));
+    VT(VT_R4, wxT("real(4)"));
+    VT(VT_R8, wxT("real(8)"));
+    VT(VT_CY, wxT("Currency"));
+    VT(VT_DATE, wxT("wxDate"));
+    VT(VT_BSTR, wxT("wxString"));
+    VT(VT_DISPATCH, wxT("IDispatch"));
+    VT(VT_ERROR, wxT("SCode Error"));
+    VT(VT_BOOL, wxT("bool"));
+    VT(VT_VARIANT, wxT("wxVariant"));
+    VT(VT_UNKNOWN, wxT("IUknown"));
+    VT(VT_VOID, wxT("void"));
+    VT(VT_PTR, wxT("void *"));
+    VT(VT_USERDEFINED, wxT("*user defined*"));
 
     default:
         {
             wxString s;
-            s << "Unknown(" << vt << ")";
+            s << wxT("Unknown(") << vt << wxT(")");
             return s;
         };
     };
@@ -304,7 +304,7 @@ wxString VarTypeAsString(VARTYPE vt)
 
 void wxActiveX::CreateActiveX(REFCLSID clsid)
 {
-	SetTransparent();
+    //SetTransparent();
 
 	HRESULT hret;
 
@@ -618,9 +618,9 @@ bool MSWVariantToVariant(VARIANTARG& va, wxVariant& vx)
 	case VT_I1:
 	case VT_UI1:
 		if (byRef)
-			vx = (char) *va.pbVal;
+            vx = (wxChar) *va.pbVal;
 		else
-			vx = (char) va.bVal;
+            vx = (wxChar) va.bVal;
 		return true;
 
 	// 2 byte shorts
@@ -753,9 +753,9 @@ bool VariantToMSWVariant(const wxVariant& vx, VARIANTARG& va)
 	case VT_I1:
 	case VT_UI1:
 		if (byRef)
-			*va.pbVal = (char) vx;
+            *va.pbVal = (wxChar) vx;
 		else
-			va.bVal = (char) vx;
+            va.bVal = (wxChar) vx;
 		return true;
 
 	// 2 byte shorts
@@ -1052,12 +1052,12 @@ wxVariant& wxActiveXEvent::operator[] (wxString name)
             return m_params[i];
     };
 
-    wxString err = "wxActiveXEvent::operator[] invalid name <" + name + ">";
-    err += "\r\nValid Names = :\r\n";
+    wxString err = wxT("wxActiveXEvent::operator[] invalid name <") + name + wxT(">");
+    err += wxT("\r\nValid Names = :\r\n");
     for (i = 0; i < m_params.GetCount(); i++)
     {
         err += m_params[i].GetName();
-        err += "\r\n";
+        err += wxT("\r\n");
     };
 
     wxASSERT_MSG(false, err);
@@ -1286,7 +1286,7 @@ void wxActiveX::GetTypeInfo(ITypeInfo *ti, bool defInterface, bool defEventSink)
 
 wxString wxActiveX::GetEventName(int idx) {
      if (idx < 0 || idx >= this->GetEventCount() ) {
-       wxString tmp = "" ;
+       wxString tmp = wxT("") ;
        return( tmp ) ;
      }
      const wxActiveX::FuncX& func = this->GetEventDesc(idx);
@@ -1295,7 +1295,7 @@ wxString wxActiveX::GetEventName(int idx) {
 
 wxString wxActiveX::GetPropName(int idx) {
      if (idx < 0 || idx >= this->GetPropCount() ) {
-       wxString tmp = "" ;
+       wxString tmp = wxT("") ;
        return( tmp ) ;
      }
      
@@ -1305,7 +1305,7 @@ wxString wxActiveX::GetPropName(int idx) {
 
 wxString wxActiveX::GetMethodName(int idx) {
      if (idx < 0 || idx >= this->GetMethodCount() ) {
-       wxString tmp = "" ;
+       wxString tmp = wxT("") ;
        return( tmp ) ;
      }
      const wxActiveX::FuncX& func = this->GetMethodDesc(idx);
@@ -1331,7 +1331,7 @@ int wxActiveX::GetMethodArgCount(int idx) {
 
 wxString wxActiveX::GetMethodArgName(int idx , int argx) {
      if (idx < 0 || idx >= this->GetMethodCount() ) {
-       wxString tmp = "" ;
+       wxString tmp = wxT("") ;
        return( tmp ) ;
      }
      const wxActiveX::FuncX& func = this->GetMethodDesc(idx);
@@ -1374,7 +1374,7 @@ const wxActiveX::PropX& wxActiveX::GetPropDesc(wxString name) const
     if (it == m_props.end())
     {
         wxString s;
-        s << "property <" << name << "> not found";
+        s << wxT("property <") << name << wxT("> not found");
         croak(s.mb_str());
     };
 
@@ -1403,7 +1403,7 @@ const wxActiveX::FuncX& wxActiveX::GetMethodDesc(wxString name) const
     if (it == m_methods.end())
     {
         wxString s;
-        s << "method <" << name << "> not found";
+        s << wxT("method <") << name << wxT("> not found");
         croak(s.mb_str());
     };
 
@@ -1434,7 +1434,7 @@ void wxActiveX::SetProp(const wxString &name, const wxVariant &value)
     if (! prop.CanSet())
     {
         wxString s;
-        s << "property <" << name << "> is readonly";
+        s << wxT("property <") << name << wxT("> is readonly");
         croak(s.mb_str());
     };
 
@@ -1471,7 +1471,7 @@ VARIANT wxActiveX::GetPropAsVariant(const wxString& name)
     if (! prop.CanGet())
     {
         wxString s;
-        s << "property <" << name << "> is writeonly";
+        s << wxT("property <") << name << wxT("> is writeonly");
 		croak(s.mb_str());
     };
 
@@ -1819,9 +1819,9 @@ void wxActiveX::OnSize(wxSizeEvent& event)
 
 void wxActiveX::OnPaint(wxPaintEvent& event)
 {
-	wxLogTrace(wxT("repainting activex win"));
+    wxLogTrace('%s', wxT("repainting activex win"));
 	wxPaintDC dc(this);
-	dc.BeginDrawing();
+    // dc.BeginDrawing(); // deprecated
 	int w, h;
 	GetSize(&w, &h);
 	RECT posRect;
@@ -1846,7 +1846,7 @@ void wxActiveX::OnPaint(wxPaintEvent& event)
 		dc.DrawRectangle(0, 0, w, h);
 		dc.SetBrush(wxNullBrush);
 	}
-	dc.EndDrawing();
+    // dc.EndDrawing();  // deprecated
 }
 
 
@@ -1854,12 +1854,11 @@ void wxActiveX::OnMouse(wxMouseEvent& event)
 {
 	if (m_oleObjectHWND == NULL) 
     { 
-        wxLogTrace(wxT("no oleInPlaceObject")); 
+        wxLogTrace('%s', wxT("no oleInPlaceObject"));
         event.Skip(); 
         return; 
     }
-
-	wxLogTrace(wxT("mouse event"));
+    wxLogTrace('%s', wxT("mouse event"));
 	UINT msg = 0;
 	WPARAM wParam = 0;
 	LPARAM lParam = 0;
@@ -1902,18 +1901,17 @@ void wxActiveX::OnMouse(wxMouseEvent& event)
 	wxString log;
 	if (msg == 0) 
     { 
-        wxLogTrace(wxT("no message"));
+        wxLogTrace('%s', wxT("no message"));
         event.Skip(); return; 
     };
 
 	if (!::SendMessage(m_oleObjectHWND, msg, wParam, lParam)) 
     { 
-        wxLogTrace(wxT("msg not delivered"));
         event.Skip(); 
+        wxLogTrace('%s', wxT("msg not delivered"));
         return; 
     };
-
-	wxLogTrace(wxT("msg sent"));
+    wxLogTrace('%s', wxT("msg sent"));
 }
 
 long wxActiveX::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
@@ -2640,7 +2638,7 @@ wxOleInit::~wxOleInit()
 
 bool GetSysErrMessage(int err, wxString& s)
 {
-	char buf[256];
+    wxChar buf[256];
 	if (FormatMessage(
 		FORMAT_MESSAGE_FROM_SYSTEM, NULL,
 		err,0, buf, sizeof(buf), NULL) == 0)
@@ -2661,73 +2659,71 @@ wxString OLEHResultToString(HRESULT hr)
     switch (hr)
     {
     case S_OK:
-    	return "";
+        return wxT("");
 
 	case CONNECT_E_CANNOTCONNECT:
-		return "Cannot connect to event interface (maybe not there ?) - see MSDN";
+        return wxT("Cannot connect to event interface (maybe not there ?) - see MSDN");
 
     case DISP_E_MEMBERNOTFOUND:
-        return "The requested member does not exist, or the call to Invoke tried to set the value of a read-only property.";
+        return wxT("The requested member does not exist, or the call to Invoke tried to set the value of a read-only property.");
 
     case DISP_E_BADVARTYPE:
-        return "One of the parameters in rgvarg is not a valid variant type.";
+        return wxT("One of the parameters in rgvarg is not a valid variant type.");
 
     case DISP_E_BADPARAMCOUNT:
-        return "The number of elements provided to DISPPARAMS is different from the number of parameters accepted by the method or property";
+        return wxT("The number of elements provided to DISPPARAMS is different from the number of parameters accepted by the method or property");
 
     case DISP_E_EXCEPTION:
-        return "The application needs to raise an exception. In this case, the structure passed in pExcepInfo should be filled in.";
+        return wxT("The application needs to raise an exception. In this case, the structure passed in pExcepInfo should be filled in.");
 
     case DISP_E_TYPEMISMATCH:
-        return "One or more of the parameters could not be coerced. The index within rgvarg of the first parameter with the incorrect type is returned in the puArgErr parameter.";
+        return wxT("One or more of the parameters could not be coerced. The index within rgvarg of the first parameter with the incorrect type is returned in the puArgErr parameter.");
 
     case DISP_E_PARAMNOTOPTIONAL:
-        return "A required parameter was omitted.";
+        return wxT("A required parameter was omitted.");
 
 	case DISP_E_PARAMNOTFOUND:
-		return "One of the parameter DISPIDs does not correspond to a parameter on the method. In this case, puArgErr should be set to the first parameter that contains the error.";
+        return wxT("One of the parameter DISPIDs does not correspond to a parameter on the method. In this case, puArgErr should be set to the first parameter that contains the error.");
 
     case OLECMDERR_E_UNKNOWNGROUP:
-		return "The pguidCmdGroup parameter is not NULL but does not specify a recognized command group.";
+        return wxT("The pguidCmdGroup parameter is not NULL but does not specify a recognized command group.");
 
     case OLECMDERR_E_NOTSUPPORTED:
-		return "The nCmdID parameter is not a valid command in the group identified by pguidCmdGroup.";
+        return wxT("The nCmdID parameter is not a valid command in the group identified by pguidCmdGroup.");
 
     case OLECMDERR_E_DISABLED:
-		return "The command identified by nCmdID is currently disabled and cannot be executed.";
+        return wxT("The command identified by nCmdID is currently disabled and cannot be executed.");
 
     case OLECMDERR_E_NOHELP:
-		return "The caller has asked for help on the command identified by nCmdID, but no help is available.";
+        return wxT("The caller has asked for help on the command identified by nCmdID, but no help is available.");
 
     case OLECMDERR_E_CANCELED:
-		return "The user canceled the execution of the command.";
+        return wxT("The user canceled the execution of the command.");
 
     case E_INVALIDARG:
-        return "E_INVALIDARG";
+        return wxT("E_INVALIDARG");
 
     case E_OUTOFMEMORY:
-        return "E_OUTOFMEMORY";
+        return wxT("E_OUTOFMEMORY");
 
     case E_NOINTERFACE:
-        return "E_NOINTERFACE";
+        return wxT("E_NOINTERFACE");
 
     case E_UNEXPECTED:
-        return "E_UNEXPECTED";
+        return wxT("E_UNEXPECTED");
 
     case STG_E_INVALIDFLAG:
-        return "STG_E_INVALIDFLAG";
+        return wxT("STG_E_INVALIDFLAG");
 
     case E_FAIL:
-        return "E_FAIL";
+        return wxT("E_FAIL");
 
     case E_NOTIMPL:
-        return "E_NOTIMPL";
+        return wxT("E_NOTIMPL");
 
     default:
         {
-            char buf[64];
-            sprintf(buf, "Unknown - 0x%X", hr);
-            return wxString(buf);
+            return wxString::Format(wxT("Unknown - 0x%X"), hr);
         }
     };
 };
@@ -2768,16 +2764,16 @@ wxString GetIIDName(REFIID riid)
     ADD_KNOWN_IID(DataObject),
     ADD_KNOWN_IID(Debug),
     ADD_KNOWN_IID(DebugStream),
-    ADD_KNOWN_IID(DfReserved1),
-    ADD_KNOWN_IID(DfReserved2),
-    ADD_KNOWN_IID(DfReserved3),
+//    ADD_KNOWN_IID(DfReserved1),
+//    ADD_KNOWN_IID(DfReserved2),
+//    ADD_KNOWN_IID(DfReserved3),
     ADD_KNOWN_IID(Dispatch),
     ADD_KNOWN_IID(DropSource),
     ADD_KNOWN_IID(DropTarget),
-    ADD_KNOWN_IID(EnumCallback),
+//    ADD_KNOWN_IID(EnumCallback),
     ADD_KNOWN_IID(EnumFORMATETC),
-    ADD_KNOWN_IID(EnumGeneric),
-    ADD_KNOWN_IID(EnumHolder),
+//    ADD_KNOWN_IID(EnumGeneric),
+//    ADD_KNOWN_IID(EnumHolder),
     ADD_KNOWN_IID(EnumMoniker),
     ADD_KNOWN_IID(EnumOLEVERB),
     ADD_KNOWN_IID(EnumSTATDATA),
@@ -2786,7 +2782,7 @@ wxString GetIIDName(REFIID riid)
     ADD_KNOWN_IID(EnumUnknown),
     ADD_KNOWN_IID(EnumVARIANT),
     ADD_KNOWN_IID(ExternalConnection),
-    ADD_KNOWN_IID(InternalMoniker),
+//    ADD_KNOWN_IID(InternalMoniker),
     ADD_KNOWN_IID(LockBytes),
     ADD_KNOWN_IID(Malloc),
     ADD_KNOWN_IID(Marshal),
@@ -2805,9 +2801,9 @@ wxString GetIIDName(REFIID riid)
     ADD_KNOWN_IID(OleInPlaceUIWindow),
     ADD_KNOWN_IID(OleItemContainer),
     ADD_KNOWN_IID(OleLink),
-    ADD_KNOWN_IID(OleManager),
+//    ADD_KNOWN_IID(OleManager),
     ADD_KNOWN_IID(OleObject),
-    ADD_KNOWN_IID(OlePresObj),
+//    ADD_KNOWN_IID(OlePresObj),
     ADD_KNOWN_IID(OleWindow),
     ADD_KNOWN_IID(PSFactory),
     ADD_KNOWN_IID(ParseDisplayName),
@@ -2815,7 +2811,7 @@ wxString GetIIDName(REFIID riid)
     ADD_KNOWN_IID(PersistFile),
     ADD_KNOWN_IID(PersistStorage),
     ADD_KNOWN_IID(PersistStream),
-    ADD_KNOWN_IID(ProxyManager),
+//    ADD_KNOWN_IID(ProxyManager),
     ADD_KNOWN_IID(RootStorage),
     ADD_KNOWN_IID(RpcChannel),
     ADD_KNOWN_IID(RpcProxy),
@@ -2825,7 +2821,7 @@ wxString GetIIDName(REFIID riid)
     ADD_KNOWN_IID(StdMarshalInfo),
     ADD_KNOWN_IID(Storage),
     ADD_KNOWN_IID(Stream),
-    ADD_KNOWN_IID(StubManager),
+//    ADD_KNOWN_IID(StubManager),
     ADD_KNOWN_IID(Unknown),
     ADD_KNOWN_IID(ViewObject),
     ADD_KNOWN_IID(ViewObject2),
@@ -2861,6 +2857,6 @@ wxString GetIIDName(REFIID riid)
       return s;
   }
   else
-      return "StringFromIID() error";
+      return wxT("StringFromIID() error");
 }
 
