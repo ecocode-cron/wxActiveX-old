@@ -1,10 +1,10 @@
 #############################################################################
-## Name:        Wx::ActiveX::Event
+## Name:        lib/Wx/ActiveX/Event.pm
 ## Purpose:     Wx::ActiveX events.
 ## Author:      Graciliano M. P.
 ## Modified by:
 ## Created:     01/09/2003
-## RCS-ID:      
+## SVN-ID:      $Id$
 ## Copyright:   (c) 2002 Mattia Barbon
 ## Licence:     This program is free software; you can redistribute it and/or
 ##              modify it under the same terms as Perl itself

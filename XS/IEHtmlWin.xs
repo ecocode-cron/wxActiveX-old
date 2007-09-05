@@ -1,10 +1,10 @@
 #############################################################################
-## Name:        IEHtmlWin.xs
+## Name:        XS/IEHtmlWin.xs                                           
 ## Purpose:     XS for Wx::IEHtmlWin
 ## Author:      Graciliano M. P.
-## Created:     27/08/2002
-## RCS-ID:
-## Copyright:   (c) 2002 Graciliano M. P. and Mattia Barbon
+## Modified by:
+## SVN-ID:      $Id$
+## Copyright:   (c) 2002 - 2007 Graciliano M. P. and Mattia Barbon
 ## Licence:     This program is free software; you can redistribute it and/or
 ##              modify it under the same terms as Perl itself
 #############################################################################

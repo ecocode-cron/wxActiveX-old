@@ -1,6 +1,15 @@
-/*! \file wxactivex.h 
-    \brief implements wxActiveX window class and OLE tools
-*/ 
+/////////////////////////////////////////////////////////////////////////////
+// Name:        activex/wxactivex.h
+// Purpose:     implements wxActiveX window class and OLE tools
+// Author:      Graciliano M. P.
+// Modified by:
+// SVN-ID:      $Id$
+// Licence:     This program is free software; you can redistribute it and/or
+//              modify it under the same terms as Perl itself
+/////////////////////////////////////////////////////////////////////////////
+
+/// uncomment the line below for additional debugging output
+//#define __WXOLEDEBUG
 
 #ifndef WX_ACTIVE_X
 #define WX_ACTIVE_X
@@ -57,12 +66,12 @@ template <class I> class wxAutoOleInterface
 	/// Assumed to already have a AddRef() applied
     explicit wxAutoOleInterface(I *pInterface = NULL) : m_interface(pInterface) {}
 
-	/// queries for an interface 
+	/// queries for an interface
     wxAutoOleInterface(REFIID riid, IUnknown *pUnk) : m_interface(NULL)
 	{
 		QueryInterface(riid, pUnk);
 	};
-	/// queries for an interface 
+	/// queries for an interface
     wxAutoOleInterface(REFIID riid, IDispatch *pDispatch) : m_interface(NULL)
 	{
 		QueryInterface(riid, pDispatch);
@@ -114,7 +123,7 @@ template <class I> class wxAutoOleInterface
         m_interface = NULL;
     };
 
-	/// queries for an interface 
+	/// queries for an interface
     HRESULT QueryInterface(REFIID riid, IUnknown *pUnk)
 	{
 		Free();
@@ -148,8 +157,6 @@ wxString OLEHResultToString(HRESULT hr);
 /// \brief Returns the string description of a IID.
 /// Hardcoded, by no means a definitive list.
 wxString GetIIDName(REFIID riid);
-
-//#define __WXOLEDEBUG
 
 
 #ifdef __WXOLEDEBUG
@@ -298,18 +305,18 @@ class wxOleInit
 /// Main class for embedding a ActiveX control.
 /// Use by itself or derive from it
 /// \note The utility program (wxie) can generate a list of events, methods & properties
-/// for a control. 
-/// First display the control (File|Display), 
-/// then get the type info (ActiveX|Get Type Info) - these are copied to the clipboard. 
-/// Eventually this will be expanded to autogenerate 
+/// for a control.
+/// First display the control (File|Display),
+/// then get the type info (ActiveX|Get Type Info) - these are copied to the clipboard.
+/// Eventually this will be expanded to autogenerate
 /// wxWindows source files for a control with all methods etc encapsulated.
-/// \par Usage: 
+/// \par Usage:
 ///     construct using a ProgId or class id
 ///     \code new wxActiveX(parent, CLSID_WebBrowser, id, pos, size, style, name)\endcode
 ///     \code new wxActiveX(parent, "ShockwaveFlash.ShockwaveFlash", id, pos, size, style, name)\endcode
 /// \par Properties
 /// Properties can be set using \c SetProp() and set/retrieved using \c Prop()
-///         \code SetProp(name, wxVariant(x)) \endcode or 
+///         \code SetProp(name, wxVariant(x)) \endcode or
 ///         \code wxString Prop("<name>") = x\endcode
 ///         \code wxString result = Prop("<name>")\endcode
 ///         \code flash_ctl.Prop("movie") = "file:///movies/test.swf";\endcode
@@ -322,7 +329,7 @@ class wxOleInit
 /// wxVariant result = X->CallMethod("LoadMovie", args);\endcode
 /// \par events
 /// respond to events with the
-///         \c EVT_ACTIVEX(controlId, eventName, handler) & 
+///         \c EVT_ACTIVEX(controlId, eventName, handler) &
 ///         \c EVT_ACTIVEX_DISPID(controlId, eventDispId, handler) macros
 /// \code
 /// BEGIN_EVENT_TABLE(wxIEFrame, wxFrame)
@@ -337,10 +344,10 @@ class wxActiveX : public wxWindow {
 public:
     /// General parameter and return type infoformation for Events, Properties and Methods.
     /// refer to ELEMDESC, IDLDESC in MSDN
-    
+
 	IDispatch* GetOLEDispatch() { return m_Dispatch; };
-    
-	class ParamX 
+
+	class ParamX
 	{
 	public:
 		USHORT	    flags;
@@ -357,7 +364,7 @@ public:
 
     /// Type & Parameter info for Events and Methods.
     /// refer to FUNCDESC in MSDN
-    class FuncX 
+    class FuncX
     {
     public:
         wxString    name;
@@ -402,11 +409,11 @@ public:
     /// returns event description by index.
     /// throws exception for invalid index
     const FuncX& GetEventDesc(int idx) const;
-    
+
     wxString GetEventName(int idx) ;
     wxString GetPropName(int idx) ;
     wxString GetMethodName(int idx) ;
-    
+
     int GetMethodArgCount(int idx) ;
     wxString GetMethodArgName(int idx , int argx) ;
 
@@ -438,16 +445,16 @@ public:
     void SetProp(MEMBERID name, VARIANTARG& value);
     /// Set property using wxVariant by name.
     void SetProp(const wxString &name, const wxVariant &value);
-    
+
     class wxPropertySetter
     {
     public:
         wxActiveX *m_ctl;
         wxString m_propName;
 
-        wxPropertySetter(wxActiveX *ctl, wxString propName) : 
+        wxPropertySetter(wxActiveX *ctl, wxString propName) :
             m_ctl(ctl), m_propName(propName) {}
-        
+
         inline const wxPropertySetter& operator = (wxVariant v) const
         {
             m_ctl->SetProp(m_propName, v);
@@ -492,7 +499,7 @@ public:
     void *GetPropAsPointer(const wxString& name);
 
     // methods
-    // VARIANTARG form is passed straight to Invoke, 
+    // VARIANTARG form is passed straight to Invoke,
     // so args in *REVERSE* order
     VARIANT CallMethod(MEMBERID name, VARIANTARG args[], int argc);
     VARIANT CallMethod(wxString name, VARIANTARG args[] = NULL, int argc = -1);
@@ -588,12 +595,12 @@ public:
     int ParamCount() const;
     wxString ParamType(int idx);
     wxString ParamName(int idx);
-    
+
     wxString ParamVal(int idx);
     void ParamSetBool(int idx , bool val);
     void ParamSetInt(int idx , long val);
     void ParamSetString(int idx , wxString val);
-    
+
     wxVariant& operator[] (int idx);
     wxVariant& operator[] (wxString name);
 };

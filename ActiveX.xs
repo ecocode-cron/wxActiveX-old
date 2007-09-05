@@ -3,9 +3,8 @@
 // Purpose:     XS for Wx::ActiveX
 // Author:      Graciliano M. P.
 // Modified by:
-// Created:     25/08/2002
-// RCS-ID:      
-// Copyright:   (c) 2002 Graciliano M. P. and Mattia Barbon
+// SVN-ID:      $Id$
+// Copyright:   (c) 2002 - 2007 Graciliano M. P. and Mattia Barbon
 // Licence:     This program is free software; you can redistribute it and/or
 //              modify it under the same terms as Perl itself
 /////////////////////////////////////////////////////////////////////////////

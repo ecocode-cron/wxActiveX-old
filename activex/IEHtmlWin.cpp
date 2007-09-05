@@ -1,3 +1,14 @@
+/////////////////////////////////////////////////////////////////////////////
+// Name:        activex/IEHtmlWin.cpp
+// Purpose:     implements wxIEHtmlWin window class
+// Author:      Graciliano M. P.
+// Modified by:
+// SVN-ID:      $Id$
+// Licence:     This program is free software; you can redistribute it and/or
+//              modify it under the same terms as Perl itself
+/////////////////////////////////////////////////////////////////////////////
+
+
 #include "IEHtmlWin.h"
 #include <wx/strconv.h>
 #include <wx/string.h>
@@ -37,7 +48,7 @@ wxIEHtmlWin::wxIEHtmlWin(wxWindow * parent, wxWindowID id,
         const wxPoint& pos,
         const wxSize& size,
         long style,
-        const wxString& name) : 
+        const wxString& name) :
     wxActiveX(parent, PROGID, id, pos, size, style, name)
 {
     SetupBrowser();
@@ -159,12 +170,12 @@ private:
     istream *m_is;
 
 public:
-    
+
     IStreamAdaptor(istream *is)	: IStreamAdaptorBase(), m_is(is)
     {
         wxASSERT(m_is != NULL);
     }
-    ~IStreamAdaptor()	
+    ~IStreamAdaptor()
     {
         delete m_is;
     }
@@ -182,12 +193,12 @@ private:
     wxInputStream *m_is;
 
 public:
-    
-    IwxStreamAdaptor(wxInputStream *is)	: IStreamAdaptorBase(), m_is(is) 
+
+    IwxStreamAdaptor(wxInputStream *is)	: IStreamAdaptorBase(), m_is(is)
     {
         wxASSERT(m_is != NULL);
     }
-    ~IwxStreamAdaptor()	
+    ~IwxStreamAdaptor()
     {
         delete m_is;
     }
@@ -203,7 +214,7 @@ public:
 void wxIEHtmlWin::LoadUrl(const wxString& url)
 {
 	VARIANTARG navFlag, targetFrame, postData, headers;
-	navFlag.vt = VT_EMPTY; 
+	navFlag.vt = VT_EMPTY;
 	navFlag.vt = VT_I2;
 	navFlag.iVal = navNoReadFromCache;
 	targetFrame.vt = VT_EMPTY;
@@ -211,8 +222,8 @@ void wxIEHtmlWin::LoadUrl(const wxString& url)
 	headers.vt = VT_EMPTY;
 
 	HRESULT hret = 0;
-	hret = m_webBrowser->Navigate((BSTR) (const wchar_t *) url.wc_str(wxConvUTF8), 
-		&navFlag, &targetFrame, &postData, &headers);	
+	hret = m_webBrowser->Navigate((BSTR) (const wchar_t *) url.wc_str(wxConvUTF8),
+		&navFlag, &targetFrame, &postData, &headers);
 };
 
 class wxOwnedMemInputStream : public wxMemoryInputStream
@@ -223,7 +234,7 @@ public:
     wxOwnedMemInputStream(char *data, size_t len) :
         wxMemoryInputStream(data, len), m_data(data)
     {}
-    ~wxOwnedMemInputStream() 
+    ~wxOwnedMemInputStream()
     {
         free(m_data);
     }
@@ -412,7 +423,7 @@ wxString wxIEHtmlWin::GetStringSelection(bool asHTML)
 
     BSTR text = NULL;
     HRESULT hr = E_FAIL;
-	
+
 	if (asHTML)
 		hr = tr->get_htmlText(&text);
 	else
@@ -454,7 +465,7 @@ wxString wxIEHtmlWin::GetText(bool asHTML)
 	// get inner text
     BSTR text = NULL;
     hr = E_FAIL;
-	
+
 	if (asHTML)
 		hr = body->get_innerHTML(&text);
 	else
@@ -465,13 +476,13 @@ wxString wxIEHtmlWin::GetText(bool asHTML)
     wxString s = text;
     SysFreeString(text);
 
-    return s;	
+    return s;
 };
 
 void wxIEHtmlWin::Print(bool WithPrompt)
 {
   tagVARIANT vIn, vOut;
-  
+
   if (WithPrompt) {
     m_webBrowser->ExecWB(
     OLECMDID_PRINT,

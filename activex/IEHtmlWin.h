@@ -1,6 +1,13 @@
-/*! \file iehtmlwin.h 
-    \brief implements wxIEHtmlWin window class
-*/ 
+/////////////////////////////////////////////////////////////////////////////
+// Name:        activex/IEHtmlWin.h
+// Purpose:     implements wxIEHtmlWin window class
+// Author:      Graciliano M. P.
+// Modified by:
+// SVN-ID:      $Id$
+// Licence:     This program is free software; you can redistribute it and/or
+//              modify it under the same terms as Perl itself
+/////////////////////////////////////////////////////////////////////////////
+
 #ifndef _IEHTMLWIN_H_
 #define _IEHTMLWIN_H_
 #pragma warning( disable : 4101 4786)
@@ -16,7 +23,7 @@ using namespace std;
 #include "wxactivex.h"
 
 
-enum wxIEHtmlRefreshLevel 
+enum wxIEHtmlRefreshLevel
 {
 	wxIEHTML_REFRESH_NORMAL = 0,
 	wxIEHTML_REFRESH_IFEXPIRED = 1,
@@ -46,7 +53,7 @@ public:
     bool GetEditMode();
     wxString GetStringSelection(bool asHTML = false);
 	wxString GetText(bool asHTML = false);
- 
+
     void Print(bool WithPrompt = false);
     void PrintPreview();
 
@@ -57,7 +64,7 @@ public:
 
 	/// bool Refresh(wxIEHtmlRefreshLevel level);
 	bool Refresh(int level);
- 
+
 	bool Stop();
 
 	DECLARE_EVENT_TABLE();

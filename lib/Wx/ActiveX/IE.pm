@@ -1,10 +1,10 @@
 #############################################################################
-## Name:        IE.pm
+## Name:        lib/Wx/ActiveX/IE.pm
 ## Purpose:     Wx::ActiveX::IE (Internet Explorer)
 ## Author:      Graciliano M. P.
 ## Modified by:
 ## Created:     01/09/2002
-## RCS-ID:      
+## SVN-ID:      $Id$
 ## Copyright:   (c) 2002 Graciliano M. P.
 ## Licence:     This program is free software; you can redistribute it and/or
 ##              modify it under the same terms as Perl itself

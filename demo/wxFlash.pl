@@ -3,7 +3,7 @@
 ## Purpose:     wxFlash minimal demo
 ## Author:      Graciliano M. P.
 ## Created:     06/02/2003
-## RCS-ID:
+## SVN-ID:      $Id$
 ## Copyright:   (c) 2002 Marcus Friedlaender and Mattia Barbon
 ## Licence:     This program is free software; you can redistribute it and/or
 ##              modify it under the same terms as Perl itself
@@ -20,8 +20,8 @@ sub OnInit {
   my( $this ) = @_;
 
   my( $frame ) = MyFrame->new( "wxFlash Minimal demo",
-			       Wx::Point->new( 50, 50 ),
-			       Wx::Size->new( 450, 350 )
+                   Wx::Point->new( 50, 50 ),
+                   Wx::Size->new( 450, 350 )
                              );
 
   $this->SetTopWindow( $frame );

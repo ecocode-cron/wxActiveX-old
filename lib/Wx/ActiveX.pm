@@ -1,10 +1,10 @@
 #############################################################################
-## Name:        ActiveX.pm
+## Name:        lib/Wx/ActiveX.pm
 ## Purpose:     Wx::ActiveX
 ## Author:      Graciliano M. P.
 ## Modified by:
 ## Created:     25/08/2002
-## RCS-ID:      
+## SVN-ID:      $Id$
 ## Copyright:   (c) 2002 Graciliano M. P.
 ## Licence:     This program is free software; you can redistribute it and/or
 ##              modify it under the same terms as Perl itself
