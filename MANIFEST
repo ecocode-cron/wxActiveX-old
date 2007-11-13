@@ -25,4 +25,5 @@ lib/Wx/ActiveX/Event.pm
 lib/Wx/ActiveX/Flash.pm
 lib/Wx/ActiveX/IE.pm
 lib/Wx/ActiveX/WMPlayer.pm
+lib/Wx/DemoModules/wxActiveX.pm
 
