@@ -35,7 +35,10 @@ sub BEGIN {
   $VERSION = '0.0511';
   Wx::wx_boot( 'Wx::ActiveX', $VERSION ) ;
   $XS_NEW = \&new ;
-  *new = \&PLnew ;
+  {
+    no warnings;
+   *new = \&PLnew ;
+  }
 }
 
 #######
