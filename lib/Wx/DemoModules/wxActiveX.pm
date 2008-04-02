@@ -4,7 +4,7 @@
 ## Author:      Mark Dootson
 ## Modified by:
 ## Created:     13/11/2007
-## SVN-ID:      $Id:$
+## SVN-ID:      $Id$
 ## Copyright:   (c) 2002 2007 Graciliano M. P. & Mark Dootson
 ## Licence:     This program is free software; you can redistribute it and/or
 ##              modify it under the same terms as Perl itself
@@ -117,7 +117,6 @@ sub new {
     EVT_BUTTON( $self, $PrintPreview, \&OnPrintPreview );
     
     Wx::LogStatus( $IE->ActivexInfos );
-    
     return $self;
 }
 

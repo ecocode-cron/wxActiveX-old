@@ -9,8 +9,6 @@
 ##              modify it under the same terms as Perl itself
 #############################################################################
 
-#include "activex/IEHtmlWin.cpp"
-
 MODULE=Wx PACKAGE=Wx::IEHtmlWin
 
 wxIEHtmlWin*
@@ -21,7 +19,10 @@ wxIEHtmlWin::new( parent, id, pos = wxDefaultPosition, size = wxDefaultSize, sty
     wxSize size
     long style
     wxString name
-
+  CODE:
+    RETVAL = new wxPliIEHtmlWin( CLASS, parent, id, pos, size, style, name );
+  OUTPUT:
+    RETVAL       
 
 void
 wxIEHtmlWin::LoadUrl( url )
@@ -80,4 +81,4 @@ wxIEHtmlWin::Print( WithPrompt = false )
 void
 wxIEHtmlWin::PrintPreview()
 
-
+MODULE=Wx__ActiveX

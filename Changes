@@ -1,5 +1,9 @@
 Revision history for Perl extension Wx::ActiveX.
 
+0.0513 2008-04-02
+    - Replaced 'HashRef' sub with wxPliActiveX & wxPliIEHtmlWindow
+    - re-saved all files in common format (UTF-8)
+
 0.0511 2007-09-03
     - Various updates from various sources added to allow building 
       with current Wx / wxWidgets. Attribution will be added with 

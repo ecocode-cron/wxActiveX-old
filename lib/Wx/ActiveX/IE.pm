@@ -10,32 +10,16 @@
 ##              modify it under the same terms as Perl itself
 #############################################################################
 
-package Wx::ActiveX::IE ;
-use Wx::ActiveX ;
+package Wx::ActiveX::IE;
 use strict ;
+use Wx::ActiveX;
+use base 'Wx::IEHtmlWin';
 
-use vars qw(@ISA $VERSION);
-@ISA = qw(Wx::ActiveX);
-$VERSION = '0.04';
+our $VERSION = '0.052';
 
-#######
-# NEW #
-#######
+no strict;
 
-sub new {
-  my $class = shift ;
-  my $ie = Wx::IEHtmlWin->new( @_ ) ;
-  $ie = Wx::ActiveX::hash_ref($ie,'Wx::IEHtmlWin') ;
-  return( $ie ) ;
-}
-
-#################
-# WX::IEHTMLWIN #
-#################
-
-package Wx::IEHtmlWin;
-use vars qw(@ISA);
-@ISA = qw(Wx::Window Wx::ActiveX::IE);
+package Wx::ActiveX::IE;    @ISA = qw( Wx::IEHtmlWin );
 
 1;
 

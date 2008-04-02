@@ -16,9 +16,18 @@ use Config ;
 my $libs = '' ;
 if( $Config{cc} =~ /^cl/i ) { $libs = 'msvcprt.lib' ;}
 
-wxWriteMakefile( NAME         => 'Wx::ActiveX',
-                 VERSION_FROM => 'lib/Wx/ActiveX.pm',
-                 LIBS         => $libs ,
+wxWriteMakefile( NAME           => 'Wx::ActiveX',
+                 ABSTRACT_FROM  => 'lib/Wx/ActiveX.pm',
+                 VERSION_FROM   => 'lib/Wx/ActiveX.pm',
+                 AUTHOR		    => 'Mark Wardell <mwardell@cpan.org>',
+                 LIBS           => $libs ,
+                 WX_CORE_LIB	=> 'core base',
+                 NO_META 		=> 1,
+                 WX_OVERLOAD	=> {	header  => 'cpp/ovl_const.h',
+                                        source  => 'cpp/ovl_const.cpp',
+                                    },
+                 PREREQ_PM	=> { Wx   => '0.57',
+                                        },
                );
 
 # local variables:

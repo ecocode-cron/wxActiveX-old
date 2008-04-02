@@ -5,11 +5,11 @@ Makefile.PL
 README.txt
 README.txt.original
 typemap
-activex/IEHtmlWin.cpp
-activex/IEHtmlWin.h
-activex/wxactivex.cpp
-activex/wxactivex.h
-cpp/activex.h
+cpp/IEHtmlWin.cpp
+cpp/IEHtmlWin.h
+cpp/wxactivex.cpp
+cpp/wxactivex.h
+cpp/PlActiveX.h
 demo/dumy.fla
 demo/dumy.swf
 demo/test.pdf

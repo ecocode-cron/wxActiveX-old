@@ -13,10 +13,8 @@
 package Wx::ActiveX::Flash ;
 use Wx::ActiveX ;
 use strict ;
-
-use vars qw(@ISA $VERSION);
-@ISA = qw(Wx::ActiveX);
-$VERSION = '0.02';
+use base qw( Wx::ActiveX );
+our $VERSION = '0.052';
 
 #######
 # NEW #
@@ -25,9 +23,9 @@ $VERSION = '0.02';
 sub new {
   my $class = shift ;
   my $parent = shift ;
-  my $activex = Wx::ActiveX->new( $parent , "ShockwaveFlash.ShockwaveFlash" , @_ ) ;
-  $activex = Wx::ActiveX::hash_ref($activex,'Wx::ActiveX::Flash') ;
-  return( $activex ) ;
+  my $self = $class->SUPER::new(  $parent , "ShockwaveFlash.ShockwaveFlash" , @_  );
+  
+  return( $self ) ;
 }
 
 #######

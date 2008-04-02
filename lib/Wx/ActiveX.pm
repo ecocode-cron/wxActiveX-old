@@ -10,269 +10,210 @@
 ##              modify it under the same terms as Perl itself
 #############################################################################
 
+
 package Wx::ActiveX;
 use Wx;
 use strict;
-use vars qw(@ISA $VERSION $XS_NEW $AUTOLOAD);
+use vars qw( $AUTOLOAD );
 
-############
-# AUTOLOAD #
-############
+BEGIN {
+    our $VERSION = '0.0512';
+    our @ISA = 'Wx::Window';
+    Wx::wx_boot( 'Wx::ActiveX', $VERSION ) ;
+}
 
 sub AUTOLOAD {
-  my ($method) = ( $AUTOLOAD =~ /:(\w+)$/gs ) ;
-  if ($method =~ /^DESTROY$/) { return ;}
-  my $activex = shift ;
-  return( $activex->Invoke($method,@_) ) ;
+    my ($method) = ( $AUTOLOAD =~ /:(\w+)$/gs ) ;
+    if ($method =~ /^DESTROY$/) { return ;}
+    my $activex = shift ;
+    return( $activex->Invoke($method,@_) ) ;
 }
-
-#########
-# BEGIN #
-#########
-
-sub BEGIN {
-  @ISA = qw(Wx::Window);
-  $VERSION = '0.0511';
-  Wx::wx_boot( 'Wx::ActiveX', $VERSION ) ;
-  $XS_NEW = \&new ;
-  {
-    no warnings;
-   *new = \&PLnew ;
-  }
-}
-
-#######
-# NEW #
-#######
-
-sub PLnew {
-  my $class = shift ;
-  my $parent = shift ;
-  my $id = shift ;
-  
-  my $activex ;
-  
-  if ($id =~ /^\s*(\{[\w-]+\})\s*$/s) {
-    $id = $1 ;
-    $activex = Wx::ActiveX::newID($class,$parent,$id,@_) ;
-  }
-  else { $activex = &$XS_NEW($class,$parent,$id,@_) ;}
-  
-  $activex = hash_ref($activex,$class) ;
-  return( $activex ) ;
-}
-
-###########
-# PROPSET #
-###########
 
 sub PropSet {
-  my ( $activex , $name , $val ) = @_ ;
-  
-  my $pt = $activex->PropType($name) ;
-  
-  if ($pt eq 'bool') { $activex->PropSetBool($name , $val) ;}
-  elsif ($pt eq 'long'||$pt eq 'int') { $activex->PropSetInt($name , $val) ;}
-  else { $activex->PropSetString($name , $val) ;}
+    my ( $activex , $name , $val ) = @_ ;
+    
+    my $pt = $activex->PropType($name) ;
+    
+    if ($pt eq 'bool') {
+        $activex->PropSetBool($name , $val) ;
+    }
+    elsif ($pt eq 'long'||$pt eq 'int') {
+        $activex->PropSetInt($name , $val) ;
+    }
+    else {
+        $activex->PropSetString($name , $val) ;
+    }
 }
-
-##############
-# LISTEVENTS #
-##############
 
 sub ListEvents {
-  my $this = shift ;
-  my @events ;
-  
-  for my $i (0..($this->GetEventCount-1)) {
-    my $evt_name = $this->GetEventName($i) ;
-    push(@events , $evt_name) if $evt_name ne '' ;
-  }
-  
-  return( @events ) ;
+    my $this = shift ;
+    my @events ;
+    
+    for my $i (0..($this->GetEventCount-1)) {
+        my $evt_name = $this->GetEventName($i) ;
+        push(@events , $evt_name) if $evt_name ne '' ;
+    }
+    
+    return( @events ) ;
 }
-
-#############
-# LISTPROPS #
-#############
 
 sub ListProps {
-  my $this = shift ;
-  my @props ;
-  
-  for my $i (0..($this->GetPropCount-1)) {
-    my $name = $this->GetPropName($i) ;
-    push(@props , $name) if $name ne '' ;
-  }
-  
-  return( @props ) ;
+    my $this = shift ;
+    my @props ;
+    
+    for my $i (0..($this->GetPropCount-1)) {
+        my $name = $this->GetPropName($i) ;
+        push(@props , $name) if $name ne '' ;
+    }
+    
+    return( @props ) ;
 }
-
-###############
-# LISTMETHODS #
-###############
 
 sub ListMethods {
-  my $this = shift ;
-  my @methods ;
-  
-  for my $i (0..($this->GetMethodCount-1)) {
-    my $method = $this->GetMethodName($i) ;
-    push(@methods , $method) if $method ne '' ;
-  }
-  
-  return( @methods ) ;
+    my $this = shift ;
+    my @methods ;
+    
+    for my $i (0..($this->GetMethodCount-1)) {
+        my $method = $this->GetMethodName($i) ;
+        push(@methods , $method) if $method ne '' ;
+    }
+    
+    return( @methods ) ;
 }
-
-########################
-# LISTMETHODS_AND_ARGS #
-########################
 
 sub ListMethods_and_Args {
-  my $this = shift ;
-  my @methods ;
-  
-  for my $i (0..($this->GetMethodCount-1)) {
-    my $method = $this->GetMethodName($i) ;
+    my $this = shift ;
+    my @methods ;
     
-    my @args ;
-    for my $j (0..($this->GetMethodArgCount($i)-1)) {
-      my $arg = $this->GetMethodArgName($i,$j) ;
-      push(@args , $arg) if $arg ne '' ;
+    for my $i (0..($this->GetMethodCount-1)) {
+        my $method = $this->GetMethodName($i) ;
+        
+        my @args ;
+        for my $j (0..($this->GetMethodArgCount($i)-1)) {
+            my $arg = $this->GetMethodArgName($i,$j) ;
+            push(@args , $arg) if $arg ne '' ;
+        }
+        
+        push(@methods , "$method(". join(" , ", @args) .")") if $method ne '' ;
     }
     
-    push(@methods , "$method(". join(" , ", @args) .")") if $method ne '' ;
-  }
-  
-  return( @methods ) ;
+    return( @methods ) ;
 }
-
-#############################
-# LISTMETHODS_AND_ARGS_HASH #
-#############################
 
 sub ListMethods_and_Args_Hash {
-  my $this = shift ;
-  my @methods ;
-  
-  for my $i (0..($this->GetMethodCount-1)) {
-    my $method = $this->GetMethodName($i) ;
+    my $this = shift ;
+    my @methods ;
     
-    my @args ;
-    for my $j (0..($this->GetMethodArgCount($i)-1)) {
-      my $arg = $this->GetMethodArgName($i,$j) ;
-      push(@args , $arg) if $arg ne '' ;
+    for my $i (0..($this->GetMethodCount-1)) {
+        my $method = $this->GetMethodName($i) ;
+        
+        my @args ;
+        for my $j (0..($this->GetMethodArgCount($i)-1)) {
+            my $arg = $this->GetMethodArgName($i,$j) ;
+            push(@args , $arg) if $arg ne '' ;
+        }
+        push(@methods , $method , [$method]) if $method ne '' ;
     }
-    
-    push(@methods , $method , [$method]) if $method ne '' ;
-  }
-  
-  return( @methods ) ;
+
+    return( @methods ) ;
 }
 
-################
-# ACTIVEXINFOS #
-################
 
 sub ActivexInfos {
-  my $this = shift ;
-  my @evts = $this->ListEvents ;
-  my @props = $this->ListProps ;
-  my @methods = $this->ListMethods_and_Args ;
-  
-  my $ret ;
-  
-  $ret .= "<EVENTS>\n" ;
-  foreach my $i ( @evts ) { $ret .= "  $i\n" ;}
-  $ret .= "</EVENTS>\n" ;
-  
-  $ret .= "\n<PROPS>\n" ;
-  foreach my $i ( @props ) { $ret .= "  $i\n" ;}
-  $ret .= "</PROPS>\n" ;
-  
-  $ret .= "\n<METHODS>\n" ;
-  foreach my $i ( @methods ) { $ret .= "  $i\n" ;}
-  $ret .= "</METHODS>\n" ;
-  
-  return( $ret ) ;
+    my $this = shift ;
+    my @evts = $this->ListEvents ;
+    my @props = $this->ListProps ;
+    my @methods = $this->ListMethods_and_Args ;
+    
+    my $ret ;
+    
+    $ret .= "<EVENTS>\n" ;
+    foreach my $i ( @evts ) { $ret .= "  $i\n" ;}
+    $ret .= "</EVENTS>\n" ;
+    
+    $ret .= "\n<PROPS>\n" ;
+    foreach my $i ( @props ) { $ret .= "  $i\n" ;}
+    $ret .= "</PROPS>\n" ;
+    
+    $ret .= "\n<METHODS>\n" ;
+    foreach my $i ( @methods ) { $ret .= "  $i\n" ;}
+    $ret .= "</METHODS>\n" ;
+    return( $ret ) ;
 }
 
-############
-# HASH_REF #
-############
-
-sub hash_ref {
-  return XS_hash_ref($_[0], ref($_[1]) || $_[1]);
-}
-
-####################
-# WX::ACTIVEXEVENT #
-####################
+#--------------------------------------------
+# Wx::ActiveXEvent
+#-------------------------------------------
 
 package Wx::ActiveXEvent;
-use vars qw(@ISA);
-@ISA = qw(Wx::CommandEvent Wx::EvtHandler);
+use base qw(Wx::CommandEvent Wx::EvtHandler);
 
 my (%EVT_HANDLES) ;
 
 no strict ;
 
-############
-# PARAMSET #
-############
-
 sub ParamSet {
-  my ( $evt , $idx , $val ) = @_ ;
-  
-  my $pt = $evt->ParamType($idx) ;
-  
-  if ($pt eq 'bool') { $evt->ParamSetBool($idx , $val) ;}
-  elsif ($pt eq 'long'||$pt eq 'int') { $evt->ParamSetInt($idx , $val) ;}
-  else { $evt->ParamSetString($idx , $val) ;}
-  
+    my ( $evt , $idx , $val ) = @_ ;
+    
+    my $pt = $evt->ParamType($idx) ;
+    
+    if ($pt eq 'bool') {
+        $evt->ParamSetBool($idx , $val) ;
+    }
+    elsif ($pt eq 'long'||$pt eq 'int') {
+        $evt->ParamSetInt($idx , $val) ;
+    }
+    else {
+        $evt->ParamSetString($idx , $val) ;
+    }
 }
-
-###################
-# ACTIVEXEVENTSUB #
-###################
 
 sub ActiveXEventSub {
-  my ( $sub ) = @_ ;
-  
-  return( sub {
-    my $evt = $_[1] ;
+    my ( $sub ) = @_ ;
     
-    $evt = Wx::ActiveX::hash_ref($evt,"Wx::ActiveXEvent") ;
-    
-    for(0..($evt->ParamCount)-1) {
-      my $pn = $evt->ParamName($_);
-      my $pv = $evt->ParamVal($_);
-      $evt->{$pn} = $pv ;
-      $evt->{ParamID}{$pn} = $_ ;
-    }
-    
-    my @ret = &$sub( $_[0] , $evt ) ;
-    
-    for(0..($evt->ParamCount)-1) {
-      my $pn = $evt->ParamName($_);
-      my $pv = $evt->ParamVal($_);
-      if ($pv ne $evt->{$pn}) { $evt->ParamSet($_, $evt->{$pn} ) ;}
-    }    
+    return(
+        sub {
+            my $evt = $_[1] ;
+            
+            $evt = Wx::ActiveX::XS_convert_class($evt,"Wx::ActiveXEvent") ;
+            
+            for(0..($evt->ParamCount)-1) {
+                my $pn = $evt->ParamName($_);
+                my $pv = $evt->ParamVal($_);
+                $evt->{$pn} = $pv ;
+                $evt->{ParamID}{$pn} = $_ ;
+            }
+            
+            my @ret = &$sub( $_[0] , $evt ) ;
+            
+            for(0..($evt->ParamCount)-1) {
+                my $pn = $evt->ParamName($_);
+                my $pv = $evt->ParamVal($_);
+                if ($pv ne $evt->{$pn}) { $evt->ParamSet($_, $evt->{$pn} ) ;}
+            }    
+            
+            return( @ret ) ;
+        }
+    );
 
-    return( @ret ) ;
-  }) ;
-  
 }
-
-###########
-# DESTROY #
-###########
 
 sub DESTROY  { 1 ;}
 
-#######
-# END #
-#######
+package Wx::IEHtmlWin;
+use strict ;
+
+our $VERSION = '0.052';
+
+
+#-------------------------------------------------------
+# packages inheritance
+#-------------------------------------------------------
+
+no strict;
+
+package Wx::ActiveX;        @ISA = qw( Wx::Window );
+package Wx::IEHtmlWin;      @ISA = qw( Wx::ActiveX );
 
 1;
 

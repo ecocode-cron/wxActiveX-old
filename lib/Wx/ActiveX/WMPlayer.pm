@@ -13,21 +13,19 @@
 package Wx::ActiveX::WMPlayer ;
 use Wx::ActiveX ;
 use strict ;
+use base qw( Wx::ActiveX );
 
-use vars qw(@ISA $VERSION);
-@ISA = qw(Wx::ActiveX);
-$VERSION = '0.01';
+our $VERSION = '0.052';
 
 #######
 # NEW #
 #######
 
 sub new {
-  my $class = shift ;
-  my $parent = shift ;
-  my $activex = Wx::ActiveX->new( $parent , "MediaPlayer.MediaPlayer.1" , @_ ) ;
-  $activex = Wx::ActiveX::hash_ref($activex,'Wx::ActiveX::WMPlayer') ;
-  return( $activex ) ;
+    my $class = shift ;
+    my $parent = shift ;
+    my $self = $class->SUPER::new( $parent , "MediaPlayer.MediaPlayer.1" , @_ ) ;
+    return $self;
 }
 
 #######

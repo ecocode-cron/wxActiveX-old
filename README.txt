@@ -1,5 +1,5 @@
 ######################
-# Wx::ActiveX 0.0511 #
+# Wx::ActiveX 0.0512 #
 ######################
 
   This version of Wx::ActiveX is an update to the current CPAN version 0.05.
@@ -69,17 +69,8 @@
     
     
     You don't need ExtUtils:FakeConfig or the -MConfig_m option if your 
-    Win32::BuildNumber is 822 or greater.
-    
-###############
-# DEBUG BUILD #
-###############
+    Win32::BuildNumber is 822 or greater. 
 
-    Uncomment the line
-    
-    
-
-    
 
 ###################
 # ORIGINAL AUTHOR #

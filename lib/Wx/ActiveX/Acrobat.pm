@@ -14,20 +14,17 @@ package Wx::ActiveX::Acrobat ;
 use Wx::ActiveX ;
 use strict;
 
-use vars qw(@ISA $VERSION $AUTOLOAD $ACROBAT_VERSION) ;
-@ISA     = 'Wx::ActiveX';
-$VERSION = '0.01';
+use vars qw($AUTOLOAD $ACROBAT_VERSION) ;
+use base 'Wx::ActiveX';
+our $VERSION = '0.052';
 
 my $PROGID  = "PDF.PdfCtrl.5" ;
 
 sub new {
-  my $class   = shift;
-  my $parent  = shift;
-
-  my $activex = Wx::ActiveX->new($parent , $PROGID , @_) ;
-  
-  $activex = Wx::ActiveX::hash_ref($activex, $class) ;
-  return $activex ;
+    my $class = shift;
+    my $parent = shift;
+    my $self = $class->SUPER::new( $parent , $PROGID , @_ );
+    return $self ;
 }
 
 1;
