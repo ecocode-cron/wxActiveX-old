@@ -15,9 +15,7 @@ use strict;
 use Wx::ActiveX::IE ;
 use Wx qw(:sizer);
 use Wx::Event qw( :activex EVT_BUTTON) ;
-use Wx::ActiveX::Event qw(EVT_ACTIVEX EVT_ACTIVEX_IE_NEWWINDOW2 EVT_ACTIVEX_IE_STATUSTEXTCHANGE) ;
 use Wx qw(wxDefaultPosition wxDefaultSize wxDEFAULT wxNORMAL wxID_OK wxTE_MULTILINE wxTE_READONLY);
-
 
 use base qw(Wx::Panel);
 
