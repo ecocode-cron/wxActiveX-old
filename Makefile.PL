@@ -19,7 +19,7 @@ if( $Config{cc} =~ /^cl/i ) { $libs = 'msvcprt.lib' ;}
 wxWriteMakefile( NAME           => 'Wx::ActiveX',
                  ABSTRACT_FROM  => 'lib/Wx/ActiveX.pm',
                  VERSION_FROM   => 'lib/Wx/ActiveX.pm',
-                 AUTHOR		    => 'Mark Wardell <mwardell@cpan.org>',
+                 AUTHOR		    => 'Graciliano M. P. <gm@virtuasites.com.br>',
                  LIBS           => $libs ,
                  WX_CORE_LIB	=> 'core base',
                  NO_META 		=> 1,

@@ -12,7 +12,7 @@
 MODULE=Wx PACKAGE=Wx::ActiveX
 
 SV*
-XS_convert_class(obj , klass)
+XS_convert_isa(obj , klass)
     SV* obj
     const char* klass
   CODE:
@@ -21,23 +21,23 @@ XS_convert_class(obj , klass)
     // already an hash ref, only needs to (re)bless it in
     // the correct class
     if (SvROK(obj) && SvTYPE(SvRV(obj)) >= SVt_PVHV) {
-      sv_bless(obj, stash);
-      SvREFCNT_inc(obj); // for SV* typemap
-      RETVAL = obj;
+        sv_bless(obj, stash);
+        SvREFCNT_inc(obj); // for SV* typemap
+        RETVAL = obj;
     }
     else {
-      HV* hv = newHV();
-
-      RETVAL = newRV_noinc((SV*)hv);
-      sv_bless(RETVAL, stash);
-      void* cpp_obj;
-
-      if (SvROK(obj))
-          cpp_obj = wxPli_detach_object( aTHX_ obj );
-      else
-          cpp_obj = (void*)SvIV(obj);
-
-      wxPli_attach_object( aTHX_ RETVAL, cpp_obj );
+        HV* hv = newHV();
+    
+        RETVAL = newRV_noinc((SV*)hv);
+        sv_bless(RETVAL, stash);
+        void* cpp_obj;
+    
+        if (SvROK(obj))
+            cpp_obj = wxPli_detach_object( aTHX_ obj );
+        else
+            cpp_obj = (void*)SvIV(obj);
+    
+        wxPli_attach_object( aTHX_ RETVAL, cpp_obj );
     }
   OUTPUT: RETVAL
 
@@ -102,22 +102,19 @@ wxActiveX::GetMethodArgName(idx , argx)
     int idx
     int argx
 
-
 int
 wxActiveX::GetEventCount()
 
 wxString
 wxActiveX::GetEventName(idx)
     int idx
-
-
+    
 int
 wxActiveX::GetPropCount()
 
 wxString
 wxActiveX::GetPropName(idx)
     int idx
-
 
 wxString
 wxActiveX::PropType(name)
@@ -211,7 +208,7 @@ wxActiveXEvent::ParamName(idx)
 wxString
 wxActiveXEvent::ParamVal(idx)
     int idx
-
+    
 void    
 wxActiveXEvent::ParamSetBool(idx , val)
     int idx

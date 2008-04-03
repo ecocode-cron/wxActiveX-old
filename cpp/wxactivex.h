@@ -54,9 +54,6 @@
   code and/or adjust the licensing conditions notice accordingly.
 */
 
-/// uncomment the line below for additional debugging output
-//#define __WXOLEDEBUG
-
 #ifndef WX_ACTIVE_X
 #define WX_ACTIVE_X
 
@@ -205,30 +202,10 @@ wxString OLEHResultToString(HRESULT hr);
 wxString GetIIDName(REFIID riid);
 
 
-#ifdef __WXOLEDEBUG
-    #define WXOLE_TRACE(str) {OutputDebugString(str);OutputDebugString("\r\n");}
-    #define WXOLE_TRACEOUT(stuff)\
-    {\
-        wxString os;\
-        os << stuff << "\r\n";\
-        WXOLE_TRACE(os.mb_str());\
-    }
+#define WXOLE_TRACE(str)
+#define WXOLE_TRACEOUT(stuff)
+#define WXOLE_WARN(_proc,msg) {_proc;}
 
-    #define WXOLE_WARN(__hr,msg)\
-    {\
-        if (__hr != S_OK)\
-        {\
-            wxString s = "*** ";\
-            s += msg;\
-            s += " : "+ OLEHResultToString(__hr);\
-            WXOLE_TRACE(s.c_str());\
-        }\
-    }
-#else
-    #define WXOLE_TRACE(str)
-    #define WXOLE_TRACEOUT(stuff)
-    #define WXOLE_WARN(_proc,msg) {_proc;}
-#endif
 
 /// Utility class for automatically initialising/freeing OLE.
 /// Just declare it statically somewhere in your program

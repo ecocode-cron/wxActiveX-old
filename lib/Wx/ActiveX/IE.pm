@@ -15,7 +15,7 @@ use strict ;
 use Wx::ActiveX;
 use base 'Wx::IEHtmlWin';
 
-our $VERSION = '0.052';
+our $VERSION = '0.06';
 
 no strict;
 

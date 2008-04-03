@@ -3,7 +3,7 @@
 // Purpose:     c++ wrapper for wxActiveX
 // Author:      Graciliano M. P.
 // Modified by:
-// SVN-ID:      $Id: activex.h 2226 2007-09-05 00:54:30Z mdootson $
+// SVN-ID:      $Id:$
 // Copyright:   (c) 2002 - 2007 Graciliano M. P
 // Licence:     This program is free software; you can redistribute it and/or
 //              modify it under the same terms as Perl itself

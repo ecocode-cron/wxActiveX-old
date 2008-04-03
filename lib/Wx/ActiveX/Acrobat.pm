@@ -16,7 +16,7 @@ use strict;
 
 use vars qw($AUTOLOAD $ACROBAT_VERSION) ;
 use base 'Wx::ActiveX';
-our $VERSION = '0.052';
+our $VERSION = '0.06';
 
 my $PROGID  = "PDF.PdfCtrl.5" ;
 
