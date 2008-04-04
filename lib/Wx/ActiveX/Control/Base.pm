@@ -1,9 +1,9 @@
 #############################################################################
-## Name:        lib/Wx/ActiveX/Document.pm
-## Purpose:     Wx::ActiveX::Document (Internet Explorer Wrapper)
+## Name:        lib/Wx/ActiveX/Control/Base.pm
+## Purpose:     Base control for all ActiveX
 ## Author:      Mark Dootson.
 ## Created:     2008-04-02
-## SVN-ID:      $Id: Document.pm 2351 2008-04-04 09:09:08Z mdootson $
+## SVN-ID:      $Id$
 ## Copyright:   (c) 2002 - 2008 Graciliano M. P., Mattia Barbon, Mark Dootson
 ## Licence:     This program is free software; you can redistribute it and/or
 ##              modify it under the same terms as Perl itself

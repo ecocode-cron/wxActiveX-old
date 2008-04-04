@@ -1,6 +1,6 @@
 #############################################################################
 ## Name:        lib/Wx/ActiveX/Control/Helper.pm
-## Purpose:     Wx::ActiveX::Control::Helper Helper functions for controls
+## Purpose:     Helper Helper functions for ActiveX controls
 ## Author:      Mark Dootson.
 ## Created:     2008-04-04
 ## SVN-ID:      $Id:$
