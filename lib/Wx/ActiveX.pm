@@ -11,17 +11,16 @@
 #############################################################################
 
 package Wx::ActiveX;
-use Wx;
 use strict;
+use Wx;
+use Wx::Event;
 use vars qw( $AUTOLOAD );
 
 our $VERSION = '0.06';
-   
+  
 Wx::wx_boot( 'Wx::ActiveX', $VERSION ) ;
 
-require Wx::ActiveX::Event;
-
-
+our @ISA = qw( Wx::ActiveX::PlBase Wx::Window );
 
 sub AUTOLOAD {
     my ($method) = ( $AUTOLOAD =~ /:(\w+)$/gs ) ;
@@ -207,14 +206,59 @@ sub Veto {
 sub DESTROY  { 1 ;}
 
 #--------------------------------------------
-# Wx::IEHtmlWin
+# Wx::ActiveX::PlBase
 #-------------------------------------------
 
-package Wx::IEHtmlWin;
-use strict ;
+package Wx::ActiveX::PlBase;
 
-our $VERSION = '0.06';
+# base activex events
 
+sub Wx::wxAxEVENT_ACTIVEX () { -1 }
+
+push @Wx::EXPORT_OK, ( 'wxAxEVENT_ACTIVEX' )
+$Wx::EXPORT_TAGS{'activex'} = [ 'wxAxEVENT_ACTIVEX' ];
+
+sub Wx::Event::EVT_ACTIVEX($$$$) { $_[0]->Connect( $_[1], -1, Wx::ActiveXEvent::RegisterActiveXEvent( $_[2] ) , Wx::ActiveXEvent::ActiveXEventSub( $_[3]) ) }
+
+push @Wx::Event::EXPORT_OK, ('EVT_ACTIVEX');
+$Wx::Event::EXPORT_TAGS{'activex'} = [ 'EVT_ACTIVEX' ];
+
+# load activex event functions
+
+sub LoadActiveXEventType {
+    my ($package, $eventname, $interfacename ) = @_;
+    my $eventcode = q(     
+        sub Wx::Event::EVT_ACTIVEX_RepLAcEevEntNAMe { &Wx::Event::EVT_ACTIVEX($_[0],$_[1],"RepLAcEINTerFAcENAMe",$_[2]) ;}
+        push @Wx::Event::EXPORT_OK, ('EVT_ACTIVEX_RepLAcEevEntNAMe');
+        push @{ $Wx::Event::EXPORT_TAGS{'activex'} }, ( 'EVT_ACTIVEX_RepLAcEevEntNAMe' );
+    );
+    $eventcode =~ s/RepLAcEevEntNAMe/$eventname/g;
+    $eventcode =~ s/RepLAcEINTerFAcENAMe/$interfacename/g;
+    eval "$eventcode";
+}
+
+sub LoadStandardEventType {
+    my ($package, $eventname, $numparams ) = @_;
+    my $eventid = Wx::NewEventType;
+    my $eventcode = q(
+        sub Wx::wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe () { RepLAcEevEntTYpE };
+        push @Wx::EXPORT_OK, ( 'wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe' );
+        push @{ $Wx::EXPORT_TAGS{'activex'} }, ( 'wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe' );
+        push @Wx::Event::EXPORT_OK, ('EVT_ACTIVEX_RepLAcEevEntNAMe');
+        push @{ $Wx::Event::EXPORT_TAGS{'activex'} }, ( 'EVT_ACTIVEX_RepLAcEevEntNAMe' );
+        
+    );
+    if ( $numparams == 2 ) {
+        $eventcode .= q( sub EVT_ACTIVEX_RepLAcEevEntNAMe ($$) { $_[0]->Connect( -1, -1, &Wx::wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe, $_[1] ) }; );
+    } elsif( $numparams == 3 ) {
+        $eventcode .= q( sub EVT_ACTIVEX_RepLAcEevEntNAMe ($$$) { $_[0]->Connect( $_[1], -1, &Wx::wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe, $_[2] ) }; );
+    } else {
+        $eventcode .= q( sub EVT_ACTIVEX_RepLAcEevEntNAMe ($$$$) { $_[0]->Connect( $_[1], $_[2], &Wx::wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe, $_[3] ) }; );
+    }
+    $eventcode =~ s/RepLAcEevEntNAMe/$eventname/g;
+    $eventcode =~ s/RepLAcEevEntTYpE/$eventid/g;
+    eval "$eventcode";
+}
 
 #-------------------------------------------------------
 # packages inheritance
@@ -222,7 +266,7 @@ our $VERSION = '0.06';
 
 no strict;
 
-package Wx::ActiveX;        @ISA = qw( Wx::Window );
+#package Wx::ActiveX;        @ISA = qw( Wx::Window );
 package Wx::IEHtmlWin;      @ISA = qw( Wx::ActiveX );
 
 1;

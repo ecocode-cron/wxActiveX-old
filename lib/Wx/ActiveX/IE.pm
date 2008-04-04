@@ -13,13 +13,43 @@
 package Wx::ActiveX::IE;
 use strict ;
 use Wx::ActiveX;
-use base 'Wx::IEHtmlWin';
+use base qw( Wx::IEHtmlWin Wx::ActiveX::PlBase );
 
 our $VERSION = '0.06';
 
-no strict;
+my %activexevents = (
+    IE_BEFORENAVIGATE2     => 'BeforeNavigate2',
+    IE_CLIENTTOHOSTWINDOW  => 'ClientToHostWindow',
+    IE_COMMANDSTATECHANGE  => 'CommandStateChange',
+    IE_DOCUMENTCOMPLETE    => 'DocumentComplete',
+    IE_DOWNLOADBEGIN       => 'DownloadBegin',
+    IE_DOWNLOADCOMPLETE    => 'DownloadComplete',
+    IE_FILEDOWNLOAD        => 'FileDownload',
+    IE_NAVIGATECOMPLETE2   => 'NavigateComplete2',
+    IE_NEWWINDOW2          => 'NewWindow2',
+    IE_ONFULLSCREEN        => 'OnFullScreen',
+    IE_ONMENUBAR           => 'OnMenuBar',
+    IE_ONQUIT              => 'OnQuit',
+    IE_ONSTATUSBAR         => 'OnStatusBar',
+    IE_ONTHEATERMODE       => 'OnTheaterMode',
+    IE_ONTOOLBAR           => 'OnToolBar',
+    IE_ONVISIBLE           => 'OnVisible',
+    IE_PROGRESSCHANGE      => 'ProgressChange',
+    IE_PROPERTYCHANGE      => 'PropertyChange',
+    IE_SETSECURELOCKICON   => 'SetSecureLockIcon',
+    IE_STATUSTEXTCHANGE    => 'StatusTextChange',
+    IE_TITLECHANGE         => 'TitleChange',
+    IE_WINDOWCLOSING       => 'WindowClosing',
+    IE_WINDOWSETHEIGHT     => 'WindowSetHeight',
+    IE_WINDOWSETLEFT       => 'WindowSetLeft',
+    IE_WINDOWSETRESIZABLE  => 'WindowSetResizable',
+    IE_WINDOWSETTOP        => 'WindowSetTop',
+    IE_WINDOWSETWIDTH      => 'WindowSetWidth',
+);
 
-package Wx::ActiveX::IE;    @ISA = qw( Wx::IEHtmlWin );
+for my ($eventname, $interface) (%activexevents) {
+    __PACKAGE__->LoadActiveXEventType( $eventname, $interface );
+}
 
 1;
 

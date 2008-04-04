@@ -26,7 +26,7 @@ sub new {
     my $class = shift;
     my $self = $class->SUPER::new( @_ );
     
-    my $html_id = 501 ;
+    my $html_id = Wx::NewId ;
     
     my $IE = $self->{IE} = Wx::ActiveX::IE->new( $self , $html_id , wxDefaultPosition , wxDefaultSize );
     $IE->LoadUrl("http://wxperl.sf.net") ;
@@ -73,6 +73,7 @@ sub new {
     my $GetTextHTML = Wx::Button->new( $self, -1, 'GetTextHTML' );
     my $Print = Wx::Button->new( $self, -1, 'Print' );
     my $PrintPreview = Wx::Button->new( $self, -1, 'PrintPreview' );
+    my $OpenDocument = Wx::Button->new( $self, -1, 'Open Document' );
     
     my $status_txt = Wx::TextCtrl->new( $self , -1, "IE Status", wxDefaultPosition, [200,-1] , wxTE_READONLY );
     
@@ -113,6 +114,7 @@ sub new {
     EVT_BUTTON( $self, $GetTextHTML, \&OnGetTextHTML );
     EVT_BUTTON( $self, $Print, \&OnPrint );
     EVT_BUTTON( $self, $PrintPreview, \&OnPrintPreview );
+    EVT_BUTTON( $self, $OpenDocument, \&OnOpenDocument );
     
     Wx::LogStatus( $IE->ActivexInfos );
     return $self;
@@ -234,6 +236,13 @@ sub OnGetTextHTML {
   my ($self, $event) = @_ ;
   my $val = $self->{IE}->GetText(1) ;
   my $html = $self->Query($val,400,300,1) ;
+}
+
+sub OnOpenDocument {
+    my ($self, $event) = @_ ;
+    
+    my $dialog = Wx::FileDialog
+    
 }
 
 1;
