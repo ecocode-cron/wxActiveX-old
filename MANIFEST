@@ -3,7 +3,6 @@ Changes
 MANIFEST
 Makefile.PL
 README.txt
-README.txt.original
 typemap
 cpp/IEHtmlWin.cpp
 cpp/IEHtmlWin.h

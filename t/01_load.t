@@ -2,13 +2,20 @@
 
 ## SVN-ID:      $Id$
 
-BEGIN { print "1..1\n"; }
+use Test::More tests => 7;
 
-use strict;
-use Wx;
-use Wx::ActiveX;
+BEGIN {
+	use_ok( 'Wx::ActiveX' );
+        use_ok( 'Wx::ActiveX::IE' );
+        use_ok( 'Wx::ActiveX::Event' );
+        use_ok( 'Wx::ActiveX::Acrobat' );
+        use_ok( 'Wx::ActiveX::Document' );
+        use_ok( 'Wx::ActiveX::Flash' );
+        use_ok( 'Wx::ActiveX::WMPlayer' );
+        
+}
 
-print "ok\n";
+1;
 
 exit 0;
 

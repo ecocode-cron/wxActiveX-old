@@ -2,13 +2,13 @@
 
 Revision history for Perl extension Wx::ActiveX.
 
-0.06  2008-04-02
+0.06  2008-04-04
     - First release after co-maintainership granted
     - Replaced 'HashRef' sub with wxPliActiveX & wxPliIEHtmlWindow
     - Moved events to Wx::Events
     - Added Wx::ActiveX::Document
     - combined some updates from latest activex at wxPython
-    - added attribution to POD for known/remembered contributions
+    - added attribution to updated POD for known/remembered contributions
     - compatibilty removed for pre 5.6 and pre 2.8.6 wxWidgets.
 
 0.0511 2007-09-03

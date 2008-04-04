@@ -2,10 +2,9 @@
 ## Name:        lib/Wx/ActiveX/Document.pm
 ## Purpose:     Wx::ActiveX::Document (Internet Explorer Wrapper)
 ## Author:      Mark Dootson.
-## Modified by:
 ## Created:     2008-04-02
 ## SVN-ID:      $Id:$
-## Copyright:   (c) 2008 Mark Dootson.
+## Copyright:   (c) 2002 - 2008 Graciliano M. P., Mattia Barbon, Mark Dootson
 ## Licence:     This program is free software; you can redistribute it and/or
 ##              modify it under the same terms as Perl itself
 #############################################################################
@@ -25,8 +24,8 @@ my %standardevents = (
     DOCUMENT_FRAME_CLOSING => 2,
 );
 
-for my ($eventname, $numparams) (%standardevents) {
-    __PACKAGE__->wxaxperl_load_event( $eventname, $numparams );
+foreach my $eventname (keys(%standardevents)) {
+    __PACKAGE__->LoadStandardEventType( $eventname, $standardevents{$eventname} );
 }
 
 #-----------------------------------
@@ -53,9 +52,9 @@ sub OpenDocument {
         if( (not defined $parent) || (!$parent->isa('Wx::TopLevelWindow')));
 
     my $frame = Wx::ActiveX::Document::_Frame->new( $parent );
+    $frame->Show(1);
     my $doc = $frame->GetDocument();
-    $doc->LoadURL( $document );
-    
+    $doc->LoadUrl( $document );
     return $doc;
 }
 
@@ -73,13 +72,23 @@ sub __wxax_on_event_beforenavigate {
     $event->Veto() if $self->{__wxad_prevent_navigation};
 }
 
+sub AllowNavigate {
+    my ( $self, $allow ) = @_;
+    if(defined($allow)) {
+        $self->{__wxad_prevent_navigation} = $allow ? 0 : 1;
+    }
+    return $self->{__wxad_prevent_navigation} ? 0 : 1;
+}
+
+#--------------------------------------
 package Wx::ActiveX::Document::_Frame;
+#--------------------------------------
 
 use strict;
 use Wx::ActiveX;
-use Wx qw( :activex wxTheApp wxDEFAULT_FRAME_STYLE wxID_ANY wxDEFAULT_FRAME_STYLE);
+use Wx qw( :activex wxTheApp wxDEFAULT_FRAME_STYLE wxID_ANY wxVERTICAL wxALL wxEXPAND );
 use base qw( Wx::Frame );
-use Wx::Event qw( :activex EVT_CLOSE )
+use Wx::Event qw( :activex EVT_CLOSE );
 
 our $VERSION = 0.06;
 
@@ -89,13 +98,14 @@ my $__wxadf_sessiondata = {};
 # default size
 
 {
-    my $defsize = Wx::GetDisplaySize()->Scale(0.75, 0.75);
+    my $defsize = Wx::GetDisplaySize();
+    #$defsize = $defsize->Scale(0.75, 0.75);
     my $maxW = 1024;
     my $maxH = 768;
-    my $width = $defsize->GetWidth();
-    my $height = $defsize->GetHeight();
+    my $width = int($defsize->GetWidth() * 0.75);
+    my $height = int($defsize->GetHeight() * 0.75);
     $__wxadf_sessiondata->{width} = $width > $maxW ? $maxW : $width;
-    $__wxadf_sessiondata->{height} = $width > $maxW ? $maxW : $width;
+    $__wxadf_sessiondata->{height} = $height > $maxH ? $maxH : $height;
     
 }
 
@@ -134,11 +144,16 @@ sub OnEventClose {
     my $queryclosing = Wx::NotifyEvent->new( &Wx::wxAxEVENT_ACTIVEX_DOCUMENT_FRAME_CLOSING, $self->GetId );
     $queryclosing->SetEventObject($self);
     $queryclosing->Allow;
-    $self->ProcessEvent( $queryclosing );    
-    $self->Skip( $notifyevent->IsAllowed ? 1 : 0 );
+    $self->ProcessEvent( $queryclosing );
+    $event->Skip( $queryclosing->IsAllowed );
+    ($__wxadf_sessiondata->{width}, $__wxadf_sessiondata->{height}) = $self->GetSizeWH;   
 
 }
 
 
 
 1;
+
+__END__
+
+

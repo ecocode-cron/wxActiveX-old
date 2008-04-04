@@ -2,10 +2,9 @@
 ## Name:        lib/Wx/ActiveX.pm
 ## Purpose:     Wx::ActiveX
 ## Author:      Graciliano M. P.
-## Modified by:
 ## Created:     25/08/2002
 ## SVN-ID:      $Id$
-## Copyright:   (c) 2002 Graciliano M. P.
+## Copyright:   (c) 2002 - 2008 Graciliano M. P., Mattia Barbon, Mark Dootson
 ## Licence:     This program is free software; you can redistribute it and/or
 ##              modify it under the same terms as Perl itself
 #############################################################################
@@ -20,7 +19,9 @@ our $VERSION = '0.06';
   
 Wx::wx_boot( 'Wx::ActiveX', $VERSION ) ;
 
-our @ISA = qw( Wx::ActiveX::PlBase Wx::Window );
+our @ISA = qw( Wx::Window Wx::ActiveX::PlBase );
+
+our $__wxax_debug;
 
 sub AUTOLOAD {
     my ($method) = ( $AUTOLOAD =~ /:(\w+)$/gs ) ;
@@ -210,12 +211,13 @@ sub DESTROY  { 1 ;}
 #-------------------------------------------
 
 package Wx::ActiveX::PlBase;
+use base qw( Exporter );
 
 # base activex events
 
 sub Wx::wxAxEVENT_ACTIVEX () { -1 }
 
-push @Wx::EXPORT_OK, ( 'wxAxEVENT_ACTIVEX' )
+push @Wx::EXPORT_OK, ( 'wxAxEVENT_ACTIVEX' );
 $Wx::EXPORT_TAGS{'activex'} = [ 'wxAxEVENT_ACTIVEX' ];
 
 sub Wx::Event::EVT_ACTIVEX($$$$) { $_[0]->Connect( $_[1], -1, Wx::ActiveXEvent::RegisterActiveXEvent( $_[2] ) , Wx::ActiveXEvent::ActiveXEventSub( $_[3]) ) }
@@ -234,6 +236,7 @@ sub LoadActiveXEventType {
     );
     $eventcode =~ s/RepLAcEevEntNAMe/$eventname/g;
     $eventcode =~ s/RepLAcEINTerFAcENAMe/$interfacename/g;
+    Wx::LogMessage("Wx::ActiveX::Event Creating Event\n %s", $eventcode ) if $Wx::ActiveX::__wxax_debug;
     eval "$eventcode";
 }
 
@@ -249,25 +252,17 @@ sub LoadStandardEventType {
         
     );
     if ( $numparams == 2 ) {
-        $eventcode .= q( sub EVT_ACTIVEX_RepLAcEevEntNAMe ($$) { $_[0]->Connect( -1, -1, &Wx::wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe, $_[1] ) }; );
+        $eventcode .= q( sub Wx::Event::EVT_ACTIVEX_RepLAcEevEntNAMe ($$) { $_[0]->Connect( -1, -1, &Wx::wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe, $_[1] ) }; );
     } elsif( $numparams == 3 ) {
-        $eventcode .= q( sub EVT_ACTIVEX_RepLAcEevEntNAMe ($$$) { $_[0]->Connect( $_[1], -1, &Wx::wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe, $_[2] ) }; );
+        $eventcode .= q( sub Wx::Event::EVT_ACTIVEX_RepLAcEevEntNAMe ($$$) { $_[0]->Connect( $_[1], -1, &Wx::wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe, $_[2] ) }; );
     } else {
-        $eventcode .= q( sub EVT_ACTIVEX_RepLAcEevEntNAMe ($$$$) { $_[0]->Connect( $_[1], $_[2], &Wx::wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe, $_[3] ) }; );
+        $eventcode .= q( sub Wx::Event::EVT_ACTIVEX_RepLAcEevEntNAMe ($$$$) { $_[0]->Connect( $_[1], $_[2], &Wx::wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe, $_[3] ) }; );
     }
     $eventcode =~ s/RepLAcEevEntNAMe/$eventname/g;
     $eventcode =~ s/RepLAcEevEntTYpE/$eventid/g;
+    Wx::LogMessage("Wx::ActiveX Creating Event\n %s", $eventcode ) if $Wx::ActiveX::__wxax_debug;
     eval "$eventcode";
 }
-
-#-------------------------------------------------------
-# packages inheritance
-#-------------------------------------------------------
-
-no strict;
-
-#package Wx::ActiveX;        @ISA = qw( Wx::Window );
-package Wx::IEHtmlWin;      @ISA = qw( Wx::ActiveX );
 
 1;
 
@@ -418,37 +413,51 @@ All the events use EVT_ACTIVEX.
 
   EVT_ACTIVEX($parent , $activex , "EventName" , sub{...} ) ;
   
-** You can get the list of ActiveX events using ListEvents():
+** You can get the list of ActiveX event names using ListEvents():
   
-Eache ActiveX event has their own argument list (hash), and the Key 'Cancel' can be used to ignore the event. In this example any new window will be canceled, seting $evt->{Cancel} to true:
+Each ActiveX event has its own argument list (hash), and the method 'Veto' can be used to ignore the event.
+In this example any new window will be canceled, seting $evt->IsAllowed to False:
 
   EVT_ACTIVEX($this,$activex, "EventX" , sub{
     my ( $obj , $evt ) = @_ ;
-    $evt->{Cancel} = 1 ;
+    $evt->Veto;
   }) ;
 
 =head1 NOTE
 
-This package only works for Win32, since it use ActiveX.
+This package only works for Win32, since it uses ActiveX.
 
 =head1 SEE ALSO
 
 L<Wx::ActiveX::IE>, L<Wx::ActiveX::Flash>, L<Wx::ActiveX::WMPlayer>, L<Wx>
 
-=head1 AUTHOR
+=head1 AUTHORS & ACKNOWLEDGEMENTS
 
-Graciliano M. P. <gm@virtuasites.com.br>
+Wx::ActiveX has benefited from many contributors:
 
-Thanks to Simon Flack <sf@flacks.net>, for the compatibility of Wx::ActiveX objetc with Win32::OLE and MingW tests.
+Graciliano Monteiro Passos - original author
 
-Thanks to wxWindows peoples and Mattia Barbon for wxPerl! ;-P
+Contributions from:
 
-Thanks to Justin Bradford <justin@maxwell.ucsf.edu> and Lindsay Mathieson <lmathieson@optusnet.com.au>, that wrote the original C++ classes for wxActiveX and wxIEHtmlWin.
+Simon Flack
+Mattia Barbon
+Eric Wilhelm
+Andy Levine
+Mark Dootson
 
-=head1 COPYRIGHT
+Thanks to Justin Bradford and Lindsay Mathieson
+who wrote the C classes for wxActiveX and wxIEHtmlWin.
 
-This program is free software; you can redistribute it and/or
-modify it under the same terms as Perl itself.
+=head1 COPYRIGHT & LICENSE
+
+Copyright (C) 2002-2008 Authors & Contributors, all rights reserved.
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=head1 MODULE MAINTAINERS
+
+Mark Dootson <mdootson@cpan.org>
 
 =cut
 

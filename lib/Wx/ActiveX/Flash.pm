@@ -2,10 +2,9 @@
 ## Name:        lib/Wx/ActiveX/Flash.pm
 ## Purpose:     Wx::ActiveX::Flash (Shockwave Flash)
 ## Author:      Graciliano M. P.
-## Modified by:
 ## Created:     14/04/2003
 ## SVN-ID:      $Id$
-## Copyright:   (c) 2002 Graciliano M. P.
+## Copyright:   (c) 2002 - 2008 Graciliano M. P., Mattia Barbon, Mark Dootson
 ## Licence:     This program is free software; you can redistribute it and/or
 ##              modify it under the same terms as Perl itself
 #############################################################################

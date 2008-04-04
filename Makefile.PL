@@ -2,9 +2,9 @@
 ## Name:        Makefile.PL
 ## Purpose:     Makefile for Wx::ActiveX
 ## Author:      Graciliano M. P.
-## Modified by:
+## Created:
 ## SVN-ID:      $Id$
-## Copyright:   (c) 2002 - 2007 Graciliano M. P. and Mattia Barbon
+## Copyright:   (c) 2002 - 2008 Graciliano M. P., Mattia Barbon, Mark Dootson
 ## Licence:     This program is free software; you can redistribute it and/or
 ##              modify it under the same terms as Perl itself
 #############################################################################

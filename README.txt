@@ -1,37 +1,27 @@
-######################
-# Wx::ActiveX 0.06 #
-######################
+----------------------------------
+ Wx::ActiveX 0.06
+----------------------------------
   
-  Thanks goto the many people who have contributed upodates to Wx::ActiveX via
-  the wxPerl mailing lists and rt.cpan.org.
-  
-  The names I can trace are:
-  
-  Simon Flack
-  Eric Wilhelm
-  Andy Levine
-  
-  I'm sorry if I missed you off.
-  
-  Thanks also, of course, to Mattia Barbon and Graciliano Monteiro Passos.
+    ActiveX interface for Wx
     
-  Mark Dootson <mdootson@cpan.org>  September 2007
-  
-  
-###########
-# COMPILE #
-###########
-  
-  This is ActiveX so it is a MSWin specific module.
+----------------------------------
+ PPMs  
+----------------------------------
 
-  You will need Wx >= 0.50 together with Alien::wxWidgets >=0.24.
+    PPMs are available at http://www.wxperl.co.uk/
+    
+----------------------------------
+ Build   
+----------------------------------
   
-#########
-# BUILD #
-#########
-
-    If you have built your own Alien::wxWidgets or installed development RPMS
+    This is ActiveX so it is a MSWin specific module. You
+    will need Wx >= 0.50 together with Alien::wxWidgets >=0.24.
+ 
+    If you have built your own Alien::wxWidgets or installed
+    a development PPM or PAR Distribution of Alien wxWidgets,
     then the standard methods should work:
+    
+    Development distributions 
   
     ------------------------
     MSVC & ActiveState Perl
@@ -80,20 +70,14 @@
     
 
 
-###################
-# ORIGINAL AUTHOR #
-###################
+----------------------------------
+ ORIGINAL AUTHOR 
+----------------------------------
 
-  Graciliano M. P. <gm@virtuasites.com.br>
+    Graciliano M. P
 
-  Thanks to wxWidgets people and Mattia Barbon for wxPerl! ;-)
 
-  Thanks to Justin Bradford <justin@maxwell.ucsf.edu> and Lindsay Mathieson <lmathieson@optusnet.com.au>,
-  that wrote the C classes for wxActiveX and wxIEHtmlWin.
-
-  Thanks to Simon Flack <sf@flacks.net>, for the compatibility of Wx::ActiveX object with Win32::OLE and MingW tests.
-
-  Thanks for the interest of everybody.
-
-Enjoy ;-P
-
+----------------------------------
+ Current Maintainer 
+----------------------------------
+    Mark Dootson <mdootson@cpan.org>

@@ -2,10 +2,9 @@
 ## Name:        lib/Wx/ActiveX/IE.pm
 ## Purpose:     Wx::ActiveX::IE (Internet Explorer)
 ## Author:      Graciliano M. P.
-## Modified by:
 ## Created:     01/09/2002
 ## SVN-ID:      $Id$
-## Copyright:   (c) 2002 Graciliano M. P.
+## Copyright:   (c) 2002 - 2008 Graciliano M. P., Mattia Barbon, Mark Dootson
 ## Licence:     This program is free software; you can redistribute it and/or
 ##              modify it under the same terms as Perl itself
 #############################################################################
@@ -47,13 +46,21 @@ my %activexevents = (
     IE_WINDOWSETWIDTH      => 'WindowSetWidth',
 );
 
-for my ($eventname, $interface) (%activexevents) {
-    __PACKAGE__->LoadActiveXEventType( $eventname, $interface );
+foreach my $eventname (keys(%activexevents)) {
+    __PACKAGE__->LoadActiveXEventType( $eventname, $activexevents{$eventname} );
 }
+
+
+no strict;
+
+package Wx::IEHtmlWin;      @ISA = qw( Wx::ActiveX );
 
 1;
 
 __END__
+
+
+
 
 =head1 NAME
 

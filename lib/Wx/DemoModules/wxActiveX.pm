@@ -2,33 +2,43 @@
 ## Name:        lib/Wx/DemoModules/wxActiveX.pm
 ## Purpose:     wxPerl demo helper for Wx::ActiveX
 ## Author:      Mark Dootson
-## Modified by:
 ## Created:     13/11/2007
 ## SVN-ID:      $Id$
-## Copyright:   (c) 2002 2007 Graciliano M. P. & Mark Dootson
+## Copyright:   (c) 2002 - 2008 Graciliano M. P., Mattia Barbon, Mark Dootson
 ## Licence:     This program is free software; you can redistribute it and/or
 ##              modify it under the same terms as Perl itself
 #############################################################################
 
+BEGIN {
+    package Wx::ActiveX;
+    # our $__wxax_debug = 1; # some info output
+}
+
 package Wx::DemoModules::wxActiveX;
 use strict;
+use Wx qw(:sizer wxTE_MULTILINE wxYES_NO wxICON_QUESTION wxCENTRE wxYES wxFD_OPEN wxFD_FILE_MUST_EXIST
+           wxID_CANCEL wxTE_READONLY wxDefaultPosition wxDefaultSize wxID_ANY wxID_OK );
+           
 use Wx::ActiveX::IE ;
-use Wx qw(:sizer);
+use Wx::ActiveX::Document;
+# after activex modules if you want exports
 use Wx::Event qw( :activex EVT_BUTTON) ;
-use Wx qw(wxDefaultPosition wxDefaultSize wxDEFAULT wxNORMAL wxID_OK wxTE_MULTILINE wxTE_READONLY);
 
 use base qw(Wx::Panel);
 
 sub add_to_tags  { qw(windows) }
 sub title { 'wxActiveX' }
 
+
+$Wx::ActiveX::__wxax_debug = 1;
+
 sub new {
     my $class = shift;
     my $self = $class->SUPER::new( @_ );
     
-    my $html_id = Wx::NewId ;
+    my $html_id = Wx::NewId;
     
-    my $IE = $self->{IE} = Wx::ActiveX::IE->new( $self , $html_id , wxDefaultPosition , wxDefaultSize );
+    my $IE = $self->{IE} = Wx::ActiveX::IE->new( $self , $html_id, wxDefaultPosition, wxDefaultSize );
     $IE->LoadUrl("http://wxperl.sf.net") ;
   
     Wx::LogStatus( "ACTIVEX_IE EVENT LIST:" );
@@ -92,6 +102,7 @@ sub new {
     $but_s2->Add( $GetTextHTML );
     $but_s2->Add( $Print );
     $but_s2->Add( $PrintPreview );
+    $but_s2->Add( $OpenDocument );
   
     $top_s->Add( $IE, 1, wxGROW|wxALL, 5 );
     $top_s->Add( $status_txt , 0, wxGROW|wxALL, 0);
@@ -117,6 +128,23 @@ sub new {
     EVT_BUTTON( $self, $OpenDocument, \&OnOpenDocument );
     
     Wx::LogStatus( $IE->ActivexInfos );
+    
+    # event for Document Window
+    
+    # get TopLevelWindowParent
+    
+    my $parent = $self;
+    while( !$parent->isa('Wx::TopLevelWindow') ) {
+        $parent = $parent->GetParent or last;
+    }
+    if(!$parent) {
+        Wx::LogError("%s", 'Unable to find parent Wx::Frame for Wx::ActiveX::Document');
+        return;
+    }
+    
+        
+    EVT_ACTIVEX_DOCUMENT_FRAME_CLOSING($parent, \&OnDocumentFrameClosing);
+    
     return $self;
 }
 
@@ -241,8 +269,63 @@ sub OnGetTextHTML {
 sub OnOpenDocument {
     my ($self, $event) = @_ ;
     
-    my $dialog = Wx::FileDialog
+    my $prompt = 'Please select a document to load';
+
+    my $style = wxFD_OPEN|wxFD_FILE_MUST_EXIST;
     
+    my $defaultpath = '';
+    my $priorfile = '';
+    my $filemask = 'All Files (*.*)|*.*';
+    
+    my $parent = $self;
+    while( !$parent->isa('Wx::TopLevelWindow') ) {
+        $parent = $parent->GetParent or last;
+    }
+    if(!$parent) {
+        Wx::LogError("%s", 'Unable to find parent Wx::Frame for Wx::ActiveX::Document');
+        return;
+    }
+    
+    my $dialog = Wx::FileDialog->new
+        (
+            $parent,
+            $prompt,
+            $defaultpath,
+            $priorfile,
+            $filemask,
+            $style
+        );
+        
+    my $filepath = '';
+
+    if( $dialog->ShowModal == wxID_CANCEL ) {
+        $filepath = '';
+    } else {
+        $filepath = $dialog->GetPath();
+    }
+    return if(!$filepath );
+    
+    my $document = Wx::ActiveX::Document->OpenDocument($parent, $filepath);
+    $document->AllowNavigate(0);
+    
+}
+
+sub OnDocumentFrameClosing {
+    my ($parentwindow, $event) = @_ ;
+    $event->Veto  if( ! question_message('Are you sure you wish to close the document frame?') );    
+    $event->Skip(0);
+}
+
+sub question_message {
+    my $msg = shift;
+    my $title = 'Wx::ActiveX - Wx::Demo - Module';
+    if(Wx::MessageBox($msg,
+                   $title, 
+                   wxYES_NO|wxICON_QUESTION|wxCENTRE, undef) == wxYES) {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 1;
