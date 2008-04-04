@@ -3,7 +3,7 @@
 ## Purpose:     Wx::ActiveX::Document (Internet Explorer Wrapper)
 ## Author:      Mark Dootson.
 ## Created:     2008-04-02
-## SVN-ID:      $Id:$
+## SVN-ID:      $Id$
 ## Copyright:   (c) 2002 - 2008 Graciliano M. P., Mattia Barbon, Mark Dootson
 ## Licence:     This program is free software; you can redistribute it and/or
 ##              modify it under the same terms as Perl itself
@@ -151,9 +151,12 @@ sub OnEventClose {
 }
 
 
+package Wx::ActiveX::Document;
+
 
 1;
 
 __END__
+
 
 

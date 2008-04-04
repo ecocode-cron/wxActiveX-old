@@ -9,19 +9,36 @@
 ##              modify it under the same terms as Perl itself
 #############################################################################
 
-package Wx::ActiveX;
 use strict;
 use Wx;
-use Wx::Event;
-use vars qw( $AUTOLOAD );
 
+#----------------------------------------------------------------------------
+ package Wx::ActiveX;
+#----------------------------------------------------------------------------
+
+use vars qw( $AUTOLOAD );
 our $VERSION = '0.06';
-  
+our @ISA = qw( Wx::Window );
 Wx::wx_boot( 'Wx::ActiveX', $VERSION ) ;
 
-our @ISA = qw( Wx::Window Wx::ActiveX::PlBase );
+#----------------------------------------------------------------------------
+ package Wx::IEHtmlWin;
+#----------------------------------------------------------------------------
 
+our $VERSION = $Wx::ActiveX::VERSION;
+our @ISA = qw( Wx::ActiveX );
 our $__wxax_debug;
+
+#----------------------------------------------------------------------------
+ package Wx::ActiveX::Control::Base;
+#----------------------------------------------------------------------------  
+
+our $VERSION = $Wx::ActiveX::VERSION;
+our @ISA = qw( Exporter );
+
+#----------------------------------------------------------------------------
+ package Wx::ActiveX;
+#----------------------------------------------------------------------------
 
 sub AUTOLOAD {
     my ($method) = ( $AUTOLOAD =~ /:(\w+)$/gs ) ;
@@ -142,11 +159,11 @@ sub ActivexInfos {
     return( $ret ) ;
 }
 
-#--------------------------------------------
-# Wx::ActiveXEvent
-#-------------------------------------------
+#----------------------------------------------------------------------------
+ package Wx::ActiveXEvent;
+#----------------------------------------------------------------------------
 
-package Wx::ActiveXEvent;
+
 use base qw(Wx::CommandEvent Wx::EvtHandler);
 
 my (%EVT_HANDLES) ;
@@ -206,63 +223,6 @@ sub Veto {
 
 sub DESTROY  { 1 ;}
 
-#--------------------------------------------
-# Wx::ActiveX::PlBase
-#-------------------------------------------
-
-package Wx::ActiveX::PlBase;
-use base qw( Exporter );
-
-# base activex events
-
-sub Wx::wxAxEVENT_ACTIVEX () { -1 }
-
-push @Wx::EXPORT_OK, ( 'wxAxEVENT_ACTIVEX' );
-$Wx::EXPORT_TAGS{'activex'} = [ 'wxAxEVENT_ACTIVEX' ];
-
-sub Wx::Event::EVT_ACTIVEX($$$$) { $_[0]->Connect( $_[1], -1, Wx::ActiveXEvent::RegisterActiveXEvent( $_[2] ) , Wx::ActiveXEvent::ActiveXEventSub( $_[3]) ) }
-
-push @Wx::Event::EXPORT_OK, ('EVT_ACTIVEX');
-$Wx::Event::EXPORT_TAGS{'activex'} = [ 'EVT_ACTIVEX' ];
-
-# load activex event functions
-
-sub LoadActiveXEventType {
-    my ($package, $eventname, $interfacename ) = @_;
-    my $eventcode = q(     
-        sub Wx::Event::EVT_ACTIVEX_RepLAcEevEntNAMe { &Wx::Event::EVT_ACTIVEX($_[0],$_[1],"RepLAcEINTerFAcENAMe",$_[2]) ;}
-        push @Wx::Event::EXPORT_OK, ('EVT_ACTIVEX_RepLAcEevEntNAMe');
-        push @{ $Wx::Event::EXPORT_TAGS{'activex'} }, ( 'EVT_ACTIVEX_RepLAcEevEntNAMe' );
-    );
-    $eventcode =~ s/RepLAcEevEntNAMe/$eventname/g;
-    $eventcode =~ s/RepLAcEINTerFAcENAMe/$interfacename/g;
-    Wx::LogMessage("Wx::ActiveX::Event Creating Event\n %s", $eventcode ) if $Wx::ActiveX::__wxax_debug;
-    eval "$eventcode";
-}
-
-sub LoadStandardEventType {
-    my ($package, $eventname, $numparams ) = @_;
-    my $eventid = Wx::NewEventType;
-    my $eventcode = q(
-        sub Wx::wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe () { RepLAcEevEntTYpE };
-        push @Wx::EXPORT_OK, ( 'wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe' );
-        push @{ $Wx::EXPORT_TAGS{'activex'} }, ( 'wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe' );
-        push @Wx::Event::EXPORT_OK, ('EVT_ACTIVEX_RepLAcEevEntNAMe');
-        push @{ $Wx::Event::EXPORT_TAGS{'activex'} }, ( 'EVT_ACTIVEX_RepLAcEevEntNAMe' );
-        
-    );
-    if ( $numparams == 2 ) {
-        $eventcode .= q( sub Wx::Event::EVT_ACTIVEX_RepLAcEevEntNAMe ($$) { $_[0]->Connect( -1, -1, &Wx::wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe, $_[1] ) }; );
-    } elsif( $numparams == 3 ) {
-        $eventcode .= q( sub Wx::Event::EVT_ACTIVEX_RepLAcEevEntNAMe ($$$) { $_[0]->Connect( $_[1], -1, &Wx::wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe, $_[2] ) }; );
-    } else {
-        $eventcode .= q( sub Wx::Event::EVT_ACTIVEX_RepLAcEevEntNAMe ($$$$) { $_[0]->Connect( $_[1], $_[2], &Wx::wxAxEVENT_ACTIVEX_RepLAcEevEntNAMe, $_[3] ) }; );
-    }
-    $eventcode =~ s/RepLAcEevEntNAMe/$eventname/g;
-    $eventcode =~ s/RepLAcEevEntTYpE/$eventid/g;
-    Wx::LogMessage("Wx::ActiveX Creating Event\n %s", $eventcode ) if $Wx::ActiveX::__wxax_debug;
-    eval "$eventcode";
-}
 
 1;
 
@@ -270,30 +230,59 @@ __END__
 
 =head1 NAME
 
-Wx::ActiveX - ActiveX interface.
+Wx::ActiveX - ActiveX Interface.
+
+=head1 VERSION
+
+Version 0.06
+
+=head1 SYNOPSIS
+    
+    use Wx::ActiveX;
+    use Wx qw( :activex wxID_ANY wxDefaultPosition , wxDefaultSize );
+    use Wx::Event qw( :activex );
+
+    ........
+
+    my $activex = Wx::ActiveX->new(
+                  $parent,
+                  "ShockwaveFlash.ShockwaveFlash",
+                  wxID_ANY,
+                  wxDefaultPosition,
+                  wxDefaultSize );
+                  
+    $activex->Invoke("LoadMovie",'0',"file:///F:/swf/test.swf") ;
+    $activex->PropSet("Quality",'Best') ;
+    my $frames_n = $activex->PropVal("TotalFrames") ;
+    
+    $activex->Invoke("Play") ;
+
+    ... or ...
+
+    $activex->Play ;
+    
+    ----------------------------------------------------------------
+    package MyActiveXControl;
+    use Wx::ActiveX;
+    use base qw( Wx::ActiveX );
+    
+    my %activexevents = qw(
+        FLASH_READY_STATE_CHANGE => 'OnReadyStateChange',
+        FLASH_FS_COMMAND         => 'FSCommand',
+        FLASH_PROGRESS           => 'OnProgress', 
+    );
+    
+    __PACKAGE__->
+    
+    
+    
 
 =head1 DESCRIPTION
 
 Load ActiveX controls for wxWindows.
 
-=head1 SYNOPSIS
 
-  use Wx::ActiveX ;
-  my $activex = Wx::ActiveX->new( $this , "ShockwaveFlash.ShockwaveFlash" , 101 , wxDefaultPosition , wxDefaultSize ) ;
-  
-  $activex->Invoke("LoadMovie",'0',"file:///F:/swf/test.swf") ;
-  
-  $activex->PropSet("Quality",'Best') ;
-  
-  my $frames_n = $activex->PropVal("TotalFrames") ;
-  
-  $activex->Invoke("Play") ;
-  
-  ... or ...
-  
-  $activex->Play ;
-
-=head1 METHODS
+d1 METHODS
 
 =head2 new ( PARENT , CONTROL_ID , ID , POS , SIZE )
 
