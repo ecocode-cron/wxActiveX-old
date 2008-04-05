@@ -11,9 +11,6 @@
 use strict;
 use Wx::build::MakeMaker ;
 use Config ;
-if(!$ENV{BUILD_WXACTIVEX_ANYWAY}) {
-    die 'Interface is currently broken. Please use PPM from http://www.wxperl.co.uk until next CPAN release';
-}
 
 my $libs = '' ;
 if( $Config{cc} =~ /^cl/i ) { $libs = 'msvcprt.lib' ;}
@@ -21,9 +18,9 @@ if( $Config{cc} =~ /^cl/i ) { $libs = 'msvcprt.lib' ;}
 wxWriteMakefile( NAME           => 'Wx::ActiveX',
                  ABSTRACT_FROM  => 'lib/Wx/ActiveX.pm',
                  VERSION_FROM   => 'lib/Wx/ActiveX.pm',
-                 AUTHOR		    => 'Graciliano M. P. <gm@virtuasites.com.br>',
+                 AUTHOR		    => 'Graciliano M. P',
                  LIBS           => $libs ,
-                 EXE_FILES     => [ qw(script/wxactivex_browser) ],
+                 EXE_FILES     => [ qw(script/wxactivex_browser.pl) ],
                  WX_CORE_LIB	=> 'core base',
                  NO_META 		=> 1,
                  WX_OVERLOAD	=> {	header  => 'cpp/ovl_const.h',

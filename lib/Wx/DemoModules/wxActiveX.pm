@@ -11,18 +11,19 @@
 
 BEGIN {
     package Wx::ActiveX;
-    # our $__wxax_debug = 1; # some info output
+    our $__wxax_debug; # some info output
+    package Wx::DemoModules::wxActiveX;
 }
 
 package Wx::DemoModules::wxActiveX;
 use strict;
 use Wx qw(:sizer wxTE_MULTILINE wxYES_NO wxICON_QUESTION wxCENTRE wxYES wxFD_OPEN wxFD_FILE_MUST_EXIST
            wxID_CANCEL wxTE_READONLY wxDefaultPosition wxDefaultSize wxID_ANY wxID_OK );
-           
-use Wx::ActiveX::IE ;
-use Wx::ActiveX::Document;
+use Wx::ActiveX;           
+use Wx::ActiveX::Event qw( :everything );
+use Wx::ActiveX::Document qw( :document );
 # after activex modules if you want exports
-use Wx::Event qw( :activex EVT_BUTTON) ;
+use Wx::Event qw( EVT_BUTTON) ;
 
 use base qw(Wx::Panel);
 

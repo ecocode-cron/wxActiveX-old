@@ -1,5 +1,5 @@
 
-/* SVN-ID:      $Id:$ */
+/* SVN-ID:      $Id$ */
 
 /*
                 wxActiveX Library Licence, Version 3

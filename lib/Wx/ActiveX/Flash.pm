@@ -13,7 +13,8 @@ package Wx::ActiveX::Flash ;
 use Wx::ActiveX ;
 use strict ;
 use base qw( Wx::ActiveX );
-our $VERSION = '0.06';
+
+our $VERSION = '0.06'; # Wx::ActiveX Version
 
 #######
 # NEW #

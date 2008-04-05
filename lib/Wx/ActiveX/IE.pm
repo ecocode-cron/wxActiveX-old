@@ -12,11 +12,13 @@
 package Wx::ActiveX::IE;
 use strict ;
 use Wx::ActiveX;
-use base qw( Wx::IEHtmlWin Wx::ActiveX::PlBase );
+use base qw( Wx::IEHtmlWin );
 
-our $VERSION = '0.06';
+# our (@EXPORT_OK, %EXPORT_TAGS);
 
-my %activexevents = (
+our $VERSION = '0.06'; # Wx::ActiveX Version
+
+our %activexevents = (
     IE_BEFORENAVIGATE2     => 'BeforeNavigate2',
     IE_CLIENTTOHOSTWINDOW  => 'ClientToHostWindow',
     IE_COMMANDSTATECHANGE  => 'CommandStateChange',
@@ -46,14 +48,9 @@ my %activexevents = (
     IE_WINDOWSETWIDTH      => 'WindowSetWidth',
 );
 
-foreach my $eventname (keys(%activexevents)) {
-    __PACKAGE__->LoadActiveXEventType( $eventname, $activexevents{$eventname} );
-}
+my $tagprefix = 'iehtmlwin';
 
-
-no strict;
-
-package Wx::IEHtmlWin;      @ISA = qw( Wx::ActiveX );
+__PACKAGE__->LoadActiveXEventTypes( $tagprefix, \%activexevents );
 
 1;
 

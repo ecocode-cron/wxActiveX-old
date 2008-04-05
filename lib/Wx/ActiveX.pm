@@ -9,43 +9,43 @@
 ##              modify it under the same terms as Perl itself
 #############################################################################
 
+#----------------------------------------------------------------------------
+ package Wx::ActiveX;
+#----------------------------------------------------------------------------
+
+# init
 use strict;
 use Wx;
-
-#----------------------------------------------------------------------------
- package Wx::ActiveX;
-#----------------------------------------------------------------------------
-
 use vars qw( $AUTOLOAD );
-our $VERSION = '0.06';
-our @ISA = qw( Wx::Window );
+require Exporter;
+our @ISA = qw( Wx::Window Exporter);
+
+our $VERSION = '0.06'; # Wx::ActiveX Version
+
+our $__wxax_debug;
+our @EXPORT_OK = ();
+our %EXPORT_TAGS = ( everything => \@EXPORT_OK  );
+
 Wx::wx_boot( 'Wx::ActiveX', $VERSION ) ;
 
-#----------------------------------------------------------------------------
- package Wx::IEHtmlWin;
-#----------------------------------------------------------------------------
+# Base ActiveX Event
+push @EXPORT_OK, ( 'EVENTID_ACTIVEX' );
+push @{ $EXPORT_TAGS{'activex'} }, ( 'EVENTID_ACTIVEX' );
+push @EXPORT_OK, ('EVT_ACTIVEX');
+push @{ $EXPORT_TAGS{'activex'} }, ( 'EVT_ACTIVEX' );
 
-our $VERSION = $Wx::ActiveX::VERSION;
-our @ISA = qw( Wx::ActiveX );
-our $__wxax_debug;
+sub EVENTID_ACTIVEX () { -1 }
+sub EVT_ACTIVEX ($$$$) { $_[0]->Connect( $_[1], -1, &Wx::ActiveXEvent::RegisterActiveXEvent( $_[2] ), Wx::ActiveXEvent::ActiveXEventSub( $_[3] ) ) };
 
-#----------------------------------------------------------------------------
- package Wx::ActiveX::Control::Base;
-#----------------------------------------------------------------------------  
-
-our $VERSION = $Wx::ActiveX::VERSION;
-our @ISA = qw( Exporter );
-
-#----------------------------------------------------------------------------
- package Wx::ActiveX;
-#----------------------------------------------------------------------------
-
+# Autoload
 sub AUTOLOAD {
     my ($method) = ( $AUTOLOAD =~ /:(\w+)$/gs ) ;
     if ($method =~ /^DESTROY$/) { return ;}
     my $activex = shift ;
     return( $activex->Invoke($method,@_) ) ;
 }
+
+# ActiveX Helper Methods
 
 sub PropSet {
     my ( $activex , $name , $val ) = @_ ;
@@ -159,12 +159,174 @@ sub ActivexInfos {
     return( $ret ) ;
 }
 
+# load activex event functions
+sub LoadActiveXEventTypes {
+    my ($packagename, $exporttag, $events) = @_;
+    my @codelines = GetEventCodeForEventTypes($packagename, $exporttag, 'activex', 1, $events );
+    my $code = join("\n", @codelines);
+    Wx::LogMessage("Wx::ActiveX Standard Event Code:\n %s", $code ) if $Wx::ActiveX::__wxax_debug;
+    my $eventfile = 'c:\eventfile.txt';
+    #open my $fh, '>>', $eventfile;
+    #print $fh $code;
+    eval $code;
+    if( my $errors = $@ ) {
+        #print $fh qq(eval result for $packagename\n\n);
+        #print $fh $errors;
+        Wx::LogError("Evaluation of Dynamic Event Code failed:\n %s", $errors);
+        return undef;
+    }
+    #close($fh);
+    return 1;
+}
+
+sub LoadStandardEventTypes {
+    my ($packagename, $exporttag, $events) = @_;
+    my @codelines = GetEventCodeForEventTypes($packagename, $exporttag, 'standard', 1, $events );
+    my $code = join("\n", @codelines);
+    Wx::LogMessage("Wx::ActiveX Standard Event Code:\n %s", $code ) if $Wx::ActiveX::__wxax_debug;
+    eval "$code";
+    if( my $errors = $@ ) {
+        Wx::LogError("Evaluation of Dynamic Event Code failed:\n %s", $errors);
+        return undef;
+    }
+    return 1;
+}
+
+sub GetEventCodeForEventTypes {
+    my ( $packagename, $exporttag, $eventtype, $commentcode, $events ) = @_;
+    
+    # code lines
+    my @cl_id;          # create event id scalar
+    my @cl_idsub;       # make export sub for event id scalar
+    my @cl_idsub_ex;    # store the sub name for export
+    my @cl_evsub;       # create an event subroutine
+    my @cl_evsub_ex;    # store the event name for export
+    
+    my $idprefix = $packagename . '::';
+    
+    foreach my $eventname (keys(%$events)) {
+        my $extraparam = $events->{$eventname}; # numargs or activex event name
+        my $eventid = Wx::NewEventType;
+        
+        # basenames
+        my $codeline;
+        my $evt_id = '$wxEVENTID_AX_' . $eventname;
+        my $evt_idsub_ex = 'EVENTID_AX_' . $eventname;
+        my $evt_evsub_ex = 'EVT_ACTIVEX_' . $eventname;
+        
+        push @cl_idsub_ex, $evt_idsub_ex;
+        push @cl_evsub_ex, $evt_evsub_ex;        
+        
+        # event id
+        $codeline = 'my '. $evt_id . ' = Wx::NewEventType;';
+        push @cl_id, $codeline;
+        
+        # event id sub
+        $codeline = 'sub ' . $evt_idsub_ex . ' () { ' . $evt_id . ' }';
+        push @cl_idsub, $codeline;
+        
+        # evt id sub export
+        push @cl_idsub_ex, $evt_idsub_ex;
+        
+        # evt sub
+        my $subcode;
+        if ( $eventtype ne 'activex' ) {
+            if ( $extraparam == 2 ) {
+                $subcode = ' ($$) { $_[0]->Connect( -1, -1, &' . $idprefix . $evt_idsub_ex . ', $_[1] ) };';
+            } elsif( $extraparam == 3 ) {
+                $subcode = ' ($$$) { $_[0]->Connect( $_[1], -1, &' . $idprefix . $evt_idsub_ex . ', $_[2] ) };';
+            } else {
+                $subcode = ' ($$$$) { $_[0]->Connect( $_[1], $_[2], &' . $idprefix . $evt_idsub_ex . ', $_[3] ) };';
+            } # 5 params would be EVT_COMMAND_RANGE
+        } else {
+            # activex
+            $subcode = ' { &Wx::ActiveX::EVT_ACTIVEX($_[0],$_[1],"' . $extraparam . '",$_[2]) ;}';
+        }
+        $codeline = 'sub ' . $evt_evsub_ex . $subcode;
+                
+        push @cl_evsub, $codeline;
+        Wx::LogMessage("Wx::ActiveX Creating Event: %s", $evt_evsub_ex ) if $Wx::ActiveX::__wxax_debug;
+    }
+    
+    # combine
+    my @output = ();
+    
+    push (@output, q() ) if $commentcode;
+    push (@output, q(#-----------------------------------------------------) ) if $commentcode;
+    push (@output, q(  package ) . $packagename . ';' );
+    push (@output, q(#-----------------------------------------------------) ) if $commentcode;
+    
+    push (@output, q() ) if $commentcode;
+    push (@output, q(our ( @EXPORT_OK, %EXPORT_TAGS );) );
+    push (@output, q() ) if $commentcode;
+    push (@output, q(# Local Event IDs) ) if $commentcode;
+    push (@output, q() ) if $commentcode;
+          
+    push (@output, @cl_id);
+    
+    push (@output, q() ) if $commentcode;
+    push (@output, q(# Event ID Sub Functions) ) if $commentcode;
+    push (@output, q() ) if $commentcode;
+          
+    push (@output, @cl_idsub);
+    
+    push (@output, q() ) if $commentcode;
+    push (@output, q(# Event Sub Functions) ) if $commentcode;
+    push (@output, q() ) if $commentcode;
+    
+    ## always implement base ActiveX funnction
+    #push (@output, q(sub EVT_ACTIVEX ($$$$) { &Wx::ActiveX::EVT_ACTIVEX( @_ ); }) );
+    
+    push (@output, @cl_evsub);
+    push (@output, q() ) if $commentcode;
+    push (@output, q(# Exports & Tags) ) if $commentcode;
+    push (@output, q() ) if $commentcode;
+          
+    my $tabprefix = $commentcode ? qq(\t\t\t) : '';
+    push (@output, '{' );
+    push (@output, "\t" . 'my @eventexports = qw(' );
+    
+    for ( @cl_idsub_ex, @cl_evsub_ex ) {
+        push ( @output, $tabprefix . $_ );
+    }
+    
+    push (@output, "\t" . ');' );
+    
+    push (@output, q() ) if $commentcode;
+    push (@output, "\t" . '$' . 'EXPORT_TAGS{"' . $exporttag . '"} = [] if not exists $EXPORT_TAGS{"' . $exporttag . '"};'  );
+    push (@output, "\t" . 'push @' . 'EXPORT_OK, ( @eventexports ) ;'  );
+    push (@output, "\t" . 'push @{ $' . 'EXPORT_TAGS{"' . $exporttag . '"} }, ( @eventexports );'  );
+    
+    for ( qw( everything all activex ) ) {
+        my $subst = $_;
+        next if $exporttag eq $subst; # don't import twice
+        push (@output, "\t" . 'push (@{ $' . 'EXPORT_TAGS{"' . $subst . '"} }, ( @eventexports )) if exists $EXPORT_TAGS{"' . $subst . ' "};');
+    }
+    
+    push (@output, '}' );
+    push (@output, q() ) if $commentcode;
+    
+    push (@output, q(package Wx::ActiveX; # return to base package) );
+    push (@output, q() ) if $commentcode;
+    
+    return @output;
+}
+
+#----------------------------------------------------------------------------
+ package Wx::IEHtmlWin;
+#----------------------------------------------------------------------------
+
+our @ISA = qw( Wx::ActiveX );
+
+our $VERSION = '0.06'; # Wx::ActiveX Version
+
 #----------------------------------------------------------------------------
  package Wx::ActiveXEvent;
 #----------------------------------------------------------------------------
 
+use base qw( Wx::CommandEvent Wx::EvtHandler );
 
-use base qw(Wx::CommandEvent Wx::EvtHandler);
+our $VERSION = '0.06'; # Wx::ActiveX Version
 
 my (%EVT_HANDLES) ;
 
@@ -221,7 +383,17 @@ sub Veto {
     $event->{Cancel} = 1;
 }
 
-sub DESTROY  { 1 ;}
+sub DESTROY  { 1 };
+
+#----------------------------------------------------------------------------
+ package Wx::ActiveX;
+#----------------------------------------------------------------------------
+
+1;
+
+__END__
+
+
 
 
 1;

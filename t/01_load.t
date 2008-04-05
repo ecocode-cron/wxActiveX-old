@@ -12,7 +12,6 @@ BEGIN {
         use_ok( 'Wx::ActiveX::Document' );
         use_ok( 'Wx::ActiveX::Flash' );
         use_ok( 'Wx::ActiveX::WMPlayer' );
-        
 }
 
 1;

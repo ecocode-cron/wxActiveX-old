@@ -11,12 +11,13 @@
 
 package Wx::ActiveX::Document;
 use strict;
-use Wx::ActiveX::IE;
+use Wx::ActiveX::IE qw( :iehtmlwin );
 use base qw( Wx::ActiveX::IE );
 use Wx qw( wxID_ANY wxDefaultPosition wxDefaultSize);
-use Wx::Event qw( :activex );
 
-our $VERSION = '0.06';
+#our ( @EXPORT_OK, %EXPORT_TAGS );
+
+our $VERSION = '0.06'; # Wx::ActiveX Version
 
 # load events
 
@@ -24,9 +25,9 @@ my %standardevents = (
     DOCUMENT_FRAME_CLOSING => 2,
 );
 
-foreach my $eventname (keys(%standardevents)) {
-    __PACKAGE__->LoadStandardEventType( $eventname, $standardevents{$eventname} );
-}
+my $tagprefix = 'document';
+
+__PACKAGE__->LoadStandardEventTypes( $tagprefix, \%standardevents );
 
 #-----------------------------------
 # Constructors
@@ -85,10 +86,10 @@ package Wx::ActiveX::Document::_Frame;
 #--------------------------------------
 
 use strict;
-use Wx::ActiveX;
-use Wx qw( :activex wxTheApp wxDEFAULT_FRAME_STYLE wxID_ANY wxVERTICAL wxALL wxEXPAND );
+use Wx::ActiveX::IE qw( :iehtmlwin );
+use Wx qw( wxTheApp wxDEFAULT_FRAME_STYLE wxID_ANY wxVERTICAL wxALL wxEXPAND );
 use base qw( Wx::Frame );
-use Wx::Event qw( :activex EVT_CLOSE );
+use Wx::Event qw( EVT_CLOSE );
 
 our $VERSION = 0.06;
 
@@ -141,7 +142,7 @@ sub OnEventClose {
     my ( $self, $event ) = @_;
     
     # raise a frame closing event
-    my $queryclosing = Wx::NotifyEvent->new( &Wx::wxAxEVENT_ACTIVEX_DOCUMENT_FRAME_CLOSING, $self->GetId );
+    my $queryclosing = Wx::NotifyEvent->new( &Wx::ActiveX::Document::EVENTID_AX_DOCUMENT_FRAME_CLOSING, $self->GetId );
     $queryclosing->SetEventObject($self);
     $queryclosing->Allow;
     $self->ProcessEvent( $queryclosing );
@@ -149,10 +150,6 @@ sub OnEventClose {
     ($__wxadf_sessiondata->{width}, $__wxadf_sessiondata->{height}) = $self->GetSizeWH;   
 
 }
-
-
-package Wx::ActiveX::Document;
-
 
 1;
 
