@@ -550,7 +550,7 @@ Create the ActiveX control.
   PARENT        need to be a Wx::Window object.
   CONTROL_ID    The control ID (PROGID/string).
 
-=over 10
+=over 17
 
 =item PropVal ( PROP_NAME )
 

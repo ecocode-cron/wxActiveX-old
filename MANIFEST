@@ -19,7 +19,6 @@ demo/wxAcrobat.pl
 demo/wxFlash.pl
 demo/wxIE.pl
 demo/wxWMPlayer.pl
-script/wxactivex_template.pl
 t/01_load.t
 XS/IEHtmlWin.xs
 XS/MozillaHtmlWin.xs
@@ -32,6 +31,5 @@ lib/Wx/ActiveX/IE.pm
 lib/Wx/ActiveX/Mozilla.pm
 lib/Wx/ActiveX/Document.pm
 lib/Wx/ActiveX/WMPlayer.pm
-lib/Wx/ActiveX/Template.pm
 lib/Wx/DemoModules/wxActiveX.pm
 
