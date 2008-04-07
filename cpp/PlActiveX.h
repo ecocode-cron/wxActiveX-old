@@ -54,6 +54,31 @@ wxPliClassInfo wxPliIEHtmlWin::ms_classInfo((wxChar *) wxT("wxPliIEHtmlWin"),
         &wxIEHtmlWin::ms_classInfo, NULL, (int) sizeof(wxPliIEHtmlWin),
         (wxPliGetCallbackObjectFn) wxPliGetSelfForwxPliIEHtmlWin);
 
+
+
+class wxPliMozillaHtmlWin:public wxMozillaHtmlWin
+{
+    public:
+        static wxPliClassInfo ms_classInfo;
+        virtual wxClassInfo *GetClassInfo() const { return &ms_classInfo; }
+        wxPliVirtualCallback m_callback;
+        wxPliMozillaHtmlWin( const char* package, wxWindow* _arg1, wxWindowID _arg2,
+            const wxPoint& _arg3, const wxSize& _arg4, long _arg5, const wxString& _arg6)
+        : wxMozillaHtmlWin( _arg1, _arg2, _arg3, _arg4, _arg5, _arg6 ), m_callback( "Wx::MozillaHtmlWin" )
+        {   
+            m_callback.SetSelf( wxPli_make_object( this, package ), true );
+        }
+
+};
+
+wxPliSelfRef* wxPliGetSelfForwxPliMozillaHtmlWin(wxObject* object)
+        { return &((wxPliMozillaHtmlWin *)object)->m_callback; }
+        
+wxPliClassInfo wxPliMozillaHtmlWin::ms_classInfo((wxChar *) wxT("wxPliMozillaHtmlWin"), 
+        &wxMozillaHtmlWin::ms_classInfo, NULL, (int) sizeof(wxPliMozillaHtmlWin),
+        (wxPliGetCallbackObjectFn) wxPliGetSelfForwxPliMozillaHtmlWin);
+
+
 // Local variables: //
 // mode: c++ //
 // End: //

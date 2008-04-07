@@ -30,10 +30,13 @@ BOOT:
   INIT_PLI_HELPERS( wx_pli_helpers );
 
 #include <cpp/IEHtmlWin.cpp>
+#include <cpp/MozillaHtmlWin.cpp>
 #include <cpp/PlActiveX.h>
+#include <cpp/ax_constants.cpp
 
 INCLUDE: XS/ActiveX.xs
 INCLUDE: XS/IEHtmlWin.xs
+INCLUDE: XS/MozillaHtmlWin.xs
 
 MODULE=Wx__ActiveX  
 

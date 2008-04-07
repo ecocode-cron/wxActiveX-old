@@ -18,13 +18,14 @@ use strict;
 use Wx;
 use vars qw( $AUTOLOAD );
 require Exporter;
-our @ISA = qw( Wx::Window Exporter);
+our @ISA = qw( Wx::Window Exporter );
 
 our $VERSION = '0.06'; # Wx::ActiveX Version
 
 our $__wxax_debug;
-our @EXPORT_OK = ();
+our @EXPORT_OK = qw ( wxACTIVEX_CLSID_MOZILLA_BROWSER wxACTIVEX_CLSID_WEB_BROWSER );
 our %EXPORT_TAGS = ( everything => \@EXPORT_OK  );
+our %__wxax_dynamic_loadevent_data = ();
 
 Wx::wx_boot( 'Wx::ActiveX', $VERSION ) ;
 
@@ -41,7 +42,7 @@ sub EVT_ACTIVEX ($$$$) { $_[0]->Connect( $_[1], -1, &Wx::ActiveXEvent::RegisterA
 sub AUTOLOAD {
     my ($method) = ( $AUTOLOAD =~ /:(\w+)$/gs ) ;
     if ($method =~ /^DESTROY$/) { return ;}
-    my $activex = shift ;
+    my $activex = shift;
     return( $activex->Invoke($method,@_) ) ;
 }
 
@@ -160,28 +161,48 @@ sub ActivexInfos {
 }
 
 # load activex event functions
-sub LoadActiveXEventTypes {
-    my ($packagename, $exporttag, $events) = @_;
-    my @codelines = GetEventCodeForEventTypes($packagename, $exporttag, 'activex', 1, $events );
+sub activex_load_activex_event_types {
+    my ($packagename, $namespace, $eventname, $exporttag, $events) = @_;
+    
+    # convert activex events
+    my $passeventlist = {};
+    for my $activexname ( @$events ) {
+        
+        my $key = $eventname . '_' . uc($activexname);
+        $passeventlist->{$key} = $activexname;
+    }
+    
+    my @codelines = activex_get_event_code($packagename, $namespace, $eventname, $exporttag, 'activex', 1, $passeventlist, 1 );
     my $code = join("\n", @codelines);
-    Wx::LogMessage("Wx::ActiveX Standard Event Code:\n %s", $code ) if $Wx::ActiveX::__wxax_debug;
-    my $eventfile = 'c:\eventfile.txt';
+    Wx::LogMessage("Wx::ActiveX ActiveX Event Code:\n %s", $code ) if $Wx::ActiveX::__wxax_debug;
+    
+    #my $eventfile = 'c:\eventfile.txt';
     #open my $fh, '>>', $eventfile;
     #print $fh $code;
+    
     eval $code;
     if( my $errors = $@ ) {
-        #print $fh qq(eval result for $packagename\n\n);
-        #print $fh $errors;
+    #    print $fh qq(eval result for $packagename\n\n);
+    #    print $fh $errors;
         Wx::LogError("Evaluation of Dynamic Event Code failed:\n %s", $errors);
-        return undef;
+    #    return undef;
     }
     #close($fh);
     return 1;
 }
 
-sub LoadStandardEventTypes {
-    my ($packagename, $exporttag, $events) = @_;
-    my @codelines = GetEventCodeForEventTypes($packagename, $exporttag, 'standard', 1, $events );
+sub activex_load_standard_event_types {
+    my ($packagename, $namespace, $eventname, $exporttag, $events) = @_;
+    
+    # convert standard events
+    my $passeventlist = {};
+    for my $shortkey ( keys(%$events) ) {
+        
+        my $key = $eventname . '_' . $shortkey;
+        $passeventlist->{$key} = $events->{$shortkey};
+    }
+    
+    my @codelines = activex_get_event_code($packagename, $namespace, $eventname, $exporttag, 'standard', 1, $passeventlist, 1 );
     my $code = join("\n", @codelines);
     Wx::LogMessage("Wx::ActiveX Standard Event Code:\n %s", $code ) if $Wx::ActiveX::__wxax_debug;
     eval "$code";
@@ -192,8 +213,54 @@ sub LoadStandardEventTypes {
     return 1;
 }
 
-sub GetEventCodeForEventTypes {
-    my ( $packagename, $exporttag, $eventtype, $commentcode, $events ) = @_;
+#---------------------------------
+# activex_get_class_code
+#---------------------------------
+
+sub activex_get_class_code {
+    my $callingclass = shift;
+    
+    my $axinfo = $__wxax_dynamic_loadevent_data{$callingclass}->{activex};
+    my $stinfo = $__wxax_dynamic_loadevent_data{$callingclass}->{standard};
+    
+    my @standard = GetEventCodeForEventTypes($callingclass,
+                                             $stinfo->{namespace},
+                                             $stinfo->{eventname},
+                                             $stinfo->{exporttag},
+                                             'standard',
+                                             1,
+                                             $stinfo->{events},
+                                             0);
+    
+    my @activex = GetEventCodeForEventTypes($callingclass,
+                                             $axinfo->{namespace},
+                                             $axinfo->{eventname},
+                                             $axinfo->{exporttag},
+                                             'activex',
+                                             1,
+                                             $axinfo->{events},
+                                             0);
+    my $code = join("\n", ( @activex, @standard ) );
+    return $code;
+}
+
+#---------------------------------
+# activex_get_event_code
+#---------------------------------
+
+sub activex_get_event_code {
+    my ( $packagename, $namespace, $eventname, $exporttag, $eventtype, $commentcode, $events, $store ) = @_;
+    
+    if ($store) {
+        my %eventcopy = %$events;
+        # store the data
+        $__wxax_dynamic_loadevent_data{$packagename}->{$eventtype} = {
+            namespace => $namespace,
+            eventname => $eventname,
+            exporttag => $exporttag,
+            events => \%eventcopy,
+        };
+    }
     
     # code lines
     my @cl_id;          # create event id scalar
@@ -202,7 +269,7 @@ sub GetEventCodeForEventTypes {
     my @cl_evsub;       # create an event subroutine
     my @cl_evsub_ex;    # store the event name for export
     
-    my $idprefix = $packagename . '::';
+    my $idprefix = $namespace . '::';
     
     foreach my $eventname (keys(%$events)) {
         my $extraparam = $events->{$eventname}; # numargs or activex event name
@@ -253,7 +320,7 @@ sub GetEventCodeForEventTypes {
     
     push (@output, q() ) if $commentcode;
     push (@output, q(#-----------------------------------------------------) ) if $commentcode;
-    push (@output, q(  package ) . $packagename . ';' );
+    push (@output, q(  package ) . $namespace . ';' );
     push (@output, q(#-----------------------------------------------------) ) if $commentcode;
     
     push (@output, q() ) if $commentcode;
@@ -314,6 +381,14 @@ sub GetEventCodeForEventTypes {
 
 #----------------------------------------------------------------------------
  package Wx::IEHtmlWin;
+#----------------------------------------------------------------------------
+
+our @ISA = qw( Wx::ActiveX );
+
+our $VERSION = '0.06'; # Wx::ActiveX Version
+
+#----------------------------------------------------------------------------
+ package Wx::MozillaHtmlWin;
 #----------------------------------------------------------------------------
 
 our @ISA = qw( Wx::ActiveX );
@@ -393,16 +468,9 @@ sub DESTROY  { 1 };
 
 __END__
 
-
-
-
-1;
-
-__END__
-
 =head1 NAME
 
-Wx::ActiveX - ActiveX Interface.
+Wx::ActiveX - ActiveX Control Interface for Wx
 
 =head1 VERSION
 
@@ -410,51 +478,70 @@ Version 0.06
 
 =head1 SYNOPSIS
     
-    use Wx::ActiveX;
-    use Wx qw( :activex wxID_ANY wxDefaultPosition , wxDefaultSize );
-    use Wx::Event qw( :activex );
-
+    use Wx::ActiveX qw( EVT_ACTIVEX );
+    use Wx qw( wxID_ANY wxDefaultPosition , wxDefaultSize );
+   
     ........
 
     my $activex = Wx::ActiveX->new(
                   $parent,
-                  "ShockwaveFlash.ShockwaveFlash",
+                  "WMPlayer.OCX",
                   wxID_ANY,
                   wxDefaultPosition,
                   wxDefaultSize );
                   
-    $activex->Invoke("LoadMovie",'0',"file:///F:/swf/test.swf") ;
-    $activex->PropSet("Quality",'Best') ;
-    my $frames_n = $activex->PropVal("TotalFrames") ;
+    EVT_ACTIVEX( $this, $activex, "PlaylistCollectionChange", \&on_event_handler );
     
-    $activex->Invoke("Play") ;
+    $activex->PropSet("URL",'pathtomyfile.avi') ;
+    
+    ..........
+    
+    $activex->Invoke("launchURL", "http://my.url.com/file.movie") ;
 
     ... or ...
 
-    $activex->Play ;
+    $activex->launchURL("http://my.url.com/file.movie") ;
     
     ----------------------------------------------------------------
+    
     package MyActiveXControl;
     use Wx::ActiveX;
     use base qw( Wx::ActiveX );
     
-    my %activexevents = qw(
-        FLASH_READY_STATE_CHANGE => 'OnReadyStateChange',
-        FLASH_FS_COMMAND         => 'FSCommand',
-        FLASH_PROGRESS           => 'OnProgress', 
+    our (@EXPORT_OK, %EXPORT_TAGS);
+    $EXPORT_TAGS{everything} = \@EXPORT_OK;
+    
+    my @activexevents = qw(
+        OnReadyStateChange
+        FSCommand
+        OnProgress
     );
     
-    __PACKAGE__->
+    my $exporttag = 'elviscontrol';
+    my $eventname = 'ELVIS'; 
     
-    
-    
+    __PACKAGE__->activex_load_activex_event_types( __PACKAGE__,
+                                                  $eventname,
+                                                  $exporttag,
+                                                  \@activexevents );
 
 =head1 DESCRIPTION
 
 Load ActiveX controls for wxWindows.
+The package installs a module in Wx::Demo for reference.
 
+There are some wrapped controls included with the package:
 
-d1 METHODS
+Wx::ActiveX::IE                  Internet Explorer Control
+Wx::ActiveX::Mozilla             Mozilla Browser Control
+Wx::ActiveX::WMPlayer            Windows Media Player
+Wx::ActiveX::ScriptControl       MS Script Control
+Wx::ActiveX::Document            Control Wrapper via Browser
+
+The current version of Wx::ActiveX::Acrobat is not working.
+You can view and print PDF's using Wx::ActiveX::Document.
+
+=head1 METHODS
 
 =head2 new ( PARENT , CONTROL_ID , ID , POS , SIZE )
 
@@ -463,79 +550,81 @@ Create the ActiveX control.
   PARENT        need to be a Wx::Window object.
   CONTROL_ID    The control ID (PROGID/string).
 
-=head2 PropVal ( PROP_NAME )
+=over 10
+
+=item PropVal ( PROP_NAME )
 
 Get the value of a propriety of the control.
 
-=head2 PropSet ( PROP_NAME , VALUE )
+=item PropSet ( PROP_NAME , VALUE )
 
 Set a propriety of the control.
 
   PROP_NAME  The propriety name.
   VALUE      The value(s).
 
-=head2 PropType ( PROP_NAME )
+=item PropType ( PROP_NAME )
 
 Return the type of the propriety.
 
-=head2 GetEventCount
+=item GetEventCount
 
 Returnt the number of events that the control have.
 
-=head2 GetPropCount
+=item GetPropCount
 
 Returnt the number of proprieties.
 
-=head2 GetMethodCount
+=item GetMethodCount
 
 Returnt the number of control methods.
 
-=head2 GetEventName( X )
+=item GetEventName( X )
 
 Returnt the name of the event X, where X is a integer.
 
-=head2 GetPropName( X )
+=item GetPropName( X )
 
 Returnt the name of the propriety X, where X is a integer.
 
-=head2 GetMethodName( X )
+=item GetMethodName( X )
 
 Returnt the name of the method X, where X is a integer.
 
-=head2 GetMethodArgCount( MethodX )
+=item GetMethodArgCount( MethodX )
 
 Returnt the number of arguments of the MethodX.
 
-=head2 GetMethodArgName( MethodX , ArgX )
+=item GetMethodArgName( MethodX , ArgX )
 
 Returnt the name of the ArgX of MethodX.
 
-=head2 ListEvents()
+=item ListEvents()
 
 Return an ARRAY with all the events names.
 
-=head2 ListProps()
+=item ListProps()
 
 Return an ARRAY with all the proprieties names.
 
-=head2 ListMethods()
+=item ListMethods()
 
 Return an ARRAY with all the methods names.
 
-=head2 ListMethods_and_Args()
+=item ListMethods_and_Args()
 
 Return an ARRAY with all the methods names and arguments. like:
 
   foo(argx, argy)
 
-=head2 ListMethods_and_Args_Hash()
+=item ListMethods_and_Args_Hash()
 
 Return a HASH with all the methods names (keys) and arguments (values). The arguments are inside a ARRAY ref:
 
   my %methods = $activex->ListMethods_and_Args_Hash ;
   my @args = @{ $methods{foo} } ;
 
-=head2 ActivexInfos()
+=item ActivexInfos()
 
 Return a string with all the informations about the ActiveX Control:
 
@@ -554,7 +643,9 @@ Return a string with all the informations about the ActiveX Control:
     Load(file)
   </METHODS>
 
-=head1 Win32::OLE
+=back
+
+=head1= Win32::OLE
 
 From version 0.5 Wx::ActiveX is compatible with Win32::OLE objects:
 
@@ -584,13 +675,10 @@ In this example any new window will be canceled, seting $evt->IsAllowed to False
     $evt->Veto;
   }) ;
 
-=head1 NOTE
-
-This package only works for Win32, since it uses ActiveX.
 
 =head1 SEE ALSO
 
-L<Wx::ActiveX::IE>, L<Wx::ActiveX::Flash>, L<Wx::ActiveX::WMPlayer>, L<Wx>
+L<Wx::ActiveX::IE>, L<Wx::ActiveX::Mozilla>, L<Wx::ActiveX::WMPlayer>, L<Wx>
 
 =head1 AUTHORS & ACKNOWLEDGEMENTS
 
@@ -616,7 +704,7 @@ Copyright (C) 2002-2008 Authors & Contributors, all rights reserved.
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
-=head1 MODULE MAINTAINERS
+=head1 CURRENT MAINTAINER
 
 Mark Dootson <mdootson@cpan.org>
 

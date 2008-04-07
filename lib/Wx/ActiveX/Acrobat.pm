@@ -10,34 +10,63 @@
 #############################################################################
 
 package Wx::ActiveX::Acrobat ;
-use Wx::ActiveX ;
 use strict;
+use Wx qw( wxDefaultPosition wxDefaultSize );
+use Wx::ActiveX;
+use base qw( Wx::ActiveX );
 
-use vars qw($AUTOLOAD $ACROBAT_VERSION) ;
-
-use base 'Wx::ActiveX';
 our $VERSION = '0.06'; # Wx::ActiveX Version
 
-my $PROGID  = "PDF.PdfCtrl.5" ;
+our (@EXPORT_OK, %EXPORT_TAGS);
+$EXPORT_TAGS{everything} = \@EXPORT_OK;
+
+my $PROGID = 'AcroPDF.PDF';
+
+my $exporttag = 'acrobat';
+my $eventname = 'ACROBAT';
+#-----------------------------------------------
+# Export event classes
+#-----------------------------------------------
+
+# events below implemented as EVT_ACTIVEX_EVENTNAME ($$$)
+# e.g EVT_ACTIVEX_SCRIPTCONTROL_ERROR($eventhandler, $control, \&event_function);
+# The Event ID will be exported as EVENTID_AX_SCRIPTCONTROL_ERROR
+
+our @activexevents = qw (
+    OnError
+    OnMessage
+);
+
+# __PACKAGE__->activex_load_standard_event_types( $export_to_namespace, $eventidentifier, $exporttag, $elisthashref );
+# __PACKAGE__->activex_load_activex_event_types( $export_to_namespace, $eventidentifier, $exporttag, $elistarrayref );
+
+__PACKAGE__->activex_load_activex_event_types( __PACKAGE__, $eventname, $exporttag, \@activexevents );
+
+
+#-----------------------------------------------
+# Instance
+#-----------------------------------------------
 
 sub new {
     my $class = shift;
+    # parent must exist
     my $parent = shift;
-    my $self = $class->SUPER::new( $parent , $PROGID , @_ );
-    return $self ;
+    my $windowid = shift || -1;
+    my $pos = shift || wxDefaultPosition;
+    my $size = shift || wxDefaultSize;
+    my $self = $class->SUPER::new( $parent, $PROGID, $windowid, $pos, $size, @_ );
+    #$self->Invoke('AddRef');
+    return $self;
 }
 
 1;
 
 __END__
 
+
 =head1 NAME
 
-Wx::ActiveX::Acrobat - ActiveX interface for Acrobat.
-
-NOTE: This does not work with the free Acrobat Reader.
-Use Wx::ActiveX::Document to load PDF files using the
-free Acrobat Reader ActiveX Control.
+Wx::ActiveX::Acrobat - ActiveX interface for Acrobat Reader ActiveX Control.
 
 =head1 VERSION
 
@@ -45,7 +74,7 @@ Version 0.60
 
 =head1 SYNOPSIS
 
-  use Wx::ActiveX::Acrobat ;
+  use Wx::ActiveX::Acrobat qw(:acrobat);
   my $acrobat = Wx::ActiveX::Acrobat->new( $parent ,
                                            -1 ,
                                            wxDefaultPosition ,
@@ -63,37 +92,37 @@ Wx::ActiveX, and all methods/events from there exit here too.
 
 This will create and return the Acrobat object.
 
-=head1 METHODS
-
-See L<Wx:ActiveX>.
-
 =head1 EVENTS
 
-All the events use EVT_ACTIVEX.
+    EVT_ACTIVEX_ACROBAT_ONERROR($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_ACROBAT_ONMESSAGE($handler, $axcontrol, \&event_sub);
 
-=head1 ActivexInfos
+=head1 METHODS
 
-  <EVENTS>
-  </EVENTS>
-  
-  <PROPS>
-  </PROPS>
-  
-  <METHODS>
-    AboutBox()
+    AddRef()
+    GetIDsOfNames(riid , rgszNames , cNames , lcid , rgdispid)
+    GetTypeInfo(itinfo , lcid , pptinfo)
+    GetTypeInfoCount(pctinfo)
+    GetVersions()
     goBackwardStack()
     goForwardStack()
     gotoFirstPage()
     gotoLastPage()
     gotoNextPage()
     gotoPreviousPage()
+    Invoke(dispidMember , riid , lcid , wFlags , pdispparams , pvarResult , pexcepinfo , puArgErr)
     LoadFile(fileName)
+    postMessage(strArray)
     Print()
     printAll()
     printAllFit(shrinkToFit)
     printPages(from , to)
     printPagesFit(from , to , shrinkToFit)
     printWithDialog()
+    QueryInterface(riid , ppvObj)
+    Release()
+    setCurrentHighlight(a , b , c , d)
+    setCurrentHightlight(a , b , c , d)
     setCurrentPage(n)
     setLayoutMode(layoutMode)
     setNamedDest(namedDest)
@@ -105,8 +134,11 @@ All the events use EVT_ACTIVEX.
     setViewScroll(viewMode , offset)
     setZoom(percent)
     setZoomScroll(percent , left , top)
-  </METHODS>
 
+=head1 PROPERTIES
+
+    messageHandler               (wxVariant)
+    src                          (wxString)
 
 =head1 SEE ALSO
 
@@ -136,7 +168,7 @@ Copyright (C) 2002-2008 Authors & Contributors, all rights reserved.
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
-=head1 MODULE MAINTAINERS
+=head1 CURRENT MAINTAINER
 
 Mark Dootson <mdootson@cpan.org>
 

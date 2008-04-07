@@ -78,6 +78,9 @@
 #include <sstream>
 using namespace std;
 
+#define wxACTIVEX_CLSID_MOZILLA_BROWSER CLSID_MozillaBrowser
+#define wxACTIVEX_CLSID_WEB_BROWSER CLSID_WebBrowser
+
 //////////////////////////////////////////////////////////////////////
 
 BEGIN_EVENT_TABLE(wxActiveX, wxWindow)

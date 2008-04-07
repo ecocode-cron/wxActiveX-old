@@ -19,17 +19,18 @@ package Wx::DemoModules::wxActiveX;
 use strict;
 use Wx qw(:sizer wxTE_MULTILINE wxYES_NO wxICON_QUESTION wxCENTRE wxYES wxFD_OPEN wxFD_FILE_MUST_EXIST
            wxID_CANCEL wxTE_READONLY wxDefaultPosition wxDefaultSize wxID_ANY wxID_OK );
-use Wx::ActiveX;           
-use Wx::ActiveX::Event qw( :everything );
-use Wx::ActiveX::Document qw( :document );
-# after activex modules if you want exports
 use Wx::Event qw( EVT_BUTTON) ;
+
+use Wx::ActiveX qw( EVT_ACTIVEX );           
+use Wx::ActiveX::Document qw( :document );
+use Wx::ActiveX::IE;
+use Wx::ActiveX::Mozilla;
+use Wx::ActiveX::Browser qw( :browser );
 
 use base qw(Wx::Panel);
 
 sub add_to_tags  { qw(windows) }
 sub title { 'wxActiveX' }
-
 
 $Wx::ActiveX::__wxax_debug = 1;
 
@@ -37,36 +38,10 @@ sub new {
     my $class = shift;
     my $self = $class->SUPER::new( @_ );
     
-    my $html_id = Wx::NewId;
-    
-    my $IE = $self->{IE} = Wx::ActiveX::IE->new( $self , $html_id, wxDefaultPosition, wxDefaultSize );
-    $IE->LoadUrl("http://wxperl.sf.net") ;
-  
-    Wx::LogStatus( "ACTIVEX_IE EVENT LIST:" );
-  
-    for(0..($IE->GetEventCount)-1) {
-      my $n = $IE->GetEventName($_) ;
-      Wx::LogStatus( "  $_> $n" );
-    }
-    
-    EVT_ACTIVEX($self,$IE,"BeforeNavigate2",sub{
-      my ( $obj , $evt ) = @_ ;
-      my $url = $evt->{URL} ;
-      Wx::LogStatus( "ACTIVEX_IE BeforeNavigate2 >> $url" );
-    }) ;
-    
-    EVT_ACTIVEX_IE_NEWWINDOW2($self,$IE,sub{
-      my ( $obj , $evt ) = @_ ;  
-      $evt->{Cancel} = 1 ;
-      Wx::LogStatus( "ACTIVEX_IE NewWindow2 >> **CANCEL**" );
-    }) ;
-    
-    EVT_ACTIVEX_IE_STATUSTEXTCHANGE($self,$IE,sub{
-      my ( $obj , $evt ) = @_ ;
-      my $status = $self->{STATUS} ;
-      $status->SetValue($evt->{Text});
-    });
-  
+    my $browser = $self->load_browser('mozilla') || $self->load_browser('IE');
+
+    $browser->LoadUrl("http://wxperl.sf.net") ;
+
     my $top_s = Wx::BoxSizer->new( wxVERTICAL );
     my $but_s = Wx::BoxSizer->new( wxHORIZONTAL );
     my $but_s2 = Wx::BoxSizer->new( wxHORIZONTAL );
@@ -86,7 +61,7 @@ sub new {
     my $PrintPreview = Wx::Button->new( $self, -1, 'PrintPreview' );
     my $OpenDocument = Wx::Button->new( $self, -1, 'Open Document' );
     
-    my $status_txt = Wx::TextCtrl->new( $self , -1, "IE Status", wxDefaultPosition, [200,-1] , wxTE_READONLY );
+    my $status_txt = Wx::TextCtrl->new( $self , -1, "Browser Status", wxDefaultPosition, [200,-1] , wxTE_READONLY );
     
     $self->{STATUS} = $status_txt ;
   
@@ -105,7 +80,7 @@ sub new {
     $but_s2->Add( $PrintPreview );
     $but_s2->Add( $OpenDocument );
   
-    $top_s->Add( $IE, 1, wxGROW|wxALL, 5 );
+    $top_s->Add( $browser, 1, wxGROW|wxALL, 5 );
     $top_s->Add( $status_txt , 0, wxGROW|wxALL, 0);
     $top_s->Add( $but_s, 0, wxALL, 5 );
     $top_s->Add( $but_s2, 0, wxALL, 5 );
@@ -127,13 +102,8 @@ sub new {
     EVT_BUTTON( $self, $Print, \&OnPrint );
     EVT_BUTTON( $self, $PrintPreview, \&OnPrintPreview );
     EVT_BUTTON( $self, $OpenDocument, \&OnOpenDocument );
-    
-    Wx::LogStatus( $IE->ActivexInfos );
-    
-    # event for Document Window
-    
-    # get TopLevelWindowParent
-    
+
+    # get parent frame for Wx::ActiveX::Document
     my $parent = $self;
     while( !$parent->isa('Wx::TopLevelWindow') ) {
         $parent = $parent->GetParent or last;
@@ -143,10 +113,52 @@ sub new {
         return;
     }
     
-        
     EVT_ACTIVEX_DOCUMENT_FRAME_CLOSING($parent, \&OnDocumentFrameClosing);
     
     return $self;
+}
+
+sub load_browser {
+    my ($self, $type) = @_;
+    
+    my $browserclass = ( $type eq 'IE' ) ? 'Wx::ActiveX::UE' : 'Wx::ActiveX::Mozilla';
+    
+    if($self->{browser}) {
+        $self->{browser}->Close;
+        $self->{browser}->Destroy;
+        $self->{browser} = undef;
+    }
+    
+    my $browser = $browserclass->new( $self , wxID_ANY, wxDefaultPosition, wxDefaultSize );
+    
+    return if(!$browser);
+    
+    EVT_ACTIVEX_BROWSER_NAVIGATECOMPLETE2($self, $browser, sub{
+        my ( $obj , $evt ) = @_ ;
+        my $url = $evt->{URL} ;
+        Wx::LogStatus( "ACTIVEX_BROWSER NavigateComplete2 >> $url" );
+    } );
+   
+    EVT_ACTIVEX($self, $browser, "BeforeNavigate2", sub{
+        my ( $obj , $evt ) = @_ ;
+        my $url = $evt->{URL} ;
+        Wx::LogStatus( "ACTIVEX BeforeNavigate2 >> $url" );
+    } );
+    
+    EVT_ACTIVEX_BROWSER_NEWWINDOW2($self, $browser, sub{
+        my ( $obj , $evt ) = @_ ;  
+        $evt->Veto ;
+        Wx::LogStatus( "ACTIVEX_BROWSER NewWindow2 >> **Vetoed**" );
+    }) ;
+    
+    EVT_ACTIVEX_BROWSER_STATUSTEXTCHANGE($self, $browser, sub{
+        my ( $obj , $evt ) = @_ ;
+        my $status = $self->{STATUS} ;
+        $status->SetValue($evt->{Text});
+    });
+    
+    $self->{browser} = $self->{IE} =  $self->{mozilla} = $browser;
+    return $browser;
 }
 
 sub Query {

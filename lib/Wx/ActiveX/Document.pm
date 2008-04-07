@@ -11,23 +11,27 @@
 
 package Wx::ActiveX::Document;
 use strict;
-use Wx::ActiveX::IE qw( :iehtmlwin );
+use Wx::ActiveX::IE qw( :iexplorer );
 use base qw( Wx::ActiveX::IE );
 use Wx qw( wxID_ANY wxDefaultPosition wxDefaultSize);
 
-#our ( @EXPORT_OK, %EXPORT_TAGS );
-
 our $VERSION = '0.06'; # Wx::ActiveX Version
+
+our (@EXPORT_OK, %EXPORT_TAGS);
+$EXPORT_TAGS{everything} = \@EXPORT_OK;
 
 # load events
 
 my %standardevents = (
-    DOCUMENT_FRAME_CLOSING => 2,
+    FRAME_CLOSING => 2,
 );
 
-my $tagprefix = 'document';
+my $exporttag = 'document';
+my $eventname = 'DOCUMENT';
 
-__PACKAGE__->LoadStandardEventTypes( $tagprefix, \%standardevents );
+# __PACKAGE__->activex_load_activex_event_types( $export_to_namespace, $eventidentifier, $exporttag, $eventlistref );
+# __PACKAGE__->activex_load_atandard_event_types( $export_to_namespace, $eventidentifier, $exporttag, $eventlistref );
+__PACKAGE__->activex_load_standard_event_types( __PACKAGE__, $eventname, $exporttag, \%standardevents );
 
 #-----------------------------------
 # Constructors
@@ -43,7 +47,7 @@ sub new {
     $_[4] = 0 if not exists $_[4];
     my $self = $class->SUPER::new( @_ );
     $self->{__wxad_prevent_navigation} = 0;
-    EVT_ACTIVEX_IE_BEFORENAVIGATE2($self, $self, \&__wxax_on_event_beforenavigate );
+    EVT_ACTIVEX_IE_BEFORENAVIGATE2($self, $self, \&on_event_beforenavigate );
     return $self;
 }
 
@@ -68,7 +72,7 @@ sub GetTopLevelWindow {
     return $tlw;
 }
 
-sub __wxax_on_event_beforenavigate {
+sub on_event_beforenavigate {
     my ( $self, $event ) = @_;
     $event->Veto() if $self->{__wxad_prevent_navigation};
 }
@@ -86,7 +90,7 @@ package Wx::ActiveX::Document::_Frame;
 #--------------------------------------
 
 use strict;
-use Wx::ActiveX::IE qw( :iehtmlwin );
+use Wx::ActiveX::IE qw( :iexplorer );
 use Wx qw( wxTheApp wxDEFAULT_FRAME_STYLE wxID_ANY wxVERTICAL wxALL wxEXPAND );
 use base qw( Wx::Frame );
 use Wx::Event qw( EVT_CLOSE );
@@ -136,6 +140,10 @@ sub new {
 sub GetDocument {
     my $self = shift;
     return $self->{__wxaxd_docwindow};
+}
+
+sub AllowNavigate {
+    shift->{__wxaxd_docwindow}->AllowNavigate( @_ );
 }
 
 sub OnEventClose {

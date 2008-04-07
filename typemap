@@ -13,4 +13,5 @@ TYPEMAP
 wxActiveX *              O_WXOBJECT
 wxActiveXEvent *         O_WXOBJECT
 wxIEHtmlWin *            O_WXOBJECT
+wxMozillaHtmlWin *            O_WXOBJECT
 

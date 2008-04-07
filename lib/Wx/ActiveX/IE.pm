@@ -14,50 +14,62 @@ use strict ;
 use Wx::ActiveX;
 use base qw( Wx::IEHtmlWin );
 
-# our (@EXPORT_OK, %EXPORT_TAGS);
-
 our $VERSION = '0.06'; # Wx::ActiveX Version
 
-our %activexevents = (
-    IE_BEFORENAVIGATE2     => 'BeforeNavigate2',
-    IE_CLIENTTOHOSTWINDOW  => 'ClientToHostWindow',
-    IE_COMMANDSTATECHANGE  => 'CommandStateChange',
-    IE_DOCUMENTCOMPLETE    => 'DocumentComplete',
-    IE_DOWNLOADBEGIN       => 'DownloadBegin',
-    IE_DOWNLOADCOMPLETE    => 'DownloadComplete',
-    IE_FILEDOWNLOAD        => 'FileDownload',
-    IE_NAVIGATECOMPLETE2   => 'NavigateComplete2',
-    IE_NEWWINDOW2          => 'NewWindow2',
-    IE_ONFULLSCREEN        => 'OnFullScreen',
-    IE_ONMENUBAR           => 'OnMenuBar',
-    IE_ONQUIT              => 'OnQuit',
-    IE_ONSTATUSBAR         => 'OnStatusBar',
-    IE_ONTHEATERMODE       => 'OnTheaterMode',
-    IE_ONTOOLBAR           => 'OnToolBar',
-    IE_ONVISIBLE           => 'OnVisible',
-    IE_PROGRESSCHANGE      => 'ProgressChange',
-    IE_PROPERTYCHANGE      => 'PropertyChange',
-    IE_SETSECURELOCKICON   => 'SetSecureLockIcon',
-    IE_STATUSTEXTCHANGE    => 'StatusTextChange',
-    IE_TITLECHANGE         => 'TitleChange',
-    IE_WINDOWCLOSING       => 'WindowClosing',
-    IE_WINDOWSETHEIGHT     => 'WindowSetHeight',
-    IE_WINDOWSETLEFT       => 'WindowSetLeft',
-    IE_WINDOWSETRESIZABLE  => 'WindowSetResizable',
-    IE_WINDOWSETTOP        => 'WindowSetTop',
-    IE_WINDOWSETWIDTH      => 'WindowSetWidth',
+our (@EXPORT_OK, %EXPORT_TAGS);
+$EXPORT_TAGS{everything} = \@EXPORT_OK;
+
+# my $PROGID = 'Internet.Explorer';
+
+my $exporttag = 'iexplorer';
+my $eventname = 'IE';
+
+# events below implemented as EVT_ACTIVEX_EVENTNAME ($$$)
+# e.g EVT_ACTIVEX_IE_ONQUIT($eventhandler, $control, \&event_function);
+# The Event ID will be exported as EVENTID_AX_IE_ONQUIT
+
+our @activexevents = qw (
+    BeforeNavigate2
+    ClientToHostWindow
+    CommandStateChange
+    DocumentComplete
+    DownloadBegin
+    DownloadComplete
+    FileDownload
+    NavigateComplete2
+    NewWindow2
+    OnFullScreen
+    OnMenuBar
+    OnQuit
+    OnStatusBar
+    OnTheaterMode
+    OnToolBar
+    OnVisible
+    ProgressChange
+    PropertyChange
+    SetSecureLockIcon
+    StatusTextChange
+    TitleChange
+    WindowClosing
+    WindowSetHeight
+    WindowSetLeft
+    WindowSetResizable
+    WindowSetTop
+    WindowSetWidth
 );
 
-my $tagprefix = 'iehtmlwin';
+# __PACKAGE__->activex_load_standard_event_types( $export_to_namespace, $eventidentifier, $exporttag, $elisthashref );
+# __PACKAGE__->activex_load_activex_event_types( $export_to_namespace, $eventidentifier, $exporttag, $elistarrayref );
 
-__PACKAGE__->LoadActiveXEventTypes( $tagprefix, \%activexevents );
+__PACKAGE__->activex_load_activex_event_types( __PACKAGE__, $eventname, $exporttag, \@activexevents );
+
+sub WxActiveXBrowserClass {
+    return __PACKAGE__;
+}
 
 1;
 
 __END__
-
-
-
 
 =head1 NAME
 
@@ -65,30 +77,49 @@ Wx::ActiveX::IE - ActiveX interface for Internet Explorer. (Win32)
 
 =head1 SYNOPSIS
 
-  use Wx::ActiveX::IE ;
-  my $IE = Wx::ActiveX::IE->new( $parent , -1 , wxDefaultPosition , wxDefaultSize );
-  $IE->LoadUrl("http://wxperl.sf.net") ;
-  
-  EVT_ACTIVEX_IE_BEFORENAVIGATE2($this,$IE,sub{
-    my ( $obj , $evt ) = @_ ;
-    my $url = $evt->{URL} ;
-    print "ACTIVEX_IE BeforeNavigate2 >> $url \n" ;
-  }) ;
+    use Wx::ActiveX::IE qw(:iexplorer);
+    
+    ............
+
+    my $browser = Wx::ActiveX::IE->new( $parent , -1 , wxDefaultPosition , wxDefaultSize );
+    EVT_ACTIVEX_IE_BEFORENAVIGATE2($this,$browser,\&on_evt_beforenavigate);
+    
+    ............
+    
+    $browser->LoadUrl("http://wxperl.sf.net");
+    
+    #OR
+    
+    use Wx::ActiveX::IE;
+    use Wx::ActiveX::Mozilla;
+    use Wx::ActiveX::Browser qw(:browser);
+    
+    ............
+    
+    my $browserclass = $ShouldIUseIE ? 'Wx::ActiveX::IE' : 'Wx::ActiveX::Mozilla';
+    my $browser = $browserclass->new( $parent , -1 , wxDefaultPosition , wxDefaultSize );
+    EVT_ACTIVEX_BROWSER_BEFORENAVIGATE2($this,$browser,\&on_evt_beforenavigate);
+    
+    ............
+    
+    $browser->LoadUrl("http://wxperl.sf.net");
 
 =head1 DESCRIPTION
 
 This will implement the web browser Internet Explorer in your App, using the
 interface Wx::ActiveX.
 
+=head1 METHODS
+
 =head2 new ( PARENT , ID , POS , SIZE )
 
-This will create and return the IE object.
+This will create and return the browser object.
 
 =over 15
 
 =item LoadUrl
 
-Attempts to browse to the url, the control uses its internal (MS) network streams.
+Attempts to browse to the url, the control uses its internal network streams.
 
 =item LoadString
 
@@ -169,57 +200,144 @@ or using the ACTIVEX_IE event table:
 
 To import the events use:
 
-  use Wx::ActiveX::Event qw(EVT_ACTIVEX EVT_ACTIVEX_IE_NEWWINDOW2 EVT_ACTIVEX_IE_STATUSTEXTCHANGE) ;
+  use Wx::ActiveX qw( EVT_ACTIVEX );
+
+  use Wx::ActiveX::IE qw(EVT_ACTIVEX EVT_ACTIVEX_IE_NEWWINDOW2 EVT_ACTIVEX_IE_STATUSTEXTCHANGE) ;
   ... or ...
-  use Wx::ActiveX::Event qw(:all) ;
+  use Wx::ActiveX::IE qw(:iexplorer) ;
+  
+You can use a common event table for both Mozilla and IE
 
-You can get the list of ActiveX events using GetEventName():
+  use Wx::ActiveX::Browser qw(:browser);
 
-  for(0..($IE->GetEventCount)) {
-    my $evt_name = $IE->GetEventName($_) ;
-    print "$_> $evt_name\n" ;
-  }
+Here is the event table for Wx::ActiveX::IE:
 
-Eache ActiveX event has their own argument list (hash), and the Key 'Cancel' can be used to ignore the event. In this example any new window will be canceled, seting $evt->{Cancel} to true:
+    EVT_ACTIVEX_IE_STATUSTEXTCHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_DOWNLOADCOMPLETE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_COMMANDSTATECHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_DOWNLOADBEGIN($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_PROGRESSCHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_PROPERTYCHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_TITLECHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_PRINTTEMPLATEINSTANTIATION($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_PRINTTEMPLATETEARDOWN($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_UPDATEPAGESTATUS($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_BEFORENAVIGATE2($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_NEWWINDOW2($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_NAVIGATECOMPLETE2($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_ONQUIT($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_ONVISIBLE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_ONTOOLBAR($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_ONMENUBAR($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_ONSTATUSBAR($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_ONFULLSCREEN($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_DOCUMENTCOMPLETE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_ONTHEATERMODE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_WINDOWSETRESIZABLE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_WINDOWCLOSING($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_WINDOWSETLEFT($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_WINDOWSETTOP($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_WINDOWSETWIDTH($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_WINDOWSETHEIGHT($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_CLIENTTOHOSTWINDOW($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_SETSECURELOCKICON($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_FILEDOWNLOAD($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_NAVIGATEERROR($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_PRIVACYIMPACTEDSTATECHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_NEWWINDOW3($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_SETPHISHINGFILTERSTATUS($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_IE_WINDOWSTATECHANGED($handler, $axcontrol, \&event_sub);
+    
+Here is the event table for Wx::ActiveX::Browser:
 
-  EVT_ACTIVEX_IE_NEWWINDOW2($this,$IE,sub{
-    my ( $obj , $evt ) = @_ ;
-    $evt->{Cancel} = 1 ;
-  }) ;
+    EVT_ACTIVEX_BROWSER_STATUSTEXTCHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_BROWSER_DOWNLOADCOMPLETE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_BROWSER_COMMANDSTATECHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_BROWSER_DOWNLOADBEGIN($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_BROWSER_PROGRESSCHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_BROWSER_PROPERTYCHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_BROWSER_TITLECHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_BROWSER_BEFORENAVIGATE2($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_BROWSER_NEWWINDOW2($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_BROWSER_NAVIGATECOMPLETE2($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_BROWSER_ONQUIT($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_BROWSER_ONVISIBLE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_BROWSER_ONTOOLBAR($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_BROWSER_ONMENUBAR($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_BROWSER_ONSTATUSBAR($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_BROWSER_ONFULLSCREEN($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_BROWSER_DOCUMENTCOMPLETE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_BROWSER_ONTHEATERMODE($handler, $axcontrol, \&event_sub);      
 
-Here are the event table for ACTIVEX_IE:
+=head1 DISPATCH METHODS
 
-  EVT_ACTIVEX_IE_BEFORENAVIGATE2
-  EVT_ACTIVEX_IE_CLIENTTOHOSTWINDOW
-  EVT_ACTIVEX_IE_COMMANDSTATECHANGE
-  EVT_ACTIVEX_IE_DOCUMENTCOMPLETE
-  EVT_ACTIVEX_IE_DOWNLOADBEGIN
-  EVT_ACTIVEX_IE_DOWNLOADCOMPLETE
-  EVT_ACTIVEX_IE_FILEDOWNLOAD
-  EVT_ACTIVEX_IE_NAVIGATECOMPLETE2
-  EVT_ACTIVEX_IE_NEWWINDOW2
-  EVT_ACTIVEX_IE_ONFULLSCREEN
-  EVT_ACTIVEX_IE_ONMENUBAR
-  EVT_ACTIVEX_IE_ONQUIT
-  EVT_ACTIVEX_IE_ONSTATUSBAR
-  EVT_ACTIVEX_IE_ONTHEATERMODE
-  EVT_ACTIVEX_IE_ONTOOLBAR
-  EVT_ACTIVEX_IE_ONVISIBLE
-  EVT_ACTIVEX_IE_PROGRESSCHANGE
-  EVT_ACTIVEX_IE_PROPERTYCHANGE
-  EVT_ACTIVEX_IE_SETSECURELOCKICON
-  EVT_ACTIVEX_IE_STATUSTEXTCHANGE
-  EVT_ACTIVEX_IE_TITLECHANGE
-  EVT_ACTIVEX_IE_WINDOWCLOSING
-  EVT_ACTIVEX_IE_WINDOWSETHEIGHT
-  EVT_ACTIVEX_IE_WINDOWSETLEFT
-  EVT_ACTIVEX_IE_WINDOWSETRESIZABLE
-  EVT_ACTIVEX_IE_WINDOWSETTOP
-  EVT_ACTIVEX_IE_WINDOWSETWIDTH
+    $obj->MethodName( @args );
+    
+    or
+    
+    $obj->Invoke( 'MethodName', @args );
 
-=head1 ActivexInfos
 
-  <EVENTS>
+    AddRef()
+    ClientToWindow(pcx , pcy)
+    ExecWB(cmdID , cmdexecopt , pvaIn , pvaOut)
+    GetIDsOfNames(riid , rgszNames , cNames , lcid , rgdispid)
+    GetProperty(Property)
+    GetTypeInfo(itinfo , lcid , pptinfo)
+    GetTypeInfoCount(pctinfo)
+    GoBack()
+    GoForward()
+    GoHome()
+    GoSearch()
+    Invoke(dispidMember , riid , lcid , wFlags , pdispparams , pvarResult , pexcepinfo , puArgErr)
+    Navigate(URL , Flags , TargetFrameName , PostData , Headers)
+    Navigate2(URL , Flags , TargetFrameName , PostData , Headers)
+    PutProperty(Property , vtValue)
+    QueryInterface(riid , ppvObj)
+    QueryStatusWB(cmdID)
+    Quit()
+    Refresh()
+    Refresh2(Level)
+    Release()
+    ShowBrowserBar(pvaClsid , pvarShow , pvarSize)
+    Stop()
+
+=head1 PROPERTIES
+
+    AddressBar                   (bool)
+    Application                  (IDispatch)
+    Busy                         (bool)
+    Container                    (IDispatch)
+    Document                     (IDispatch)
+    FullName                     (wxString)
+    FullScreen                   (bool)
+    Height                       (long)
+    HWND                         (long)
+    Left                         (long)
+    LocationName                 (wxString)
+    LocationURL                  (wxString)
+    MenuBar                      (bool)
+    Name                         (wxString)
+    Offline                      (bool)
+    Parent                       (IDispatch)
+    Path                         (wxString)
+    ReadyState                   (*user defined*)
+    RegisterAsBrowser            (bool)
+    RegisterAsDropTarget         (bool)
+    Resizable                    (bool)
+    Silent                       (bool)
+    StatusBar                    (bool)
+    StatusText                   (wxString)
+    TheaterMode                  (bool)
+    ToolBar                      (int)
+    Top                          (long)
+    TopLevelContainer            (bool)
+    Type                         (wxString)
+    Visible                      (bool)
+    Width                        (long)
+
+=head1 ACTIVEX EVENT LIST
+
     StatusTextChange
     DownloadComplete
     CommandStateChange
@@ -252,68 +370,9 @@ Here are the event table for ACTIVEX_IE:
     FileDownload
     NavigateError
     PrivacyImpactedStateChange
-  </EVENTS>
-  
-  <PROPS>
-    AddressBar
-    Application
-    Busy
-    Container
-    Document
-    FullName
-    FullScreen
-    Height
-    HWND
-    Left
-    LocationName
-    LocationURL
-    MenuBar
-    Name
-    Offline
-    Parent
-    Path
-    ReadyState
-    RegisterAsBrowser
-    RegisterAsDropTarget
-    Resizable
-    Silent
-    StatusBar
-    StatusText
-    TheaterMode
-    ToolBar
-    Top
-    TopLevelContainer
-    Type
-    Visible
-    Width
-  </PROPS>
-  
-  <METHODS>
-    AddRef()
-    ClientToWindow(pcx , pcy)
-    ExecWB(cmdID , cmdexecopt , pvaIn , pvaOut)
-    GetIDsOfNames(riid , rgszNames , cNames , lcid , rgdispid)
-    GetProperty(Property)
-    GetTypeInfo(itinfo , lcid , pptinfo)
-    GetTypeInfoCount(pctinfo)
-    GoBack()
-    GoForward()
-    GoHome()
-    GoSearch()
-    Invoke(dispidMember , riid , lcid , wFlags , pdispparams , pvarResult , pexcepinfo , puArgErr)
-    Navigate(URL , Flags , TargetFrameName , PostData , Headers)
-    Navigate2(URL , Flags , TargetFrameName , PostData , Headers)
-    PutProperty(Property , vtValue)
-    QueryInterface(riid , ppvObj)
-    QueryStatusWB(cmdID)
-    Quit()
-    Refresh()
-    Refresh2(Level)
-    Release()
-    ShowBrowserBar(pvaClsid , pvarShow , pvarSize)
-    Stop()
-  </METHODS>
-
+    NewWindow3
+    SetPhishingFilterStatus
+    WindowStateChanged
 
 =head1 NOTE
 
@@ -322,12 +381,13 @@ This package only works for Win32, since it use AtiveX.
 =head1 SEE ALSO
 
 L<Wx::ActiveX> L<Wx>
+L<Wx::ActiveX::Mozilla> L<Wx>
 
 =head1 AUTHOR
 
 Graciliano M. P. <gm@virtuasites.com.br>
 
-Thanks to wxWindows peoples and Mattia Barbon for wxPerl! :P
+Thanks to wxWindows people and Mattia Barbon for wxPerl! :P
 
 Thanks to Justin Bradford <justin@maxwell.ucsf.edu> and Lindsay Mathieson <lmathieson@optusnet.com.au>, that wrote the original C++ classes for wxActiveX and wxIEHtmlWin.
 
@@ -336,8 +396,11 @@ Thanks to Justin Bradford <justin@maxwell.ucsf.edu> and Lindsay Mathieson <lmath
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
 
-=cut
+=head1 CURRENT MAINTAINER
 
+Mark Dootson <mdootson@cpan.org> 
+
+=cut
 
 # Local variables: #
 # mode: cperl #

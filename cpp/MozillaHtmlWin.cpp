@@ -54,7 +54,7 @@
   code and/or adjust the licensing conditions notice accordingly.
 */
 
-#include "IEHtmlWin.h"
+#include "MozillaHtmlWin.h"
 #include <wx/strconv.h>
 #include <wx/string.h>
 #include <wx/event.h>
@@ -70,40 +70,40 @@
 using namespace std;
 
 //////////////////////////////////////////////////////////////////////
-BEGIN_EVENT_TABLE(wxIEHtmlWin, wxActiveX)
+BEGIN_EVENT_TABLE(wxMozillaHtmlWin, wxActiveX)
 END_EVENT_TABLE()
 
 
-/// static const CLSID CLSID_MozillaBrowser =
-/// { 0x1339B54C, 0x3453, 0x11D2,
-///   { 0x93, 0xB9, 0x00, 0x00,
-///     0x00, 0x00, 0x00, 0x00 } };
+static const CLSID CLSID_MozillaBrowser =
+{ 0x1339B54C, 0x3453, 0x11D2,
+  { 0x93, 0xB9, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00 } };
 
 
 //#define PROGID "Shell.Explorer"
-#define PROGID CLSID_WebBrowser
-//#define PROGID CLSID_MozillaBrowser
+//#define PROGID CLSID_WebBrowser
+#define MPROGID CLSID_MozillaBrowser
 //#define PROGID CLSID_HTMLDocument
 //#define PROGID "MSCAL.Calendar"
 //#define PROGID "WordPad.Document.1"
 //#define PROGID "SoftwareFX.ChartFX.20"
 
-wxIEHtmlWin::wxIEHtmlWin(wxWindow * parent, wxWindowID id,
+wxMozillaHtmlWin::wxMozillaHtmlWin(wxWindow * parent, wxWindowID id,
         const wxPoint& pos,
         const wxSize& size,
         long style,
         const wxString& name) :
-    wxActiveX(parent, PROGID, id, pos, size, style, name)
+    wxActiveX(parent, MPROGID, id, pos, size, style, name)
 {
     SetupBrowser();
 }
 
 
-wxIEHtmlWin::~wxIEHtmlWin()
+wxMozillaHtmlWin::~wxMozillaHtmlWin()
 {
 }
 
-void wxIEHtmlWin::SetupBrowser()
+void wxMozillaHtmlWin::SetupBrowser()
 {
 	HRESULT hret;
 
@@ -124,19 +124,19 @@ void wxIEHtmlWin::SetupBrowser()
 }
 
 
-void wxIEHtmlWin::SetEditMode(bool seton)
+void wxMozillaHtmlWin::SetEditMode(bool seton)
 {
     m_bAmbientUserMode = ! seton;
     AmbientPropertyChanged(DISPID_AMBIENT_USERMODE);
 };
 
-bool wxIEHtmlWin::GetEditMode()
+bool wxMozillaHtmlWin::GetEditMode()
 {
     return ! m_bAmbientUserMode;
 };
 
 
-void wxIEHtmlWin::SetCharset(wxString charset)
+void wxMozillaHtmlWin::SetCharset(wxString charset)
 {
 	// HTML Document ?
 	IDispatch *pDisp = NULL;
@@ -152,110 +152,7 @@ void wxIEHtmlWin::SetCharset(wxString charset)
 	};
 };
 
-
-class IStreamAdaptorBase : public IStream
-{
-private:
-    DECLARE_OLE_UNKNOWN(IStreamAdaptorBase);
-
-public:
-	string prepend;
-
-    IStreamAdaptorBase() {}
-    virtual ~IStreamAdaptorBase() {}
-
-	virtual int Read(char *buf, int cb) = 0;
-
-
-    // ISequentialStream
-    HRESULT STDMETHODCALLTYPE Read(void __RPC_FAR *pv, ULONG cb, ULONG __RPC_FAR *pcbRead)
-	{
-		if (prepend.size() > 0)
-		{
-			int n = min(int(prepend.size()), int(cb));
-			prepend.copy((char *) pv, n);
-			prepend = prepend.substr(n);
-			if (pcbRead)
-				*pcbRead = n;
-
-			return S_OK;
-		};
-
-		int rc = Read((char *) pv, cb);
-		if (pcbRead)
-			*pcbRead = rc;
-
-		return S_OK;
-	};
-
-    HRESULT STDMETHODCALLTYPE Write(const void __RPC_FAR *pv, ULONG cb, ULONG __RPC_FAR *pcbWritten) {return E_NOTIMPL;}
-
-    // IStream
-    HRESULT STDMETHODCALLTYPE Seek(LARGE_INTEGER dlibMove, DWORD dwOrigin, ULARGE_INTEGER __RPC_FAR *plibNewPosition) {return E_NOTIMPL;}
-    HRESULT STDMETHODCALLTYPE SetSize(ULARGE_INTEGER libNewSize) {return E_NOTIMPL;}
-    HRESULT STDMETHODCALLTYPE CopyTo(IStream __RPC_FAR *pstm, ULARGE_INTEGER cb, ULARGE_INTEGER __RPC_FAR *pcbRead, ULARGE_INTEGER __RPC_FAR *pcbWritten) {return E_NOTIMPL;}
-    HRESULT STDMETHODCALLTYPE Commit(DWORD grfCommitFlags) {return E_NOTIMPL;}
-    HRESULT STDMETHODCALLTYPE Revert(void) {return E_NOTIMPL;}
-    HRESULT STDMETHODCALLTYPE LockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) {return E_NOTIMPL;}
-    HRESULT STDMETHODCALLTYPE UnlockRegion(ULARGE_INTEGER libOffset, ULARGE_INTEGER cb, DWORD dwLockType) {return E_NOTIMPL;}
-    HRESULT STDMETHODCALLTYPE Stat(STATSTG __RPC_FAR *pstatstg, DWORD grfStatFlag) {return E_NOTIMPL;}
-    HRESULT STDMETHODCALLTYPE Clone(IStream __RPC_FAR *__RPC_FAR *ppstm) {return E_NOTIMPL;}
-};
-
-DEFINE_OLE_TABLE(IStreamAdaptorBase)
-	OLE_IINTERFACE(IUnknown)
-	OLE_IINTERFACE(ISequentialStream)
-	OLE_IINTERFACE(IStream)
-END_OLE_TABLE;
-
-class IStreamAdaptor : public IStreamAdaptorBase
-{
-private:
-    istream *m_is;
-
-public:
-
-    IStreamAdaptor(istream *is)	: IStreamAdaptorBase(), m_is(is)
-    {
-        wxASSERT(m_is != NULL);
-    }
-    ~IStreamAdaptor()
-    {
-        delete m_is;
-    }
-
-    int Read(char *buf, int cb)
-	{
-		m_is->read(buf, cb);
-		return m_is->gcount();
-	};
-};
-
-class IwxStreamAdaptor : public IStreamAdaptorBase
-{
-private:
-    wxInputStream *m_is;
-
-public:
-
-    IwxStreamAdaptor(wxInputStream *is)	: IStreamAdaptorBase(), m_is(is)
-    {
-        wxASSERT(m_is != NULL);
-    }
-    ~IwxStreamAdaptor()
-    {
-        delete m_is;
-    }
-
-    // ISequentialStream
-    int Read(char *buf, int cb)
-	{
-		m_is->Read(buf, cb);
-		return m_is->LastRead();
-	};
-};
-
-void wxIEHtmlWin::LoadUrl(const wxString& url)
+void wxMozillaHtmlWin::LoadUrl(const wxString& url)
 {
 	VARIANTARG navFlag, targetFrame, postData, headers;
 	navFlag.vt = VT_EMPTY;
@@ -270,21 +167,7 @@ void wxIEHtmlWin::LoadUrl(const wxString& url)
 		&navFlag, &targetFrame, &postData, &headers);
 };
 
-class wxOwnedMemInputStream : public wxMemoryInputStream
-{
-public:
-    char *m_data;
-
-    wxOwnedMemInputStream(char *data, size_t len) :
-        wxMemoryInputStream(data, len), m_data(data)
-    {}
-    ~wxOwnedMemInputStream()
-    {
-        free(m_data);
-    }
-};
-
-bool  wxIEHtmlWin::LoadString(wxString html)
+bool  wxMozillaHtmlWin::LoadString(wxString html)
 {
     char *data = NULL;
     size_t len = html.length();
@@ -296,7 +179,7 @@ bool  wxIEHtmlWin::LoadString(wxString html)
 	return LoadStream(new wxOwnedMemInputStream(data, len));
 };
 
-bool wxIEHtmlWin::LoadStream(IStreamAdaptorBase *pstrm)
+bool wxMozillaHtmlWin::LoadStream(IStreamAdaptorBase *pstrm)
 {
 	// need to prepend this as poxy MSHTML will not recognise a HTML comment
 	// as starting a html document and treats it as plain text
@@ -330,7 +213,7 @@ bool wxIEHtmlWin::LoadStream(IStreamAdaptorBase *pstrm)
 	    return false;
 };
 
-bool  wxIEHtmlWin::LoadStream(istream *is)
+bool  wxMozillaHtmlWin::LoadStream(istream *is)
 {
 	// wrap reference around stream
     IStreamAdaptor *pstrm = new IStreamAdaptor(is);
@@ -339,7 +222,7 @@ bool  wxIEHtmlWin::LoadStream(istream *is)
     return LoadStream(pstrm);
 };
 
-bool wxIEHtmlWin::LoadStream(wxInputStream *is)
+bool wxMozillaHtmlWin::LoadStream(wxInputStream *is)
 {
 	// wrap reference around stream
     IwxStreamAdaptor *pstrm = new IwxStreamAdaptor(is);
@@ -349,21 +232,21 @@ bool wxIEHtmlWin::LoadStream(wxInputStream *is)
 };
 
 
-bool wxIEHtmlWin::GoBack()
+bool wxMozillaHtmlWin::GoBack()
 {
     HRESULT hret = 0;
     hret = m_webBrowser->GoBack();
     return hret == S_OK;
 }
 
-bool wxIEHtmlWin::GoForward()
+bool wxMozillaHtmlWin::GoForward()
 {
     HRESULT hret = 0;
     hret = m_webBrowser->GoForward();
     return hret == S_OK;
 }
 
-bool wxIEHtmlWin::GoHome()
+bool wxMozillaHtmlWin::GoHome()
 {
     try
     {
@@ -382,15 +265,15 @@ bool wxIEHtmlWin::GoHome()
   */
 }
 
-bool wxIEHtmlWin::GoSearch()
+bool wxMozillaHtmlWin::GoSearch()
 {
     HRESULT hret = 0;
     hret = m_webBrowser->GoSearch();
     return hret == S_OK;
 }
 
-/// bool wxIEHtmlWin::Refresh(wxIEHtmlRefreshLevel level)
-bool wxIEHtmlWin::Refresh(int level)
+/// bool wxMozillaHtmlWin::Refresh(wxMozillaHtmlRefreshLevel level)
+bool wxMozillaHtmlWin::Refresh(int level)
 {
     VARIANTARG levelArg;
     HRESULT hret = 0;
@@ -401,7 +284,7 @@ bool wxIEHtmlWin::Refresh(int level)
     return hret == S_OK;
 }
 
-bool wxIEHtmlWin::Stop()
+bool wxMozillaHtmlWin::Stop()
 {
     HRESULT hret = 0;
     hret = m_webBrowser->Stop();
@@ -411,55 +294,8 @@ bool wxIEHtmlWin::Stop()
 
 ///////////////////////////////////////////////////////////////////////////////
 
-static wxAutoOleInterface<IHTMLSelectionObject> GetSelObject(IOleObject *oleObject)
-{
-	// Query for IWebBrowser interface
-    wxAutoOleInterface<IWebBrowser2> wb(IID_IWebBrowser2, oleObject);
-    if (! wb.Ok())
-    	return wxAutoOleInterface<IHTMLSelectionObject>();
 
-	IDispatch *iDisp = NULL;
-    HRESULT hr = wb->get_Document(&iDisp);
-    if (hr != S_OK)
-    	return wxAutoOleInterface<IHTMLSelectionObject>();
-
-	// Query for Document Interface
-    wxAutoOleInterface<IHTMLDocument2> hd(IID_IHTMLDocument2, iDisp);
-    iDisp->Release();
-
-    if (! hd.Ok())
-    	return wxAutoOleInterface<IHTMLSelectionObject>();
-
-    IHTMLSelectionObject *_so = NULL;
-    hr = hd->get_selection(&_so);
-
-    // take ownership of selection object
-	wxAutoOleInterface<IHTMLSelectionObject> so(_so);
-
-    return so;
-};
-
-static wxAutoOleInterface<IHTMLTxtRange> GetSelRange(IOleObject *oleObject)
-{
-	wxAutoOleInterface<IHTMLTxtRange> tr;
-
-    wxAutoOleInterface<IHTMLSelectionObject> so(GetSelObject(oleObject));
-    if (! so)
-    	return tr;
-
-	IDispatch *iDisp = NULL;
-    HRESULT hr = so->createRange(&iDisp);
-    if (hr != S_OK)
-    	return tr;
-
-	// Query for IHTMLTxtRange interface
-	tr.QueryInterface(IID_IHTMLTxtRange, iDisp);
-    iDisp->Release();
-    return tr;
-};
-
-
-wxString wxIEHtmlWin::GetStringSelection(bool asHTML)
+wxString wxMozillaHtmlWin::GetStringSelection(bool asHTML)
 {
 	wxAutoOleInterface<IHTMLTxtRange> tr(GetSelRange(m_oleObject));
     if (! tr)
@@ -481,7 +317,7 @@ wxString wxIEHtmlWin::GetStringSelection(bool asHTML)
     return s;
 };
 
-wxString wxIEHtmlWin::GetText(bool asHTML)
+wxString wxMozillaHtmlWin::GetText(bool asHTML)
 {
 	if (! m_webBrowser.Ok())
 		return wxT("");
@@ -523,7 +359,7 @@ wxString wxIEHtmlWin::GetText(bool asHTML)
     return s;
 };
 
-void wxIEHtmlWin::Print(bool WithPrompt)
+void wxMozillaHtmlWin::Print(bool WithPrompt)
 {
   tagVARIANT vIn, vOut;
 
@@ -543,7 +379,7 @@ void wxIEHtmlWin::Print(bool WithPrompt)
   }
 }
 
-void wxIEHtmlWin::PrintPreview()
+void wxMozillaHtmlWin::PrintPreview()
 {
   tagVARIANT vIn, vOut;
 

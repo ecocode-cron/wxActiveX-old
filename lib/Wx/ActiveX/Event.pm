@@ -28,10 +28,17 @@ sub EVT_ACTIVEX ($$$$) { &Wx::ActiveX::EVT_ACTIVEX( @_ ) }
 
 push(@EXPORT_OK, 'EVT_ACTIVEX');
 
-my $tagprefix = 'activex';
+my $exporttag = 'iexplorer';
+my $eventname = 'IE';
 
-&Wx::ActiveX::LoadActiveXEventTypes( __PACKAGE__, $tagprefix, \%Wx::ActiveX::IE::activexevents );
+# we don't inherit from Wx::ActiveX so call as function
+&Wx::ActiveX::activex_load_activex_event_types(__PACKAGE__,
+                                               __PACKAGE__,
+                                               $eventname,
+                                               $exporttag,
+                                               \@Wx::ActiveX::IE::activexevents );
 
 1;
 
 __END__
+

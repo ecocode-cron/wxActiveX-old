@@ -10,26 +10,103 @@
 #############################################################################
 
 package Wx::ActiveX::WMPlayer ;
-use Wx::ActiveX ;
-use strict ;
+use strict;
+use Wx qw( wxDefaultPosition wxDefaultSize );
+use Wx::ActiveX;
 use base qw( Wx::ActiveX );
 
 our $VERSION = '0.06'; # Wx::ActiveX Version
 
-#######
-# NEW #
-#######
+our (@EXPORT_OK, %EXPORT_TAGS);
+$EXPORT_TAGS{everything} = \@EXPORT_OK;
+
+my $PROGID = 'WMPlayer.OCX';
+
+my $exporttag = 'mediaplayer';
+my $eventname = 'MEDIAPLAYER';
+
+#-----------------------------------------------
+# Export event classes
+#-----------------------------------------------
+
+# events below implemented as EVT_ACTIVEX_EVENTNAME ($$$)
+# e.g EVT_ACTIVEX_SCRIPTCONTROL_ERROR($eventhandler, $control, \&event_function);
+# The Event ID will be exported as EVENTID_AX_SCRIPTCONTROL_ERROR
+
+our @activexevents = qw (
+            OpenStateChange
+            StatusChange
+            PlayStateChange
+            AudioLanguageChange
+            EndOfStream
+            PositionChange
+            MarkerHit
+            DurationUnitChange
+            ScriptCommand
+            Disconnect
+            Buffering
+            NewStream
+            Error
+            Warning
+            CdromMediaChange
+            PlaylistChange
+            MediaChange
+            CurrentMediaItemAvailable
+            CurrentPlaylistChange
+            CurrentPlaylistItemAvailable
+            CurrentItemChange
+            MediaCollectionChange
+            MediaCollectionAttributeStringAdded
+            MediaCollectionAttributeStringRemoved
+            PlaylistCollectionChange
+            PlaylistCollectionPlaylistAdded
+            PlaylistCollectionPlaylistRemoved
+            PlaylistCollectionPlaylistSetAsDeleted
+            ModeChange
+            MediaCollectionAttributeStringChanged
+            MediaError
+            DomainChange
+            OpenPlaylistSwitch
+            SwitchedToPlayerApplication
+            SwitchedToControl
+            PlayerDockedStateChange
+            PlayerReconnect
+            Click
+            DoubleClick
+            KeyDown
+            KeyPress
+            KeyUp
+            MouseDown
+            MouseMove
+            MouseUp
+            DeviceConnect
+            DeviceDisconnect
+            DeviceStatusChange
+            DeviceSyncStateChange
+            DeviceSyncError
+            CreatePartnershipComplete
+);
+
+# __PACKAGE__->activex_load_standard_event_types( $export_to_namespace, $eventidentifier, $exporttag, $elisthashref );
+# __PACKAGE__->activex_load_activex_event_types( $export_to_namespace, $eventidentifier, $exporttag, $elistarrayref );
+
+__PACKAGE__->activex_load_activex_event_types( __PACKAGE__, $eventname, $exporttag, \@activexevents );
+
+
+#-----------------------------------------------
+# Instance
+#-----------------------------------------------
 
 sub new {
-    my $class = shift ;
-    my $parent = shift ;
-    my $self = $class->SUPER::new( $parent , "MediaPlayer.MediaPlayer.1" , @_ ) ;
+    my $class = shift;
+    # parent must exist
+    my $parent = shift;
+    my $windowid = shift || -1;
+    my $pos = shift || wxDefaultPosition;
+    my $size = shift || wxDefaultSize;
+    my $self = $class->SUPER::new( $parent, $PROGID, $windowid, $pos, $size, @_ );
     return $self;
 }
-
-#######
-# END #
-#######
 
 1;
 
@@ -41,204 +118,115 @@ Wx::ActiveX::WMPlayer - ActiveX interface for Windows Media Player.
 
 =head1 SYNOPSIS
 
-  use Wx::ActiveX::WMPlayer ;
-  my $wm = Wx::ActiveX::WMPlayer->new( $parent , -1 , wxDefaultPosition , wxDefaultSize );
+    use Wx::ActiveX::WMPlayer;
+    my $player = Wx::ActiveX::WMPlayer->new( $parent , -1 , wxDefaultPosition , wxDefaultSize );
   
-  $wm->PropSet("FileName",'C:\movie.avi') ;
-  $wm->Play ;
-  
-  EVT_ACTIVEX($this, $wm ,"PlayStateChange", sub{
-    my ( $this , $evt ) = @_ ;
-    print "Play Change\n" ;
-  }) ;
-
+    EVT_ACTIVEX_MEDIAPLAYER_PLAYSTATECHANGE($evnthandler, $player , \&on_event_playstatechanged);
+    
+    ...........
+    
+    $player->PropSet('URL', 'C:\movie.avi') ;
 
 =head1 DESCRIPTION
 
-ActiveX control for Windows Media Player. The control comes from Wx::ActiveX, and all methods/events from there exit here too.
-
-=head1 new ( PARENT , ID , POS , SIZE )
-
-This will create and return the Windows Media Player object.
-
-=head1 METHODS
-
-See L<Wx::ActiveX>.
+ActiveX control for Windows Media Player. The control inherits from Wx::ActiveX.
 
 =head1 EVENTS
 
-All the events use EVT_ACTIVEX.
+    EVT_ACTIVEX_MEDIAPLAYER_OPENSTATECHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_STATUSCHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_PLAYSTATECHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_AUDIOLANGUAGECHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_ENDOFSTREAM($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_POSITIONCHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_MARKERHIT($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_DURATIONUNITCHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_SCRIPTCOMMAND($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_DISCONNECT($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_BUFFERING($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_NEWSTREAM($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_ERROR($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_WARNING($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_CDROMMEDIACHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_PLAYLISTCHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_MEDIACHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_CURRENTMEDIAITEMAVAILABLE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_CURRENTPLAYLISTCHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_CURRENTPLAYLISTITEMAVAILABLE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_CURRENTITEMCHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_MEDIACOLLECTIONCHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_MEDIACOLLECTIONATTRIBUTESTRINGADDED($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_MEDIACOLLECTIONATTRIBUTESTRINGREMOVED($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_PLAYLISTCOLLECTIONCHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_PLAYLISTCOLLECTIONPLAYLISTADDED($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_PLAYLISTCOLLECTIONPLAYLISTREMOVED($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_PLAYLISTCOLLECTIONPLAYLISTSETASDELETED($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_MODECHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_MEDIACOLLECTIONATTRIBUTESTRINGCHANGED($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_MEDIAERROR($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_DOMAINCHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_OPENPLAYLISTSWITCH($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_SWITCHEDTOPLAYERAPPLICATION($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_SWITCHEDTOCONTROL($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_PLAYERDOCKEDSTATECHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_PLAYERRECONNECT($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_CLICK($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_DOUBLECLICK($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_KEYDOWN($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_KEYPRESS($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_KEYUP($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_MOUSEDOWN($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_MOUSEMOVE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_MOUSEUP($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_DEVICECONNECT($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_DEVICEDISCONNECT($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_DEVICESTATUSCHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_DEVICESYNCSTATECHANGE($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_DEVICESYNCERROR($handler, $axcontrol, \&event_sub);
+    EVT_ACTIVEX_MEDIAPLAYER_CREATEPARTNERSHIPCOMPLETE($handler, $axcontrol, \&event_sub);
 
-=head1 ActivexInfos
+=head1 METHODS
 
-  <EVENTS>
-    ReadyStateChange
-    MouseUp
-    MouseMove
-    MouseDown
-    KeyUp
-    KeyPress
-    KeyDown
-    DblClick
-    Click
-    PositionChange
-    DisplayModeChange
-    DVDNotify
-    ScriptCommand
-    EndOfStream
-    Buffering
-    Disconnect
-    MarkerHit
-    NewStream
-    Warning
-    Error
-    OpenStateChange
-    PlayStateChange
-  </EVENTS>
-  
-  <PROPS>
-    ActiveMovie
-    AllowChangeDisplaySize
-    AllowScan
-    AnimationAtStart
-    AudioStream
-    AutoRewind
-    AutoSize
-    AutoStart
-    Balance
-    Bandwidth
-    BaseURL
-    BufferingCount
-    BufferingProgress
-    BufferingTime
-    CanPreview
-    CanScan
-    CanSeek
-    CanSeekToMarkers
-    CaptioningID
-    ChannelDescription
-    ChannelName
-    ChannelURL
-    ClickToPlay
-    ClientId
-    CodecCount
-    ConnectionSpeed
-    ContactAddress
-    ContactEmail
-    ContactPhone
-    CreationDate
-    CurrentMarker
-    CurrentPosition
-    CursorType
-    DefaultFrame
-    DisplayBackColor
-    DisplayForeColor
-    DisplayMode
-    DisplaySize
-    Duration
-    DVD
-    EnableContextMenu
-    Enabled
-    EnableFullScreenControls
-    EnablePositionControls
-    EnableTracker
-    EntryCount
-    ErrorCode
-    ErrorCorrection
-    ErrorDescription
-    FileName
-    HasError
-    HasMultipleItems
-    ImageSourceHeight
-    ImageSourceWidth
-    InvokeURLs
-    IsBroadcast
-    IsDurationValid
-    Language
-    LostPackets
-    MarkerCount
-    Mute
-    NSPlay
-    OpenState
-    PlayCount
-    PlayState
-    PreviewMode
-    Rate
-    ReadyState
-    ReceivedPackets
-    ReceptionQuality
-    RecoveredPackets
-    SAMIFileName
-    SAMILang
-    SAMIStyle
-    SelectionEnd
-    SelectionStart
-    SendErrorEvents
-    SendKeyboardEvents
-    SendMouseClickEvents
-    SendMouseMoveEvents
-    SendOpenStateChangeEvents
-    SendPlayStateChangeEvents
-    SendWarningEvents
-    ShowAudioControls
-    ShowCaptioning
-    ShowControls
-    ShowDisplay
-    ShowGotoBar
-    ShowPositionControls
-    ShowStatusBar
-    ShowTracker
-    SourceLink
-    SourceProtocol
-    StreamCount
-    TransparentAtStart
-    VideoBorder3D
-    VideoBorderColor
-    VideoBorderWidth
-    Volume
-    WindowlessVideo
-  </PROPS>
-  
-  <METHODS>
-    AboutBox()
     AddRef()
-    Cancel()
-    FastForward()
-    FastReverse()
-    GetCodecDescription(CodecNum)
-    GetCodecInstalled(CodecNum)
-    GetCodecURL(CodecNum)
-    GetCurrentEntry()
+    close()
     GetIDsOfNames(riid , rgszNames , cNames , lcid , rgdispid)
-    GetMarkerName(MarkerNum)
-    GetMarkerTime(MarkerNum)
-    GetMediaInfoString(MediaInfoType)
-    GetMediaParameter(EntryNum , bstrParameterName)
-    GetMediaParameterName(EntryNum , Index)
-    GetMoreInfoURL(MoreInfoType)
-    GetStreamGroup(StreamNum)
-    GetStreamName(StreamNum)
-    GetStreamSelected(StreamNum)
     GetTypeInfo(itinfo , lcid , pptinfo)
     GetTypeInfoCount(pctinfo)
     Invoke(dispidMember , riid , lcid , wFlags , pdispparams , pvarResult , pexcepinfo , puArgErr)
-    IsSoundCardEnabled()
-    Next()
-    Open(bstrFileName)
-    Pause()
-    Play()
-    Previous()
+    launchURL(bstrURL)
+    newMedia(bstrURL)
+    newPlaylist(bstrName , bstrURL)
+    openPlayer(bstrURL)
     QueryInterface(riid , ppvObj)
     Release()
-    SetCurrentEntry(EntryNumber)
-    ShowDialog(mpDialogIndex)
-    Stop()
-    StreamSelect(StreamNum)
-  </METHODS>
 
-=head1 NOTE
+=head1 PROPERTIES
 
-This package only works for Win32, since it use AtiveX.
+    cdromCollection              (*user defined*)
+    closedCaption                (*user defined*)
+    controls                     (*user defined*)
+    currentMedia                 (*user defined*)
+    currentPlaylist              (*user defined*)
+    dvd                          (*user defined*)
+    enableContextMenu            (bool)
+    enabled                      (bool)
+    Error                        (*user defined*)
+    fullScreen                   (bool)
+    isOnline                     (bool)
+    isRemote                     (bool)
+    mediaCollection              (*user defined*)
+    network                      (*user defined*)
+    openState                    (*user defined*)
+    playerApplication            (*user defined*)
+    playlistCollection           (*user defined*)
+    playState                    (*user defined*)
+    settings                     (*user defined*)
+    status                       (wxString)
+    stretchToFit                 (bool)
+    uiMode                       (wxString)
+    URL                          (wxString)
+    versionInfo                  (wxString)
+    windowlessVideo              (bool)
 
 =head1 SEE ALSO
 
@@ -255,6 +243,10 @@ Thanks to Graciliano M. P. for Wx::ActiveX! ;)
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
 
+=head1 CURRENT MAINTAINER
+
+Mark Dootson <mdootson@cpan.org>
+
 =cut
 
-
+#

@@ -6,9 +6,12 @@ README.txt
 typemap
 cpp/IEHtmlWin.cpp
 cpp/IEHtmlWin.h
+cpp/MozillaHtmlWin.cpp
+cpp/MozillaHtmlWin.h
 cpp/wxactivex.cpp
 cpp/wxactivex.h
 cpp/PlActiveX.h
+cpp/ax_constants.cpp
 demo/dumy.fla
 demo/dumy.swf
 demo/test.pdf
@@ -16,16 +19,19 @@ demo/wxAcrobat.pl
 demo/wxFlash.pl
 demo/wxIE.pl
 demo/wxWMPlayer.pl
+script/wxactivex_template.pl
 t/01_load.t
 XS/IEHtmlWin.xs
+XS/MozillaHtmlWin.xs
+XS/ActiveX.xs
 lib/Wx/ActiveX.pm
 lib/Wx/ActiveX/Acrobat.pm
 lib/Wx/ActiveX/Event.pm
 lib/Wx/ActiveX/Flash.pm
 lib/Wx/ActiveX/IE.pm
-lib/Wx/ActiveX/IExplorer.pm
 lib/Wx/ActiveX/Mozilla.pm
 lib/Wx/ActiveX/Document.pm
 lib/Wx/ActiveX/WMPlayer.pm
+lib/Wx/ActiveX/Template.pm
 lib/Wx/DemoModules/wxActiveX.pm
 
