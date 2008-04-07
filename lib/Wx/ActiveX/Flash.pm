@@ -14,7 +14,7 @@ use Wx::ActiveX ;
 use strict ;
 use base qw( Wx::ActiveX );
 
-our $VERSION = '0.07'; # Wx::ActiveX Version
+our $VERSION = '0.08'; # Wx::ActiveX Version
 
 #######
 # NEW #

@@ -22,7 +22,7 @@ $EXPORT_TAGS{'activex'} = \@EXPORT_OK;
 # this module file retained only to support VERSION < 0.06 code.
 # new code should use Wx::ActiveX constants & EVT subs
 
-our $VERSION = '0.07'; # Wx::ActiveX Version
+our $VERSION = '0.08'; # Wx::ActiveX Version
 
 sub EVT_ACTIVEX ($$$$) { &Wx::ActiveX::EVT_ACTIVEX( @_ ) }
 
