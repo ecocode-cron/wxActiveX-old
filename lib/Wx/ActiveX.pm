@@ -380,20 +380,20 @@ sub activex_get_event_code {
 }
 
 #----------------------------------------------------------------------------
- package Wx::IEHtmlWin;
+# package Wx::IEHtmlWin;
 #----------------------------------------------------------------------------
 
-our @ISA = qw( Wx::ActiveX );
+#our @ISA = qw( Wx::ActiveX );
 
-our $VERSION = '0.07'; # Wx::ActiveX Version
+#our $VERSION = '0.07'; # Wx::ActiveX Version
 
 #----------------------------------------------------------------------------
- package Wx::MozillaHtmlWin;
+# package Wx::MozillaHtmlWin;
 #----------------------------------------------------------------------------
 
-our @ISA = qw( Wx::ActiveX );
+#our @ISA = qw( Wx::ActiveX );
 
-our $VERSION = '0.07'; # Wx::ActiveX Version
+#our $VERSION = '0.07'; # Wx::ActiveX Version
 
 #----------------------------------------------------------------------------
  package Wx::ActiveXEvent;

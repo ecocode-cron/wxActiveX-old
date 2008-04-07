@@ -12,7 +12,7 @@
 package Wx::ActiveX::Mozilla;
 use strict ;
 use Wx::ActiveX;
-use base qw( Wx::MozillaHtmlWin );
+use base qw( Wx::MozillaHtmlWin Wx::ActiveX );
 
 our $VERSION = '0.07'; # Wx::ActiveX Version
 

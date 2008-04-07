@@ -12,7 +12,7 @@
 package Wx::ActiveX::IE;
 use strict ;
 use Wx::ActiveX;
-use base qw( Wx::IEHtmlWin );
+use base qw( Wx::IEHtmlWin  Wx::ActiveX );
 
 our $VERSION = '0.07'; # Wx::ActiveX Version
 
