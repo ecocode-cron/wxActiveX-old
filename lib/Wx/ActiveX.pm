@@ -20,7 +20,7 @@ use vars qw( $AUTOLOAD );
 require Exporter;
 our @ISA = qw( Wx::Window Exporter );
 
-our $VERSION = '0.06'; # Wx::ActiveX Version
+our $VERSION = '0.07'; # Wx::ActiveX Version
 
 our $__wxax_debug;
 our @EXPORT_OK = qw ( wxACTIVEX_CLSID_MOZILLA_BROWSER wxACTIVEX_CLSID_WEB_BROWSER );
@@ -385,7 +385,7 @@ sub activex_get_event_code {
 
 our @ISA = qw( Wx::ActiveX );
 
-our $VERSION = '0.06'; # Wx::ActiveX Version
+our $VERSION = '0.07'; # Wx::ActiveX Version
 
 #----------------------------------------------------------------------------
  package Wx::MozillaHtmlWin;
@@ -393,7 +393,7 @@ our $VERSION = '0.06'; # Wx::ActiveX Version
 
 our @ISA = qw( Wx::ActiveX );
 
-our $VERSION = '0.06'; # Wx::ActiveX Version
+our $VERSION = '0.07'; # Wx::ActiveX Version
 
 #----------------------------------------------------------------------------
  package Wx::ActiveXEvent;
@@ -401,7 +401,7 @@ our $VERSION = '0.06'; # Wx::ActiveX Version
 
 use base qw( Wx::CommandEvent Wx::EvtHandler );
 
-our $VERSION = '0.06'; # Wx::ActiveX Version
+our $VERSION = '0.07'; # Wx::ActiveX Version
 
 my (%EVT_HANDLES) ;
 
@@ -474,7 +474,7 @@ Wx::ActiveX - ActiveX Control Interface for Wx
 
 =head1 VERSION
 
-Version 0.06
+Version 0.07
 
 =head1 SYNOPSIS
     
