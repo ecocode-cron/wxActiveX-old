@@ -1,9 +1,9 @@
-ActiveX.xs
 Changes
 MANIFEST
 Makefile.PL
 README.txt
 typemap
+ActiveX.xs
 cpp/IEHtmlWin.cpp
 cpp/IEHtmlWin.h
 cpp/MozillaHtmlWin.cpp
@@ -25,11 +25,14 @@ XS/MozillaHtmlWin.xs
 XS/ActiveX.xs
 lib/Wx/ActiveX.pm
 lib/Wx/ActiveX/Acrobat.pm
+lib/Wx/ActiveX/Browser.pm
+lib/Wx/ActiveX/Document.pm
 lib/Wx/ActiveX/Event.pm
 lib/Wx/ActiveX/Flash.pm
 lib/Wx/ActiveX/IE.pm
 lib/Wx/ActiveX/Mozilla.pm
-lib/Wx/ActiveX/Document.pm
+lib/Wx/ActiveX/ScriptControl.pm
 lib/Wx/ActiveX/WMPlayer.pm
 lib/Wx/DemoModules/wxActiveX.pm
+
 

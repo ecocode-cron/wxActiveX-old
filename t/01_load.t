@@ -2,7 +2,7 @@
 
 ## SVN-ID:      $Id$
 
-use Test::More tests => 7;
+use Test::More tests => 10;
 
 BEGIN {
 	use_ok( 'Wx::ActiveX' );
@@ -12,6 +12,10 @@ BEGIN {
         use_ok( 'Wx::ActiveX::Document' );
         use_ok( 'Wx::ActiveX::Flash' );
         use_ok( 'Wx::ActiveX::WMPlayer' );
+        use_ok( 'Wx::ActiveX::Mozilla' );
+        use_ok( 'Wx::ActiveX::Browser' );
+        use_ok( 'Wx::ActiveX::ScriptControl' );
+        #use_ok( 'Wx::ActiveX::Template' );
 }
 
 1;
