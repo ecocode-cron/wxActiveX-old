@@ -22,6 +22,7 @@ BEGIN {
 use Wx qw( wxYES_NO wxICON_QUESTION wxCENTRE wxYES wxFD_OPEN wxFD_FILE_MUST_EXIST wxFD_OPEN wxID_CANCEL);
 use Wx::ActiveX;
 use base qw( Wx::Panel );
+use Wx::ActiveX::Document qw( :document );
 
 sub new {
     my $class = shift;
@@ -34,6 +35,8 @@ sub new {
         last if(!$toplevel); # we ended up undef somehow
     }
     $self->{_top_level_window} = $toplevel;
+    
+    EVT_ACTIVEX_DOCUMENT_FRAME_CLOSING($toplevel, \&OnDocumentFrameClosing);
     
     return $self;
 }
@@ -98,6 +101,12 @@ sub open_filename {
     return $filepath ? $filepath : undef;   
 }
 
+sub OnDocumentFrameClosing {
+    my ($parentwindow, $event) = @_ ;
+    $event->Veto  if( ! Wx::DemoModules::wxActiveX::question_message(undef, 'Are you sure you wish to close the document frame?') );    
+    $event->Skip(0);
+}
+
 
 sub tags { [ 'windows/activex' => 'Wx::ActiveX' ] }
 
@@ -108,7 +117,6 @@ use strict;
 use Wx qw(:sizer wxTE_MULTILINE wxYES_NO wxICON_QUESTION wxCENTRE wxYES wxFD_OPEN wxFD_FILE_MUST_EXIST
            wxID_CANCEL wxTE_READONLY wxDefaultPosition wxDefaultSize wxID_ANY wxID_OK );
 use Wx::Event qw( EVT_BUTTON) ;
-
 use Wx::ActiveX qw( EVT_ACTIVEX );           
 use Wx::ActiveX::Browser qw( :browser );
 
@@ -225,16 +233,6 @@ sub InitBrowser {
         my $status = $self->{STATUS} ;
         $status->SetValue($evt->{Text});
     });
-    
-    # get parent frame for Wx::ActiveX::Document
-    my $parent = $self;
-    while( !$parent->isa('Wx::TopLevelWindow') ) {
-        $parent = $parent->GetParent or last;
-    }
-    if(!$parent) {
-        Wx::LogError("%s", 'Unable to find parent Wx::Frame for Wx::ActiveX::Document');
-        return undef;
-    }
     
     return 1;
 }
@@ -360,51 +358,15 @@ sub OnGetTextHTML {
 sub OnOpenDocument {
     my ($self, $event) = @_ ;
     
+    #open_filename($prompt, $mustexist, $filters, $priorfile, $defaultpath) = @_;
     my $prompt = 'Please select a document to load';
-
-    my $style = wxFD_OPEN|wxFD_FILE_MUST_EXIST;
     
-    my $defaultpath = '';
-    my $priorfile = '';
-    my $filemask = 'All Files (*.*)|*.*';
+    my $filename = $self->open_filename($prompt, 1);
+    return if !$filename;   
     
-    my $parent = $self;
-    while( !$parent->isa('Wx::TopLevelWindow') ) {
-        $parent = $parent->GetParent or last;
-    }
-    if(!$parent) {
-        Wx::LogError("%s", 'Unable to find parent Wx::Frame for Wx::ActiveX::Document');
-        return;
-    }
-    
-    my $dialog = Wx::FileDialog->new
-        (
-            $parent,
-            $prompt,
-            $defaultpath,
-            $priorfile,
-            $filemask,
-            $style
-        );
-        
-    my $filepath = '';
-
-    if( $dialog->ShowModal == wxID_CANCEL ) {
-        $filepath = '';
-    } else {
-        $filepath = $dialog->GetPath();
-    }
-    return if(!$filepath );
-    
-    my $document = Wx::ActiveX::Document->OpenDocument($parent, $filepath);
+    my $document = Wx::ActiveX::Document->OpenDocument($self->top_level_window, $filename);
     $document->AllowNavigate(0);
     
-}
-
-sub OnDocumentFrameClosing {
-    my ($parentwindow, $event) = @_ ;
-    $event->Veto  if( ! Wx::DemoModules::wxActiveX::question_message(undef, 'Are you sure you wish to close the document frame?') );    
-    $event->Skip(0);
 }
 
 #----------------------------------------------------
@@ -419,7 +381,7 @@ sub new {
     my $class = shift;
     my $self = $class->SUPER::new( @_ );
     $self->InitBrowser('Wx::ActiveX::IE');
-    
+    $self->{BROWSER}->LoadUrl('http://wxperl.sourceforge.net');
     return $self;
 }
 
@@ -439,7 +401,7 @@ sub new {
     my $class = shift;
     my $self = $class->SUPER::new( @_ );
     $self->InitBrowser('Wx::ActiveX::Mozilla');
-    
+    $self->{BROWSER}->LoadUrl('http://wxperl.sourceforge.net');
     return $self;
 }
 
@@ -482,6 +444,13 @@ sub new {
     # don't inherit nbook backcolour
     $self->SetBackgroundColour( Wx::SystemSettings::GetColour(wxSYS_COLOUR_BTNFACE ) ); 
     $self->{_toolbartoggle} = 1;
+    
+    my $filename = Wx::Demo->get_data_file( 'activex/test.pdf' );
+    
+    $self->{acropdf}->Freeze();
+    $self->{acropdf}->LoadFile($filename);
+    $self->{acropdf}->SetShowToolbar($self->{_toolbartoggle});
+    $self->{acropdf}->Thaw();
     
     $self->Layout;
     return $self;
@@ -574,16 +543,48 @@ sub file { __FILE__ }
  package Wx::DemoModules::wxActiveX::Document;
 #----------------------------------------------------
 use strict;
-use Wx qw();
+use Wx qw( :sizer wxID_ANY wxDefaultPosition wxDefaultSize );
 use Wx::ActiveX;
 use base qw( Wx::DemoModules::wxActiveX );
+use Wx::Event qw(EVT_BUTTON);
 
 sub new {
     my $class = shift;
     my $self = $class->SUPER::new( @_ );
     
+    $self->SetSizer( Wx::BoxSizer->new(wxVERTICAL) );
+    
+    $self->{lbl} = Wx::StaticText->new($self,
+                                       wxID_ANY,
+                                       "The Document Wrapper provides a simple way to load any doc type loadable by Internet Explorer into a Wx::Frame",
+                                       wxDefaultPosition,
+                                       wxDefaultSize,
+                                       wxALIGN_CENTRE);
+    
+    $self->GetSizer->Add($self->{lbl}, 1, wxALL|wxEXPAND, 50);
+    my $buttonsizer = Wx::BoxSizer->new(wxHORIZONTAL);
+    $self->{btnDoc} = Wx::Button->new($self,wxID_ANY,'Open Document',wxDefaultPosition, wxDefaultSize);
+    $buttonsizer->Add($self->{btnDoc}, 0, wxALL|wxEXPAND, 3);
+    $self->GetSizer->Add($buttonsizer, 0, wxALL|wxALIGN_RIGHT, 3);
+    
+    EVT_BUTTON($self, $self->{btnDoc}, \&on_event_button_open);
+    
+    $self->Layout;
 
     return $self;
+}
+
+sub on_event_button_open {
+    my ($self, $event) = @_ ;
+    
+    #open_filename($prompt, $mustexist, $filters, $priorfile, $defaultpath) = @_;
+    my $prompt = 'Please select a document to load';
+    
+    my $filename = $self->open_filename($prompt, 1);
+    return if !$filename;   
+    
+    my $document = Wx::ActiveX::Document->OpenDocument($self->top_level_window, $filename);
+    $document->AllowNavigate(0);
 }
 
 sub add_to_tags { qw(windows/activex) }
@@ -620,6 +621,11 @@ sub new {
     $self->SetBackgroundColour( Wx::SystemSettings::GetColour(wxSYS_COLOUR_BTNFACE ) ); 
     
     $self->Layout;
+    
+    my $file = Wx::Demo->get_data_file( 'activex/dumy.swf' );
+    $self->{flash}->LoadMovie(0, $file) ;
+    $self->{flash}->Play ;
+    
     return $self;
 }
 
@@ -656,21 +662,215 @@ sub file { __FILE__ }
  package Wx::DemoModules::wxActiveX::ScriptControl;
 #----------------------------------------------------
 use strict;
-use Wx qw();
-use Wx::ActiveX;
+use Wx qw( :sizer wxID_ANY wxNO_BORDER wxSYS_COLOUR_BTNFACE
+           wxDefaultPosition wxDefaultSize wxICON_INFORMATION
+           wxCENTRE wxID_CANCEL
+           );
+use Wx::ActiveX::ScriptControl qw(:scriptcontrol);
 use base qw( Wx::DemoModules::wxActiveX );
+use Wx::Event qw( EVT_BUTTON );
+
+# the only real point to this module is if you plan to distribute
+# a package and don't want to pack Win32::OLE for some reason.
+# If you are looking for a general scripting solution then:
+
+# my $scriptenv = Win32::OLE->new('WScript.Shell');
+#
+# is your friend.
 
 sub new {
     my $class = shift;
     my $self = $class->SUPER::new( @_ );
     
+    $self->{script} = Wx::ActiveX::ScriptControl->new( $self, wxID_ANY, wxDefaultPosition, wxDefaultSize );
+    $self->{script}->Show(0);
+    $self->{script}->PropSet('Language','VBScript');
+    
+    $self->{editor} = Wx::DemoModules::wxActiveX::ScriptControl::ScriptBox->new(
+                        $self, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
+    
+    $self->{editor}->set_default_code();
+    
+    $self->{lblType} = Wx::StaticText->new($self,wxID_ANY,'Select Scripting Language',wxDefaultPosition, wxDefaultSize);
+    $self->{chcType} = Wx::Choice->new($self,wxID_ANY,wxDefaultPosition, wxDefaultSize, ['VBScript']);
+    $self->{btnRestore} = Wx::Button->new($self,wxID_ANY,'Restore Default Code',wxDefaultPosition, wxDefaultSize);
+    $self->{btnEval} = Wx::Button->new($self,wxID_ANY,'Eval',wxDefaultPosition, wxDefaultSize);
+    $self->{btnExecute} = Wx::Button->new($self,wxID_ANY,'Execute',wxDefaultPosition, wxDefaultSize);
+    $self->{btnRun} = Wx::Button->new($self,wxID_ANY,'Run Script',wxDefaultPosition, wxDefaultSize);
+   
+    my $buttonsizer = Wx::BoxSizer->new(wxHORIZONTAL);
+    
+    my $panelsizer = Wx::BoxSizer->new(wxVERTICAL);
+    $panelsizer->Add($self->{editor}, 1, wxALL|wxEXPAND, 3);
+    $buttonsizer->Add($self->{lblType}, 0, wxALL|wxEXPAND, 3);
+    $buttonsizer->Add($self->{chcType}, 0, wxALL|wxEXPAND, 3);
+    $buttonsizer->Add($self->{btnRestore}, 0, wxALL|wxEXPAND, 3);
+    $buttonsizer->AddStretchSpacer(1);
+    $buttonsizer->Add($self->{btnEval}, 0, wxALL|wxEXPAND, 3);
+    $buttonsizer->Add($self->{btnExecute}, 0, wxALL|wxEXPAND, 3);
+    $buttonsizer->Add($self->{btnRun}, 0, wxALL|wxEXPAND, 3);
+    $panelsizer->Add($buttonsizer, 0, wxALL|wxEXPAND, 3);
+    
+    $self->SetSizer($panelsizer);
+    
+    EVT_BUTTON($self,$self->{btnRestore},\&on_event_button_restore);
+    EVT_BUTTON($self,$self->{btnEval},\&on_event_button_eval);
+    EVT_BUTTON($self,$self->{btnExecute},\&on_event_button_execute);
+    EVT_BUTTON($self,$self->{btnRun},\&on_event_button_run);
+    EVT_ACTIVEX_SCRIPTCONTROL_ERROR($self, $self->{script},\&on_event_scripterror);
+    
+    # don't inherit nbook backcolour
+    $self->SetBackgroundColour( Wx::SystemSettings::GetColour(wxSYS_COLOUR_BTNFACE ) );
+    $self->{chcType}->SetStringSelection('VBScript');
+    
+    $self->Layout;
     return $self;
+}
+
+sub on_event_button_restore {
+    my ($self, $event) = @_;
+    $event->Skip(1);
+    $self->{editor}->set_default_code();
+}
+
+sub on_event_button_eval {
+    my ($self, $event) = @_;
+    $event->Skip(1);
+    my $dialog = Wx::TextEntryDialog->new
+        ( $self,
+          "Enter a VBScript statement to evaluate.",
+          "Wx::ActiveX - ScriptControl Evaluate Statement",
+          "MsgBox (3 + 5) * 65 - 4"
+        );
+    
+    my $statements;
+    if( $dialog->ShowModal != wxID_CANCEL ) {
+        $statements = $dialog->GetValue;
+    }
+    $dialog->Destroy;
+    if($statements) {
+        $self->{script}->Reset;
+        my $result = $self->{script}->Invoke('Eval', $statements);
+        Wx::MessageBox(qq(The answer was : Unobtainable),
+                   "Wx::ActiveX - ScriptControl Evaluate Statement", 
+                   wxICON_INFORMATION|wxCENTRE, $self);
+    }
+    
+}
+
+sub on_event_button_execute {
+    my ($self, $event) = @_;
+    $event->Skip(1);
+    $self->{script}->Reset;
+    $self->{script}->AddCode( $self->{editor}->GetText() );
+    $self->{script}->ExecuteStatement('MsgBox "The Answer Is " & Pointless(),vbInformation, "Xtreme Pointlessness"');
+}
+
+sub on_event_button_run {
+    my ($self, $event) = @_;
+    $event->Skip(1);
+    $self->{script}->Reset;
+    $self->{script}->AddCode( $self->{editor}->GetText() );
+    $self->{script}->Run('Start');
+}
+
+sub on_event_scripterror {
+    my ($self, $event) = @_;
+    $event->Skip(1);
+    
+    Wx::LogError("There is a Microsoft Script Control Error. Perhaps we should learn how to access it? Perhaps we won't bother.");
 }
 
 sub add_to_tags { qw(windows/activex) }
 sub title { 'Microsoft Script Control' }
 sub file { __FILE__ }
 
+#----------------------------------------------------------------------
+package Wx::DemoModules::wxActiveX::ScriptControl::ScriptBox;
+#----------------------------------------------------------------------
+use strict;
+use Wx qw( :stc wxMODERN wxNORMAL wxRED );
+use Wx::STC;
+use base qw( Wx::StyledTextCtrl );
+
+sub new {
+    my $class = shift;
+    my $self = $class->SUPER::new( @_ );
+    # just VBScript for now
+    $self->SetLexer( wxSTC_LEX_VBSCRIPT );
+    $self->SetUseTabs(0);
+    $self->SetTabWidth(4);
+    $self->SetMarginType(0,wxSTC_MARGIN_NUMBER);
+    $self->SetMarginWidth(0,20);
+    $self->StyleSetFont(wxSTC_STYLE_DEFAULT, Wx::Font->new(10,wxMODERN,wxNORMAL,wxNORMAL,0));
+    $self->StyleSetForeground(wxSTC_B_COMMENT,  Wx::Colour->new(0x00, 0x7f, 0x00));
+    $self->StyleSetForeground(wxSTC_B_KEYWORD,  Wx::Colour->new(0x00, 0x00, 0xff));
+    $self->StyleSetForeground(wxSTC_B_NUMBER,  Wx::Colour->new(0x7f, 0x00, 0x00));
+    $self->StyleSetForeground(wxSTC_B_STRING,  Wx::Colour->new(0x7f, 0x00, 0x00));
+    # what is this
+    $self->StyleSetForeground(16,  wxRED);
+    $self->StyleSetForeground(wxSTC_B_OPERATOR,  Wx::Colour->new(0, 127, 255));
+    $self->SetEOLMode(wxSTC_EOL_CRLF );
+    
+    $self->apply_configuration();
+
+    return $self;
+}
+
+sub apply_configuration {
+    my $self = shift;   
+    $self->SetKeyWords(0, $self->vbscript_keywords() );
+    $self->Refresh();
+
+}
+
+sub vbscript_keywords {
+    my $self = shift;
+    
+    my @keywords = qw(addressof alias and as attribute base begin binary boolean byref byte byval call case compare
+        const currency date decimal declare defbool defbyte defint deflng defcur defsng defdbl defdec
+        defdate defstr defobj defvar dim do double each else elseif empty end enum eqv erase error
+        event exit explicit false for friend function get gosub goto if imp implements in input integer
+        is len let lib like load lock long loop lset me mid midb mod msgbox new next not nothing null object
+        on option optional or paramarray preserve print private property public raiseevent randomize
+        redim rem resume return round rset seek select set single static step stop string sub then time to
+        true type typeof unload until variant wend while with withevents xor
+        );
+        
+    return join(" ", @keywords);
+    
+}
+
+sub set_default_code {
+    my $self = shift;
+    my $code = qq('------------------------------------------------------------
+'A VBScript Example
+'------------------------------------------------------------
+'Button 'Run Script' runs 'Start'
+'Button 'Execute' runs a function named 'Pointless'
+'Button 'Eval' allows you to enter an expression to evaluate
+'------------------------------------------------------------
+
+Sub Start()
+    Dim message
+    message = \"Do you really think there is an all\" & vbCrLf
+    message = message & \"powerfull all seeing language out\" & vbCrlf
+    message = message & \"there controlling everything I do?\"
+    MsgBox message, vbExclamation, \"Microsoft Script Control - VBScript\"
+End Sub
+
+Function Pointless()
+    Dim answer
+    answer = 8 * 3
+    MsgBox \"I'm pointless but the answer is " & answer
+    Start
+    Pointless = answer
+End Function
+);
+    
+    $self->ClearAll;
+    $self->AddText($code);
+}
 
 
 1;

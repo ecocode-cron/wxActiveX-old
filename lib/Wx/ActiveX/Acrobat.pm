@@ -347,7 +347,7 @@ left
 top
 
     The vertical coordinate positioned at the top edge.
-    
+
 =head1 PROPERTIES
 
 =head2 src
@@ -355,14 +355,14 @@ top
     $activex->PropSet('src', 'c:\pathto\myfile.pdf');
     
     $loadedfile = $activex->PropVal('src');
-    
+
 Gets or sets the URL for the document
 
 =head1 EVENTS
 
     EVT_ACTIVEX_ACROBAT_ONERROR($handler, $axcontrol, \&event_sub);
     EVT_ACTIVEX_ACROBAT_ONMESSAGE($handler, $axcontrol, \&event_sub);
-    
+
 =head1 ACTIVEX INTERFACE
 
     my $info = $activex->ActivexInfos();
