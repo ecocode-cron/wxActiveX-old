@@ -1,5 +1,5 @@
 
-/* SVN-ID: $Id:$ */
+/* SVN-ID: $Id$ */
 /*
                 wxActiveX Library Licence, Version 3
                 ====================================
@@ -468,6 +468,8 @@ public:
     void SetProp(MEMBERID name, VARIANTARG& value);
     /// Set property using wxVariant by name.
     void SetProp(const wxString &name, const wxVariant &value);
+    
+    void ActivateOLEWindowDirect( bool activate = TRUE );
 
     class wxPropertySetter
     {

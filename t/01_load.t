@@ -16,6 +16,7 @@ BEGIN {
         use_ok( 'Wx::ActiveX::Browser' );
         use_ok( 'Wx::ActiveX::ScriptControl' );
         #use_ok( 'Wx::ActiveX::Template' );
+        #use_ok( 'Wx::DemoModules::wxActiveX' );
 }
 
 1;

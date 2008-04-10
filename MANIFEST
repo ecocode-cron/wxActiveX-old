@@ -12,13 +12,6 @@ cpp/wxactivex.cpp
 cpp/wxactivex.h
 cpp/PlActiveX.h
 cpp/ax_constants.cpp
-demo/dumy.fla
-demo/dumy.swf
-demo/test.pdf
-demo/wxAcrobat.pl
-demo/wxFlash.pl
-demo/wxIE.pl
-demo/wxWMPlayer.pl
 t/01_load.t
 XS/IEHtmlWin.xs
 XS/MozillaHtmlWin.xs
@@ -34,5 +27,9 @@ lib/Wx/ActiveX/Mozilla.pm
 lib/Wx/ActiveX/ScriptControl.pm
 lib/Wx/ActiveX/WMPlayer.pm
 lib/Wx/DemoModules/wxActiveX.pm
+lib/Wx/DemoModules/files/activex/dumy.fla
+lib/Wx/DemoModules/files/activex/dumy.swf
+lib/Wx/DemoModules/files/activex/test.pdf
+
 
 

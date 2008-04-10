@@ -1393,6 +1393,12 @@ wxString wxActiveX::GetMethodArgName(int idx , int argx) {
      return( param.name ) ;
 }
 
+void wxActiveX::ActivateOLEWindowDirect(bool activate)
+{
+    if (m_oleInPlaceActiveObject.Ok())
+        m_oleInPlaceActiveObject->OnFrameWindowActivate(activate);
+}
+
 ///////////////////////////////////////////////
 // Type Info exposure
 const wxActiveX::FuncX& wxActiveX::GetEventDesc(int idx) const

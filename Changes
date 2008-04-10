@@ -3,8 +3,13 @@
 
 Revision history for Perl extension Wx::ActiveX.
 
-0.08
-
+0.09  2008-04-10
+    - Discovered correct operation of Acrobat ActiveX
+    - Documented AxAcroPDFLib.AxAcroPDF interface from AcroPDF.PDF
+    - Noted in docs that Mozilla ActiveX control may not be being
+      maintained currently.
+    - Refactored Flash module to common format
+    - Replaced all 'demo' scripts with Wx::Demo modules
 
 0.07  2008-04-07
     - Remove package references to Wx::IEHtmlWin and

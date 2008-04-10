@@ -3,7 +3,7 @@
 ## Purpose:     XS for Wx::ActiveX
 ## Author:      Graciliano M. P.
 ## Modified by:
-## SVN-ID:      $Id:$
+## SVN-ID:      $Id$
 ## Copyright:   (c) 2002 - 2007 Graciliano M. P. and Mattia Barbon
 ## Licence:     This program is free software; you can redistribute it and/or
 ##              modify it under the same terms as Perl itself
@@ -41,6 +41,104 @@ XS_convert_isa(obj , klass)
     }
   OUTPUT: RETVAL
 
+#ifdef BUILD_SENDKEYS_HACKS
+ 
+void
+XS_SendKeysToActiveWindow( ... )
+  PREINIT:
+    int* vkeys;
+    int i;
+    int x = 0;
+    int records;
+  CODE:
+    vkeys = new int[items];
+    for( i = 0; i < items; ++i )
+    {
+      vkeys[i] = SvIV( ST(i) );
+    }
+    
+    records = items * 2;
+    
+    INPUT input[records];
+    memset(input, 0, sizeof(input));
+    
+    for( i = 0; i < items; ++i )
+    {
+        input[x].type = INPUT_KEYBOARD;
+        input[x].ki.wVk = vkeys[i];
+        input[x].ki.dwFlags = 0;
+        input[x].ki.time = 0;
+        input[x].ki.dwExtraInfo = 0;
+        
+        ++x;
+    }
+    
+    for( i = items; i > 0; --i )
+    {
+        input[x].type = INPUT_KEYBOARD;
+        input[x].ki.wVk = vkeys[i];
+        input[x].ki.dwFlags = KEYEVENTF_KEYUP;
+        input[x].ki.time = 0;
+        input[x].ki.dwExtraInfo = 0;
+        
+        ++x;
+    }
+    
+    SendInput(records, input, sizeof(INPUT));
+    delete[] vkeys;
+    
+void
+XS_SendRightClickToActiveWindow()
+  CODE:
+    
+    INPUT input[2];
+    memset(input, 0, sizeof(input));
+    
+    input[0].type = INPUT_MOUSE;
+    input[0].mi.dx = 0;
+    input[0].mi.dy = 0;
+    input[0].mi.mouseData = MOUSEEVENTF_RIGHTDOWN;
+    input[0].mi.dwFlags = 0;
+    input[0].mi.time = 0;
+    input[0].mi.dwExtraInfo = 0;
+    
+    input[1].type = INPUT_MOUSE;
+    input[1].mi.dx = 0;
+    input[1].mi.dy = 0;
+    input[1].mi.mouseData = MOUSEEVENTF_RIGHTUP;
+    input[1].mi.dwFlags = 0;
+    input[1].mi.time = 0;
+    input[1].mi.dwExtraInfo = 0;
+        
+    SendInput(2, input, sizeof(INPUT));
+
+void
+XS_SendLeftClickToActiveWindow()
+  CODE:
+    
+    INPUT input[2];
+    memset(input, 0, sizeof(input));
+    
+    input[0].type = INPUT_MOUSE;
+    input[0].mi.dx = 0;
+    input[0].mi.dy = 0;
+    input[0].mi.mouseData = MOUSEEVENTF_LEFTDOWN;
+    input[0].mi.dwFlags = 0;
+    input[0].mi.time = 0;
+    input[0].mi.dwExtraInfo = 0;
+    
+    input[1].type = INPUT_MOUSE;
+    input[1].mi.dx = 0;
+    input[1].mi.dy = 0;
+    input[1].mi.mouseData = MOUSEEVENTF_LEFTUP;
+    input[1].mi.dwFlags = 0;
+    input[1].mi.time = 0;
+    input[1].mi.dwExtraInfo = 0;
+        
+    SendInput(2, input, sizeof(INPUT));
+
+
+#endif
 
 wxActiveX*
 wxActiveX::new( parent, progId , id, pos = wxDefaultPosition, size = wxDefaultSize, style = 0, name = wxPanelNameStr )
@@ -84,7 +182,11 @@ wxActiveX::Invoke(name , ...)
         PUSHs( sv_2mortal( newSVpv( CHAR_P retx.c_str(), 0 ) ) );
 #endif
     }
-
+/*
+void
+wxActiveX::ActivateOLEWindowDirect( activate = 1 )
+    bool activate
+*/
 
 int
 wxActiveX::GetMethodCount()

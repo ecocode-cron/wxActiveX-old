@@ -14,7 +14,7 @@ use strict ;
 use Wx::ActiveX;
 use base qw( Wx::MozillaHtmlWin Wx::ActiveX );
 
-our $VERSION = '0.08'; # Wx::ActiveX Version
+our $VERSION = '0.09'; # Wx::ActiveX Version
 
 our (@EXPORT_OK, %EXPORT_TAGS);
 $EXPORT_TAGS{everything} = \@EXPORT_OK;
@@ -109,8 +109,17 @@ Wx::ActiveX::Mozilla - ActiveX interface for Mozilla Browser ActiveX Control
 
 =head1 DESCRIPTION
 
-This will implement the Mozilla Browser in your App, using the
+This will implement the Mozilla Browser ActiveX control in your App, using the
 interface Wx::ActiveX.
+
+The Mozilla Browser ActiveX Control is available from
+http://www.wxperl.co.uk/MozillaControl1712.exe
+
+You can also get it from the control's author at
+http://www.iol.ie/~locka/mozilla/control.htm
+
+The control may not be currently maintained, the last release being in 2005.
+You should probably therefore not use it as a general browser.
 
 =head1 METHODS
 
