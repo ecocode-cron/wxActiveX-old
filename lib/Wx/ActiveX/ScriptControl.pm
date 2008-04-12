@@ -18,7 +18,7 @@ use Wx qw( :misc );
 use Wx::ActiveX;
 use base qw( Wx::ActiveX );
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 our (@EXPORT_OK, %EXPORT_TAGS);
 $EXPORT_TAGS{everything} = \@EXPORT_OK;

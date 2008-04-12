@@ -16,7 +16,7 @@ use base qw( Exporter );
 use Wx qw( :everything );
 use Wx::Locale;
 
-our $VERSION = 0.01;
+our $VERSION = 0.11;
 
 our @EXPORT = qw( T );
 

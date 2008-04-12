@@ -17,7 +17,7 @@ use Exporter;
 use base qw( Exporter );
 use Wx;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 our @EXPORT = qw( run_wxactivex_template );
 
@@ -469,6 +469,7 @@ sub run_query {
  
     $staticcode =~ s/ModUlEPacKAgENaME/$modulename/g;
     $staticcode =~ s/ModuLEPROgiD/$progid/g;
+    $staticcode =~ s/STOPCONFUSION//g;
     
     my $dynamiccode = $staticcode;
     
@@ -534,7 +535,7 @@ sub standard_code_header {
 #######################################################################
 
 #----------------------------------------------------------------------
- package ModUlEPacKAgENaME;
+STOPCONFUSION package ModUlEPacKAgENaME;
 #----------------------------------------------------------------------
 
 use strict;
