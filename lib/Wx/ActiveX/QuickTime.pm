@@ -3,7 +3,7 @@
 ## Purpose:     ActiveX Interface for QTOControl.QTControl
 ## Author:      Mark Dootson
 ## Created:     108-04-12
-## SVN-ID:      $Id:$
+## SVN-ID:      $Id$
 ## Copyright:   (c) 108  Mark Dootson
 ## Licence:     This program is free software; you can redistribute it
 ##              and/or modify it under the same terms as Perl itself
@@ -190,66 +190,66 @@ The module provides the following exportable event subs
 
 =head2 Events
 
-QTEvent
-SizeChanged
-Error
-StatusUpdate
-MouseDown
-MouseUp
-MouseMove
+    QTEvent
+    SizeChanged
+    Error
+    StatusUpdate
+    MouseDown
+    MouseUp
+    MouseMove
 
 =head2 Methods
 
-_get_DataRef(pDataRef , pDataRefType)
-_put_DataRef(inDataRef , inDataRefType , inNewMovieFlags)
-AddRef()
-CreateNewMovie(movieIsActive)
-CreateNewMovieFromImages(bstrFirstFilePath , rate , rateIsFramesPerSecond)
-GetIDsOfNames(riid , rgszNames , cNames , lcid , rgdispid)
-GetTypeInfo(itinfo , lcid , pptinfo)
-GetTypeInfoCount(pctinfo)
-Invoke(dispidMember , riid , lcid , wFlags , pdispparams , pvarResult , pexcepinfo , puArgErr)
-MovieResizingLock()
-MovieResizingUnlock()
-QueryInterface(riid , ppvObj)
-QuickTimeInitialize(InitOptions , InitFlags)
-QuickTimeTerminate()
-Release()
-SetScale(x , y)
-SetSizing(sizingOption , forceSizeUpdate)
-ShowAboutBox()
+    _get_DataRef(pDataRef , pDataRefType)
+    _put_DataRef(inDataRef , inDataRefType , inNewMovieFlags)
+    AddRef()
+    CreateNewMovie(movieIsActive)
+    CreateNewMovieFromImages(bstrFirstFilePath , rate , rateIsFramesPerSecond)
+    GetIDsOfNames(riid , rgszNames , cNames , lcid , rgdispid)
+    GetTypeInfo(itinfo , lcid , pptinfo)
+    GetTypeInfoCount(pctinfo)
+    Invoke(dispidMember , riid , lcid , wFlags , pdispparams , pvarResult , pexcepinfo , puArgErr)
+    MovieResizingLock()
+    MovieResizingUnlock()
+    QueryInterface(riid , ppvObj)
+    QuickTimeInitialize(InitOptions , InitFlags)
+    QuickTimeTerminate()
+    Release()
+    SetScale(x , y)
+    SetSizing(sizingOption , forceSizeUpdate)
+    ShowAboutBox()
 
 =head2 Properties
 
-_MovieControllerHandle
-_MovieHandle
-_Property
-AutoPlay
-BackColor
-BaseURL
-BorderColor
-BorderStyle
-ErrorCode
-ErrorHandling
-FileName
-FullScreen
-FullScreenEndKeyCode
-FullScreenFlags
-FullScreenHWND
-FullScreenMonitorNumber
-FullScreenSizing
-hWnd
-IsQuickTimeAvailable
-Movie
-MovieControllerVisible
-NewMovieFlags
-QuickTime
-QuickTimeVersion
-ScaleX
-ScaleY
-Sizing
-URL
-Version
+    _MovieControllerHandle
+    _MovieHandle
+    _Property
+    AutoPlay
+    BackColor
+    BaseURL
+    BorderColor
+    BorderStyle
+    ErrorCode
+    ErrorHandling
+    FileName
+    FullScreen
+    FullScreenEndKeyCode
+    FullScreenFlags
+    FullScreenHWND
+    FullScreenMonitorNumber
+    FullScreenSizing
+    hWnd
+    IsQuickTimeAvailable
+    Movie
+    MovieControllerVisible
+    NewMovieFlags
+    QuickTime
+    QuickTimeVersion
+    ScaleX
+    ScaleY
+    Sizing
+    URL
+    Version
 
 =head1 COPYRIGHT & LICENSE
 

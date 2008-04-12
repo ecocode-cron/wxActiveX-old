@@ -19,6 +19,7 @@ use Wx;
 use vars qw( $AUTOLOAD );
 require Exporter;
 our @ISA = qw( Wx::Window Exporter );
+use XSLoader;
 
 our $VERSION = '0.10'; # Wx::ActiveX Version
 
@@ -27,7 +28,9 @@ our @EXPORT_OK = qw ( wxACTIVEX_CLSID_MOZILLA_BROWSER wxACTIVEX_CLSID_WEB_BROWSE
 our %EXPORT_TAGS = ( everything => \@EXPORT_OK  );
 our %__wxax_dynamic_loadevent_data = ();
 
-Wx::wx_boot( 'Wx::ActiveX', $VERSION ) ;
+#Wx::wx_boot( 'Wx::ActiveX', $VERSION ) ;
+XSLoader::load 'Wx::ActiveX', $VERSION;
+
 
 # Base ActiveX Event
 push @EXPORT_OK, ( 'EVENTID_ACTIVEX' );
@@ -521,6 +524,12 @@ Version 0.10
                                                   $eventname,
                                                   $exporttag,
                                                   \@activexevents );
+    
+    ...
+    
+    EVT_ACTIVEX_ELVIS_ONPROGRESS( $this, $activex,\&on_event_handler );
+    
+    
 
 =head1 DESCRIPTION
 
@@ -529,14 +538,14 @@ The package installs a module in Wx::Demo for reference.
 
 There are some wrapped controls included with the package:
 
-Wx::ActiveX::IE                  Internet Explorer Control
-Wx::ActiveX::Mozilla             Mozilla Browser Control
-Wx::ActiveX::WMPlayer            Windows Media Player
-Wx::ActiveX::ScriptControl       MS Script Control
-Wx::ActiveX::Document            Control Wrapper via Browser
-Wx::ActiveX::Acrobat             Acrobat ActiveX Control
-Wx::ActiveX::Flash               Adobe Flash Control
-Wx::ActiveX::Quicktime           Apple QuickTime ActiveX Control
+    Wx::ActiveX::IE                  Internet Explorer Control
+    Wx::ActiveX::Mozilla             Mozilla Browser Control
+    Wx::ActiveX::WMPlayer            Windows Media Player
+    Wx::ActiveX::ScriptControl       MS Script Control
+    Wx::ActiveX::Document            Control Wrapper via Browser
+    Wx::ActiveX::Acrobat             Acrobat ActiveX Control
+    Wx::ActiveX::Flash               Adobe Flash Control
+    Wx::ActiveX::Quicktime           Apple QuickTime ActiveX Control
 
 See the POD for each indvidual control.
 
@@ -559,7 +568,7 @@ Create the ActiveX control.
   PARENT        need to be a Wx::Window object.
   CONTROL_ID    The control ID (PROGID/string).
 
-=over 17
+=over
 
 =item PropVal ( PROP_NAME )
 
@@ -654,7 +663,7 @@ Return a string with all the informations about the ActiveX Control:
 
 =back
 
-=head1= Win32::OLE
+=head1 Win32::OLE
 
 From version 0.5 Wx::ActiveX is compatible with Win32::OLE objects:
 

@@ -495,9 +495,9 @@ sub run_query {
     $staticfootercode =~ s/SamPLEeventNAme/$exampleevent/g;
     $staticfootercode =~ s/STOPCONFUSION//g;
     
-    my $prneventlist = join("\n", @events);
-    my $prnmethodlist = join("\n", @methods);
-    my $prnpropertylist = join("\n", @props);
+    my $prneventlist = "\t" . join("\n\t", @events);
+    my $prnmethodlist = "\t" . join("\n\t", @methods);
+    my $prnpropertylist = "\t" . join("\n\t", @props);
     
     $staticfootercode =~ s/INSERTMODULEEVENTS/$prneventlist/g;
     $staticfootercode =~ s/INSERTMODULEMETHODS/$prnmethodlist/g;
@@ -527,7 +527,7 @@ sub standard_code_header {
 ## Purpose:     ActiveX Interface for ModuLEPROgiD
 ## Author:      HEAderLoginNaME
 ## Created:     HeadEARdateFormatEdCreated
-## SVN-ID:      $Id:$
+## SVN-ID:      $Id$
 ## Copyright:   (c) HeadEARdateFormatEdYear  HEAderLoginNaME
 ## Licence:     This program is free software; you can redistribute it
 ##              and/or modify it under the same terms as Perl itself
@@ -695,7 +695,7 @@ STOPCONFUSION=head2 Properties
 
 INSERTMODULEPROPERTIES
 
-=head1 COPYRIGHT & LICENSE
+STOPCONFUSION=head1 COPYRIGHT & LICENSE
 
 Copyright (C) RePLAceModuleCOPYright
 

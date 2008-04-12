@@ -172,88 +172,88 @@ The module provides the following exportable event subs
 
 =head2 Events
 
-OnReadyStateChange
-FSCommand
-FlashCall
-OnProgress
+    OnReadyStateChange
+    FSCommand
+    FlashCall
+    OnProgress
 
 =head2 Methods
 
-AddRef()
-Back()
-CallFunction(request)
-CurrentFrame()
-DisableLocalSecurity()
-EnforceLocalSecurity()
-FlashVersion()
-Forward()
-FrameLoaded(FrameNum)
-GetIDsOfNames(riid , rgszNames , cNames , lcid , rgdispid)
-GetTypeInfo(itinfo , lcid , pptinfo)
-GetTypeInfoCount(pctinfo)
-GetVariable(name)
-GotoFrame(FrameNum)
-Invoke(dispidMember , riid , lcid , wFlags , pdispparams , pvarResult , pexcepinfo , puArgErr)
-IsPlaying()
-LoadMovie(layer , url)
-Pan(x , y , mode)
-PercentLoaded()
-Play()
-QueryInterface(riid , ppvObj)
-Release()
-Rewind()
-SetReturnValue(returnValue)
-SetVariable(name , value)
-SetZoomRect(left , top , right , bottom)
-Stop()
-StopPlay()
-TCallFrame(target , FrameNum)
-TCallLabel(target , label)
-TCurrentFrame(target)
-TCurrentLabel(target)
-TGetProperty(target , property)
-TGetPropertyAsNumber(target , property)
-TGetPropertyNum(target , property)
-TGotoFrame(target , FrameNum)
-TGotoLabel(target , label)
-TPlay(target)
-TSetProperty(target , property , value)
-TSetPropertyNum(target , property , value)
-TStopPlay(target)
-Zoom(factor)
+    AddRef()
+    Back()
+    CallFunction(request)
+    CurrentFrame()
+    DisableLocalSecurity()
+    EnforceLocalSecurity()
+    FlashVersion()
+    Forward()
+    FrameLoaded(FrameNum)
+    GetIDsOfNames(riid , rgszNames , cNames , lcid , rgdispid)
+    GetTypeInfo(itinfo , lcid , pptinfo)
+    GetTypeInfoCount(pctinfo)
+    GetVariable(name)
+    GotoFrame(FrameNum)
+    Invoke(dispidMember , riid , lcid , wFlags , pdispparams , pvarResult , pexcepinfo , puArgErr)
+    IsPlaying()
+    LoadMovie(layer , url)
+    Pan(x , y , mode)
+    PercentLoaded()
+    Play()
+    QueryInterface(riid , ppvObj)
+    Release()
+    Rewind()
+    SetReturnValue(returnValue)
+    SetVariable(name , value)
+    SetZoomRect(left , top , right , bottom)
+    Stop()
+    StopPlay()
+    TCallFrame(target , FrameNum)
+    TCallLabel(target , label)
+    TCurrentFrame(target)
+    TCurrentLabel(target)
+    TGetProperty(target , property)
+    TGetPropertyAsNumber(target , property)
+    TGetPropertyNum(target , property)
+    TGotoFrame(target , FrameNum)
+    TGotoLabel(target , label)
+    TPlay(target)
+    TSetProperty(target , property , value)
+    TSetPropertyNum(target , property , value)
+    TStopPlay(target)
+    Zoom(factor)
 
 =head2 Properties
 
-AlignMode
-AllowFullScreen
-AllowNetworking
-AllowScriptAccess
-BackgroundColor
-Base
-BGColor
-DeviceFont
-EmbedMovie
-FlashVars
-FrameNum
-InlineData
-Loop
-Menu
-Movie
-MovieData
-Playing
-Profile
-ProfileAddress
-ProfilePort
-Quality
-Quality2
-ReadyState
-SAlign
-Scale
-ScaleMode
-SeamlessTabbing
-SWRemote
-TotalFrames
-WMode
+    AlignMode
+    AllowFullScreen
+    AllowNetworking
+    AllowScriptAccess
+    BackgroundColor
+    Base
+    BGColor
+    DeviceFont
+    EmbedMovie
+    FlashVars
+    FrameNum
+    InlineData
+    Loop
+    Menu
+    Movie
+    MovieData
+    Playing
+    Profile
+    ProfileAddress
+    ProfilePort
+    Quality
+    Quality2
+    ReadyState
+    SAlign
+    Scale
+    ScaleMode
+    SeamlessTabbing
+    SWRemote
+    TotalFrames
+    WMode
 
 =head1 AUTHOR
 

@@ -160,38 +160,38 @@ The module provides the following exportable event subs
 
 =head2 Events
 
-Error
-Timeout
+    Error
+    Timeout
 
 =head2 Methods
 
-_AboutBox()
-AddCode(Code)
-AddObject(Name , Object , AddMembers)
-AddRef()
-Eval(Expression)
-ExecuteStatement(Statement)
-GetIDsOfNames(riid , rgszNames , cNames , lcid , rgdispid)
-GetTypeInfo(itinfo , lcid , pptinfo)
-GetTypeInfoCount(pctinfo)
-Invoke(dispidMember , riid , lcid , wFlags , pdispparams , pvarResult , pexcepinfo , puArgErr)
-QueryInterface(riid , ppvObj)
-Release()
-Reset()
-Run(ProcedureName , Parameters)
+    _AboutBox()
+    AddCode(Code)
+    AddObject(Name , Object , AddMembers)
+    AddRef()
+    Eval(Expression)
+    ExecuteStatement(Statement)
+    GetIDsOfNames(riid , rgszNames , cNames , lcid , rgdispid)
+    GetTypeInfo(itinfo , lcid , pptinfo)
+    GetTypeInfoCount(pctinfo)
+    Invoke(dispidMember , riid , lcid , wFlags , pdispparams , pvarResult , pexcepinfo , puArgErr)
+    QueryInterface(riid , ppvObj)
+    Release()
+    Reset()
+    Run(ProcedureName , Parameters)
 
 =head2 Properties
 
-AllowUI
-CodeObject
-Error
-Language
-Modules
-Procedures
-SitehWnd
-State
-Timeout
-UseSafeSubset
+    AllowUI
+    CodeObject
+    Error
+    Language
+    Modules
+    Procedures
+    SitehWnd
+    State
+    Timeout
+    UseSafeSubset
 
 =head1 COPYRIGHT & LICENSE
 

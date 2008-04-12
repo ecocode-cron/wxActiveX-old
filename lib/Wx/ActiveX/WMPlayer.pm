@@ -454,100 +454,100 @@ The module provides the following exportable event subs
 
 =head2 Events
 
-OpenStateChange
-StatusChange
-PlayStateChange
-AudioLanguageChange
-EndOfStream
-PositionChange
-MarkerHit
-DurationUnitChange
-ScriptCommand
-Disconnect
-Buffering
-NewStream
-Error
-Warning
-CdromMediaChange
-PlaylistChange
-MediaChange
-CurrentMediaItemAvailable
-CurrentPlaylistChange
-CurrentPlaylistItemAvailable
-CurrentItemChange
-MediaCollectionChange
-MediaCollectionAttributeStringAdded
-MediaCollectionAttributeStringRemoved
-PlaylistCollectionChange
-PlaylistCollectionPlaylistAdded
-PlaylistCollectionPlaylistRemoved
-PlaylistCollectionPlaylistSetAsDeleted
-ModeChange
-MediaCollectionAttributeStringChanged
-MediaError
-DomainChange
-OpenPlaylistSwitch
-SwitchedToPlayerApplication
-SwitchedToControl
-PlayerDockedStateChange
-PlayerReconnect
-Click
-DoubleClick
-KeyDown
-KeyPress
-KeyUp
-MouseDown
-MouseMove
-MouseUp
-DeviceConnect
-DeviceDisconnect
-DeviceStatusChange
-DeviceSyncStateChange
-DeviceSyncError
-CreatePartnershipComplete
+    OpenStateChange
+    StatusChange
+    PlayStateChange
+    AudioLanguageChange
+    EndOfStream
+    PositionChange
+    MarkerHit
+    DurationUnitChange
+    ScriptCommand
+    Disconnect
+    Buffering
+    NewStream
+    Error
+    Warning
+    CdromMediaChange
+    PlaylistChange
+    MediaChange
+    CurrentMediaItemAvailable
+    CurrentPlaylistChange
+    CurrentPlaylistItemAvailable
+    CurrentItemChange
+    MediaCollectionChange
+    MediaCollectionAttributeStringAdded
+    MediaCollectionAttributeStringRemoved
+    PlaylistCollectionChange
+    PlaylistCollectionPlaylistAdded
+    PlaylistCollectionPlaylistRemoved
+    PlaylistCollectionPlaylistSetAsDeleted
+    ModeChange
+    MediaCollectionAttributeStringChanged
+    MediaError
+    DomainChange
+    OpenPlaylistSwitch
+    SwitchedToPlayerApplication
+    SwitchedToControl
+    PlayerDockedStateChange
+    PlayerReconnect
+    Click
+    DoubleClick
+    KeyDown
+    KeyPress
+    KeyUp
+    MouseDown
+    MouseMove
+    MouseUp
+    DeviceConnect
+    DeviceDisconnect
+    DeviceStatusChange
+    DeviceSyncStateChange
+    DeviceSyncError
+    CreatePartnershipComplete
 
 =head2 Methods
 
-AddRef()
-close()
-GetIDsOfNames(riid , rgszNames , cNames , lcid , rgdispid)
-GetTypeInfo(itinfo , lcid , pptinfo)
-GetTypeInfoCount(pctinfo)
-Invoke(dispidMember , riid , lcid , wFlags , pdispparams , pvarResult , pexcepinfo , puArgErr)
-launchURL(bstrURL)
-newMedia(bstrURL)
-newPlaylist(bstrName , bstrURL)
-openPlayer(bstrURL)
-QueryInterface(riid , ppvObj)
-Release()
+    AddRef()
+    close()
+    GetIDsOfNames(riid , rgszNames , cNames , lcid , rgdispid)
+    GetTypeInfo(itinfo , lcid , pptinfo)
+    GetTypeInfoCount(pctinfo)
+    Invoke(dispidMember , riid , lcid , wFlags , pdispparams , pvarResult , pexcepinfo , puArgErr)
+    launchURL(bstrURL)
+    newMedia(bstrURL)
+    newPlaylist(bstrName , bstrURL)
+    openPlayer(bstrURL)
+    QueryInterface(riid , ppvObj)
+    Release()
 
 =head2 Properties
 
-cdromCollection
-closedCaption
-controls
-currentMedia
-currentPlaylist
-dvd
-enableContextMenu
-enabled
-Error
-fullScreen
-isOnline
-isRemote
-mediaCollection
-network
-openState
-playerApplication
-playlistCollection
-playState
-settings
-status
-stretchToFit
-uiMode
-URL
-versionInfo
-windowlessVideo
+    cdromCollection
+    closedCaption
+    controls
+    currentMedia
+    currentPlaylist
+    dvd
+    enableContextMenu
+    enabled
+    Error
+    fullScreen
+    isOnline
+    isRemote
+    mediaCollection
+    network
+    openState
+    playerApplication
+    playlistCollection
+    playState
+    settings
+    status
+    stretchToFit
+    uiMode
+    URL
+    versionInfo
+    windowlessVideo
 
 =head1 COPYRIGHT & LICENSE
 
