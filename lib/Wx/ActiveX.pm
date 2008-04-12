@@ -20,7 +20,7 @@ use vars qw( $AUTOLOAD );
 require Exporter;
 our @ISA = qw( Wx::Window Exporter );
 
-our $VERSION = '0.09'; # Wx::ActiveX Version
+our $VERSION = '0.10'; # Wx::ActiveX Version
 
 our $__wxax_debug;
 our @EXPORT_OK = qw ( wxACTIVEX_CLSID_MOZILLA_BROWSER wxACTIVEX_CLSID_WEB_BROWSER );
@@ -172,7 +172,7 @@ sub activex_load_activex_event_types {
         $passeventlist->{$key} = $activexname;
     }
     
-    my @codelines = activex_get_event_code($packagename, $namespace, $eventname, $exporttag, 'activex', 1, $passeventlist, 1 );
+    my @codelines = activex_get_event_code($packagename, $namespace, $eventname, $exporttag, 'activex', 1, $passeventlist, 1, 1 );
     my $code = join("\n", @codelines);
     Wx::LogMessage("Wx::ActiveX ActiveX Event Code:\n %s", $code ) if $Wx::ActiveX::__wxax_debug;
     
@@ -202,7 +202,7 @@ sub activex_load_standard_event_types {
         $passeventlist->{$key} = $events->{$shortkey};
     }
     
-    my @codelines = activex_get_event_code($packagename, $namespace, $eventname, $exporttag, 'standard', 1, $passeventlist, 1 );
+    my @codelines = activex_get_event_code($packagename, $namespace, $eventname, $exporttag, 'standard', 1, $passeventlist, 1, 1 );
     my $code = join("\n", @codelines);
     Wx::LogMessage("Wx::ActiveX Standard Event Code:\n %s", $code ) if $Wx::ActiveX::__wxax_debug;
     eval "$code";
@@ -223,23 +223,25 @@ sub activex_get_class_code {
     my $axinfo = $__wxax_dynamic_loadevent_data{$callingclass}->{activex};
     my $stinfo = $__wxax_dynamic_loadevent_data{$callingclass}->{standard};
     
-    my @standard = GetEventCodeForEventTypes($callingclass,
-                                             $stinfo->{namespace},
-                                             $stinfo->{eventname},
-                                             $stinfo->{exporttag},
-                                             'standard',
-                                             1,
-                                             $stinfo->{events},
-                                             0);
+    my @standard = activex_get_event_code($callingclass,
+                                        $stinfo->{namespace},
+                                        $stinfo->{eventname},
+                                        $stinfo->{exporttag},
+                                        'standard',
+                                        1,
+                                        $stinfo->{events},
+                                        0,
+                                        1);
     
-    my @activex = GetEventCodeForEventTypes($callingclass,
-                                             $axinfo->{namespace},
-                                             $axinfo->{eventname},
-                                             $axinfo->{exporttag},
-                                             'activex',
-                                             1,
-                                             $axinfo->{events},
-                                             0);
+    my @activex = activex_get_event_code($callingclass,
+                                        $axinfo->{namespace},
+                                        $axinfo->{eventname},
+                                        $axinfo->{exporttag},
+                                        'activex',
+                                        1,
+                                        $axinfo->{events},
+                                        0,
+                                        1);
     my $code = join("\n", ( @activex, @standard ) );
     return $code;
 }
@@ -249,7 +251,7 @@ sub activex_get_class_code {
 #---------------------------------
 
 sub activex_get_event_code {
-    my ( $packagename, $namespace, $eventname, $exporttag, $eventtype, $commentcode, $events, $store ) = @_;
+    my ( $packagename, $namespace, $eventname, $exporttag, $eventtype, $commentcode, $events, $store, $foreval ) = @_;
     
     if ($store) {
         my %eventcopy = %$events;
@@ -292,9 +294,6 @@ sub activex_get_event_code {
         $codeline = 'sub ' . $evt_idsub_ex . ' () { ' . $evt_id . ' }';
         push @cl_idsub, $codeline;
         
-        # evt id sub export
-        push @cl_idsub_ex, $evt_idsub_ex;
-        
         # evt sub
         my $subcode;
         if ( $eventtype ne 'activex' ) {
@@ -319,12 +318,12 @@ sub activex_get_event_code {
     my @output = ();
     
     push (@output, q() ) if $commentcode;
-    push (@output, q(#-----------------------------------------------------) ) if $commentcode;
-    push (@output, q(  package ) . $namespace . ';' );
-    push (@output, q(#-----------------------------------------------------) ) if $commentcode;
+    push (@output, q(#-----------------------------------------------------) ) if $commentcode && $foreval;
+    push (@output, q(package ) . $namespace . ';' ) if $foreval;
+    push (@output, q(#-----------------------------------------------------) ) if $commentcode && $foreval;
     
     push (@output, q() ) if $commentcode;
-    push (@output, q(our ( @EXPORT_OK, %EXPORT_TAGS );) );
+    push (@output, q(our ( @EXPORT_OK, %EXPORT_TAGS );) ) if $foreval;
     push (@output, q() ) if $commentcode;
     push (@output, q(# Local Event IDs) ) if $commentcode;
     push (@output, q() ) if $commentcode;
@@ -340,9 +339,6 @@ sub activex_get_event_code {
     push (@output, q() ) if $commentcode;
     push (@output, q(# Event Sub Functions) ) if $commentcode;
     push (@output, q() ) if $commentcode;
-    
-    ## always implement base ActiveX funnction
-    #push (@output, q(sub EVT_ACTIVEX ($$$$) { &Wx::ActiveX::EVT_ACTIVEX( @_ ); }) );
     
     push (@output, @cl_evsub);
     push (@output, q() ) if $commentcode;
@@ -364,17 +360,18 @@ sub activex_get_event_code {
     push (@output, "\t" . 'push @' . 'EXPORT_OK, ( @eventexports ) ;'  );
     push (@output, "\t" . 'push @{ $' . 'EXPORT_TAGS{"' . $exporttag . '"} }, ( @eventexports );'  );
     
-    for ( qw( everything all activex ) ) {
-        my $subst = $_;
-        next if $exporttag eq $subst; # don't import twice
-        push (@output, "\t" . 'push (@{ $' . 'EXPORT_TAGS{"' . $subst . '"} }, ( @eventexports )) if exists $EXPORT_TAGS{"' . $subst . ' "};');
+    if ($foreval) {
+        for ( qw( all activex ) ) {
+            my $subst = $_;
+            next if $exporttag eq $subst; # don't import twice
+            push (@output, "\t" . 'push (@{ $' . 'EXPORT_TAGS{"' . $subst . '"} }, ( @eventexports )) if exists $EXPORT_TAGS{"' . $subst . ' "};');
+        }
     }
     
     push (@output, '}' );
     push (@output, q() ) if $commentcode;
-    
-    push (@output, q(package Wx::ActiveX; # return to base package) );
-    push (@output, q() ) if $commentcode;
+    push (@output, q(package Wx::ActiveX; # return to base package) ) if $foreval;
+    push (@output, q() ) if $commentcode && $foreval;
     
     return @output;
 }
@@ -474,7 +471,7 @@ Wx::ActiveX - ActiveX Control Interface for Wx
 
 =head1 VERSION
 
-Version 0.09
+Version 0.10
 
 =head1 SYNOPSIS
     
@@ -537,9 +534,21 @@ Wx::ActiveX::Mozilla             Mozilla Browser Control
 Wx::ActiveX::WMPlayer            Windows Media Player
 Wx::ActiveX::ScriptControl       MS Script Control
 Wx::ActiveX::Document            Control Wrapper via Browser
+Wx::ActiveX::Acrobat             Acrobat ActiveX Control
+Wx::ActiveX::Flash               Adobe Flash Control
+Wx::ActiveX::Quicktime           Apple QuickTime ActiveX Control
 
-The current version of Wx::ActiveX::Acrobat is not working.
-You can view and print PDF's using Wx::ActiveX::Document.
+See the POD for each indvidual control.
+
+There is also a Template producer that will provide code for
+a module given an ActiveX ProgID.
+
+wxactivex_template
+
+or
+
+perl -MWx::ActiveX::Template -e"run_wxactivex_template();"
+
 
 =head1 METHODS
 

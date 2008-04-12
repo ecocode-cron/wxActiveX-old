@@ -14,7 +14,7 @@ use strict ;
 use Wx::ActiveX;
 use base qw( Wx::IEHtmlWin  Wx::ActiveX );
 
-our $VERSION = '0.09'; # Wx::ActiveX Version
+our $VERSION = '0.10'; # Wx::ActiveX Version
 
 our (@EXPORT_OK, %EXPORT_TAGS);
 $EXPORT_TAGS{everything} = \@EXPORT_OK;

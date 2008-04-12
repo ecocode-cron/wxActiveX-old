@@ -20,8 +20,8 @@ wxWriteMakefile( NAME           => 'Wx::ActiveX',
                  VERSION_FROM   => 'lib/Wx/ActiveX.pm',
                  AUTHOR		    => 'Graciliano M. P',
                  LIBS           => $libs ,
-                 #EXE_FILES     => [ qw(script/wxactivex_template.pl) ],
                  WX_CORE_LIB	=> 'core base',
+                 EXE_FILES      => [ qw(script/wxactivex_template.pl) ],
                  NO_META 		=> 1,
                  WX_OVERLOAD	=> {	header  => 'cpp/ovl_const.h',
                                         source  => 'cpp/ovl_const.cpp',
@@ -29,6 +29,8 @@ wxWriteMakefile( NAME           => 'Wx::ActiveX',
                  PREREQ_PM	=> { Wx   => '0.57',
                                         },
                );
+
+# 
 
 # local variables:
 # mode: cperl

@@ -9,45 +9,51 @@
 ##              modify it under the same terms as Perl itself
 #############################################################################
 
-package Wx::ActiveX::Acrobat;
+ package Wx::ActiveX::Acrobat;
+#----------------------------------------------------------------------
+
 use strict;
-use Wx qw( wxDefaultPosition wxDefaultSize wxID_ANY WXK_CONTROL wxTheApp wxNO_BORDER );
+use Wx qw( :misc );
 use Wx::ActiveX;
 use base qw( Wx::ActiveX );
-use Wx::Event qw( EVT_COMMAND );
 
-our $VERSION = '0.09'; # Wx::ActiveX Version
+our $VERSION = '0.10';
 
 our (@EXPORT_OK, %EXPORT_TAGS);
 $EXPORT_TAGS{everything} = \@EXPORT_OK;
 
 my $PROGID = 'AcroPDF.PDF';
 
-my $exporttag = 'acrobat';
-my $eventname = 'ACROBAT';
+# Local Event IDs
 
-#-----------------------------------------------
-# Export event classes
-#-----------------------------------------------
+my $wxEVENTID_AX_ACROBAT_ONERROR = Wx::NewEventType;
+my $wxEVENTID_AX_ACROBAT_ONMESSAGE = Wx::NewEventType;
 
-# events below implemented as EVT_ACTIVEX_EVENTNAME ($$$)
-# e.g EVT_ACTIVEX_SCRIPTCONTROL_ERROR($eventhandler, $control, \&event_function);
-# The Event ID will be exported as EVENTID_AX_SCRIPTCONTROL_ERROR
+# Event ID Sub Functions
 
-our @activexevents = qw (
-    OnError
-    OnMessage
-);
+sub EVENTID_AX_ACROBAT_ONERROR () { $wxEVENTID_AX_ACROBAT_ONERROR }
+sub EVENTID_AX_ACROBAT_ONMESSAGE () { $wxEVENTID_AX_ACROBAT_ONMESSAGE }
 
-# __PACKAGE__->activex_load_standard_event_types( $export_to_namespace, $eventidentifier, $exporttag, $elisthashref );
-# __PACKAGE__->activex_load_activex_event_types( $export_to_namespace, $eventidentifier, $exporttag, $elistarrayref );
+# Event Sub Functions
 
-__PACKAGE__->activex_load_activex_event_types( __PACKAGE__, $eventname, $exporttag, \@activexevents );
+sub EVT_ACTIVEX_ACROBAT_ONERROR { &Wx::ActiveX::EVT_ACTIVEX($_[0],$_[1],"OnError",$_[2]) ;}
+sub EVT_ACTIVEX_ACROBAT_ONMESSAGE { &Wx::ActiveX::EVT_ACTIVEX($_[0],$_[1],"OnMessage",$_[2]) ;}
 
+# Exports & Tags
 
-#-----------------------------------------------
-# Instance
-#-----------------------------------------------
+{
+	my @eventexports = qw(
+			EVENTID_AX_ACROBAT_ONERROR
+			EVENTID_AX_ACROBAT_ONMESSAGE
+			EVT_ACTIVEX_ACROBAT_ONERROR
+			EVT_ACTIVEX_ACROBAT_ONMESSAGE
+	);
+
+	$EXPORT_TAGS{"acrobat"} = [] if not exists $EXPORT_TAGS{"acrobat"};
+	push @EXPORT_OK, ( @eventexports ) ;
+	push @{ $EXPORT_TAGS{"acrobat"} }, ( @eventexports );
+}
+
 
 sub new {
     my $class = shift;
@@ -56,8 +62,20 @@ sub new {
     my $windowid = shift || -1;
     my $pos = shift || wxDefaultPosition;
     my $size = shift || wxDefaultSize;
-    my $style = shift || wxNO_BORDER
     my $self = $class->SUPER::new( $parent, $PROGID, $windowid, $pos, $size, @_ );
+    return $self;
+}
+
+sub newVersion {
+    my $class = shift;
+    # version must exist
+    my $version = shift;
+    # parent must exist
+    my $parent = shift;
+    my $windowid = shift || -1;
+    my $pos = shift || wxDefaultPosition;
+    my $size = shift || wxDefaultSize;
+    my $self = $class->SUPER::new( $parent, $PROGID . '.' . $version, $windowid, $pos, $size, @_ );
     return $self;
 }
 
@@ -85,15 +103,21 @@ Wx::ActiveX::Acrobat - Interface for Acrobat Reader ActiveX Control.
 
 =head1 VERSION
 
-Version 0..09
+Version 0.10
 
 =head1 SYNOPSIS
 
-    use Wx::ActiveX::Acrobat qw(:acrobat);
-    my $acrobat = Wx::ActiveX::Acrobat->new( $parent ,
-                                             -1 ,
-                                             wxDefaultPosition ,
-                                             wxDefaultSize );
+    use Wx::ActiveX::Acrobat qw( :everything );
+    
+    ..........
+    
+    my $acrobat = Wx::ActiveX::Acrobat->new( $parent );
+    
+    OR
+    
+    my $acrobat = Wx::ActiveX::Acrobat->newVersion( 1, $parent );
+    
+    EVT_ACTIVEX_ACROBAT_ONERROR( $handler, $acrobat, \&on_event_onerror );
     
     ........
     
@@ -116,12 +140,40 @@ ranges, views and print dialogs from code.
 
 =head2 new
 
-    my $activex = Wx::ActiveX::Acrobat->new( $parent,
-                                             $windowId,
-                                             $position,
-                                             $size );
+    my $activex = Wx::ActiveX::Acrobat->new(
+                        $parent,
+                        $windowid,
+                        $position,
+                        $size,
+                        $style,
+                        $name);
 
-Creates a new Acrobat ActiveX object
+Returns a new instance of Wx::ActiveX::Acrobat. Only $parent is mandatory.
+$parent must be derived from Wx::Window (e.g. Wx::Frame, Wx::Panel etc).
+This constructor creates an instance using the latest version available
+of AcroPDF.PDF.
+
+=head2 newVersion
+
+    my $activex = Wx::ActiveX::Acrobat->newVersion(
+                        $version
+                        $parent,
+                        $windowid,
+                        $position,
+                        $size,
+                        $style,
+                        $name);
+
+Returns a new instance of Wx::ActiveX::Acrobat. $version and $parent are
+mandatory. $parent must be derived from Wx::Window (e.g. Wx::Frame,
+Wx::Panel etc). This constructor creates an instance using the specific
+type library specified in $version of AcroPDF.PDF.
+
+e.g. $version = 4;
+
+will produce an instance based on the type library for
+
+AcroPDF.PDF.4
 
 =head2 GoBackwardStack
 

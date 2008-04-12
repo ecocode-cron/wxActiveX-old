@@ -9,46 +9,63 @@
 ##              modify it under the same terms as Perl itself
 #############################################################################
 
-package Wx::ActiveX::Flash ;
+#----------------------------------------------------------------------
+ package Wx::ActiveX::Flash;
+#----------------------------------------------------------------------
+
 use strict;
-use Wx qw( wxDefaultPosition wxDefaultSize );
+use Wx qw( :misc );
 use Wx::ActiveX;
 use base qw( Wx::ActiveX );
 
-our $VERSION = '0.09'; # Wx::ActiveX Version
+our $VERSION = '0.10';
 
 our (@EXPORT_OK, %EXPORT_TAGS);
 $EXPORT_TAGS{everything} = \@EXPORT_OK;
 
 my $PROGID = 'ShockwaveFlash.ShockwaveFlash';
 
-my $exporttag = 'flash';
-my $eventname = 'FLASH';
 
-#-----------------------------------------------
-# Export event classes
-#-----------------------------------------------
+# Local Event IDs
 
-# events below implemented as EVT_ACTIVEX_EVENTNAME ($$$)
-# e.g EVT_ACTIVEX_SCRIPTCONTROL_ERROR($eventhandler, $control, \&event_function);
-# The Event ID will be exported as EVENTID_AX_SCRIPTCONTROL_ERROR
+my $wxEVENTID_AX_FLASH_ONREADYSTATECHANGE = Wx::NewEventType;
+my $wxEVENTID_AX_FLASH_FLASHCALL = Wx::NewEventType;
+my $wxEVENTID_AX_FLASH_ONPROGRESS = Wx::NewEventType;
+my $wxEVENTID_AX_FLASH_FSCOMMAND = Wx::NewEventType;
 
-our @activexevents = qw (
-        OnReadyStateChange
-        FSCommand
-        FlashCall
-        OnProgress
-);
+# Event ID Sub Functions
 
-# __PACKAGE__->activex_load_standard_event_types( $export_to_namespace, $eventidentifier, $exporttag, $elisthashref );
-# __PACKAGE__->activex_load_activex_event_types( $export_to_namespace, $eventidentifier, $exporttag, $elistarrayref );
+sub EVENTID_AX_FLASH_ONREADYSTATECHANGE () { $wxEVENTID_AX_FLASH_ONREADYSTATECHANGE }
+sub EVENTID_AX_FLASH_FLASHCALL () { $wxEVENTID_AX_FLASH_FLASHCALL }
+sub EVENTID_AX_FLASH_ONPROGRESS () { $wxEVENTID_AX_FLASH_ONPROGRESS }
+sub EVENTID_AX_FLASH_FSCOMMAND () { $wxEVENTID_AX_FLASH_FSCOMMAND }
 
-__PACKAGE__->activex_load_activex_event_types( __PACKAGE__, $eventname, $exporttag, \@activexevents );
+# Event Sub Functions
 
+sub EVT_ACTIVEX_FLASH_ONREADYSTATECHANGE { &Wx::ActiveX::EVT_ACTIVEX($_[0],$_[1],"OnReadyStateChange",$_[2]) ;}
+sub EVT_ACTIVEX_FLASH_FLASHCALL { &Wx::ActiveX::EVT_ACTIVEX($_[0],$_[1],"FlashCall",$_[2]) ;}
+sub EVT_ACTIVEX_FLASH_ONPROGRESS { &Wx::ActiveX::EVT_ACTIVEX($_[0],$_[1],"OnProgress",$_[2]) ;}
+sub EVT_ACTIVEX_FLASH_FSCOMMAND { &Wx::ActiveX::EVT_ACTIVEX($_[0],$_[1],"FSCommand",$_[2]) ;}
 
-#-----------------------------------------------
-# Instance
-#-----------------------------------------------
+# Exports & Tags
+
+{
+	my @eventexports = qw(
+			EVENTID_AX_FLASH_ONREADYSTATECHANGE
+			EVENTID_AX_FLASH_FLASHCALL
+			EVENTID_AX_FLASH_ONPROGRESS
+			EVENTID_AX_FLASH_FSCOMMAND
+			EVT_ACTIVEX_FLASH_ONREADYSTATECHANGE
+			EVT_ACTIVEX_FLASH_FLASHCALL
+			EVT_ACTIVEX_FLASH_ONPROGRESS
+			EVT_ACTIVEX_FLASH_FSCOMMAND
+	);
+
+	$EXPORT_TAGS{"flash"} = [] if not exists $EXPORT_TAGS{"flash"};
+	push @EXPORT_OK, ( @eventexports ) ;
+	push @{ $EXPORT_TAGS{"flash"} }, ( @eventexports );
+}
+
 
 sub new {
     my $class = shift;
@@ -61,149 +78,182 @@ sub new {
     return $self;
 }
 
+sub newVersion {
+    my $class = shift;
+    # version must exist
+    my $version = shift;
+    # parent must exist
+    my $parent = shift;
+    my $windowid = shift || -1;
+    my $pos = shift || wxDefaultPosition;
+    my $size = shift || wxDefaultSize;
+    my $self = $class->SUPER::new( $parent, $PROGID . '.' . $version, $windowid, $pos, $size, @_ );
+    return $self;
+}
+
+
 1;
+
 
 __END__
 
 =head1 NAME
 
-Wx::ActiveX::Flash - ActiveX interface for Shockwave Flash.
+Wx::ActiveX::Flash - interface to ShockwaveFlash.ShockwaveFlash ActiveX Control
 
 =head1 SYNOPSIS
 
-  use Wx::ActiveX::Flash ;
-  my $flash = Wx::ActiveX::Flash->new( $parent , -1 , wxDefaultPosition , wxDefaultSize );
-  
-  $flash->LoadMovie(0,"file:///F:/swf/test.swf") ;
-  $flash->Play ;
-  
-  EVT_ACTIVEX($this, $flash ,"FSCommand", sub{
-    my ( $this , $evt ) = @_ ;
-    my $cmd = $evt->{command} ;
-    my $args = $evt->{args} ;
-    ...
-  }) ;
-
+    use Wx::ActiveX::Flash qw( :everything );
+    
+    ..........
+    
+    my $activex = Wx::ActiveX::Flash->new( $parent );
+    
+    OR
+    
+    my $activex = Wx::ActiveX::Flash->newVersion( 1, $parent );
+    
+    EVT_ACTIVEX_FLASH_ONREADYSTATECHANGE( $handler, $activex, \&on_event_onreadystatechange );
 
 =head1 DESCRIPTION
 
-ActiveX control for Shockwave Flash. The control comes from Wx::ActiveX, and all methods/events from there exit here too.
-
-** You will need to already have the Flash player installed.
-
-=head1 new ( PARENT , ID , POS , SIZE )
-
-This will create and return the Flash object.
+Interface to ShockwaveFlash.ShockwaveFlash ActiveX Control
 
 =head1 METHODS
 
-See L<Wx:ActiveX>.
+=head2 new
+
+    my $activex = Wx::ActiveX::Flash->new(
+                        $parent,
+                        $windowid,
+                        $position,
+                        $size,
+                        $style,
+                        $name);
+
+Returns a new instance of Wx::ActiveX::Flash. Only $parent is mandatory.
+$parent must be derived from Wx::Window (e.g. Wx::Frame, Wx::Panel etc).
+This constructor creates an instance using the latest version available
+of ShockwaveFlash.ShockwaveFlash.
+
+=head2 newVersion
+
+    my $activex = Wx::ActiveX::Flash->newVersion(
+                        $version
+                        $parent,
+                        $windowid,
+                        $position,
+                        $size,
+                        $style,
+                        $name);
+
+Returns a new instance of Wx::ActiveX::Flash. $version and $parent are
+mandatory. $parent must be derived from Wx::Window (e.g. Wx::Frame,
+Wx::Panel etc). This constructor creates an instance using the specific
+type library specified in $version of ShockwaveFlash.ShockwaveFlash.
+
+e.g. $version = 4;
+
+will produce an instance based on the type library for
+
+ShockwaveFlash.ShockwaveFlash.4
 
 =head1 EVENTS
 
-All the events use EVT_ACTIVEX.
+The module provides the following exportable event subs
 
-=head1 ActivexInfos
+	EVT_ACTIVEX_FLASH_ONREADYSTATECHANGE( $evthandler, $activexcontrol, \&on_event_flash_sub );
+	EVT_ACTIVEX_FLASH_FSCOMMAND( $evthandler, $activexcontrol, \&on_event_flash_sub );
+	EVT_ACTIVEX_FLASH_FLASHCALL( $evthandler, $activexcontrol, \&on_event_flash_sub );
+	EVT_ACTIVEX_FLASH_ONPROGRESS( $evthandler, $activexcontrol, \&on_event_flash_sub );
+
+
+=head1 ACTIVEX INFO
 
 =head2 Events
 
-Events For ShockwaveFlash.ShockwaveFlash
-
-	OnReadyStateChange
-	FSCommand
-	FlashCall
-	OnProgress
+OnReadyStateChange
+FSCommand
+FlashCall
+OnProgress
 
 =head2 Methods
 
-Methods For ShockwaveFlash.ShockwaveFlash
-
-	AddRef()
-	Back()
-	CallFunction(request)
-	CurrentFrame()
-	DisableLocalSecurity()
-	EnforceLocalSecurity()
-	FlashVersion()
-	Forward()
-	FrameLoaded(FrameNum)
-	GetIDsOfNames(riid , rgszNames , cNames , lcid , rgdispid)
-	GetTypeInfo(itinfo , lcid , pptinfo)
-	GetTypeInfoCount(pctinfo)
-	GetVariable(name)
-	GotoFrame(FrameNum)
-	Invoke(dispidMember , riid , lcid , wFlags , pdispparams , pvarResult , pexcepinfo , puArgErr)
-	IsPlaying()
-	LoadMovie(layer , url)
-	Pan(x , y , mode)
-	PercentLoaded()
-	Play()
-	QueryInterface(riid , ppvObj)
-	Release()
-	Rewind()
-	SetReturnValue(returnValue)
-	SetVariable(name , value)
-	SetZoomRect(left , top , right , bottom)
-	Stop()
-	StopPlay()
-	TCallFrame(target , FrameNum)
-	TCallLabel(target , label)
-	TCurrentFrame(target)
-	TCurrentLabel(target)
-	TGetProperty(target , property)
-	TGetPropertyAsNumber(target , property)
-	TGetPropertyNum(target , property)
-	TGotoFrame(target , FrameNum)
-	TGotoLabel(target , label)
-	TPlay(target)
-	TSetProperty(target , property , value)
-	TSetPropertyNum(target , property , value)
-	TStopPlay(target)
-	Zoom(factor)
+AddRef()
+Back()
+CallFunction(request)
+CurrentFrame()
+DisableLocalSecurity()
+EnforceLocalSecurity()
+FlashVersion()
+Forward()
+FrameLoaded(FrameNum)
+GetIDsOfNames(riid , rgszNames , cNames , lcid , rgdispid)
+GetTypeInfo(itinfo , lcid , pptinfo)
+GetTypeInfoCount(pctinfo)
+GetVariable(name)
+GotoFrame(FrameNum)
+Invoke(dispidMember , riid , lcid , wFlags , pdispparams , pvarResult , pexcepinfo , puArgErr)
+IsPlaying()
+LoadMovie(layer , url)
+Pan(x , y , mode)
+PercentLoaded()
+Play()
+QueryInterface(riid , ppvObj)
+Release()
+Rewind()
+SetReturnValue(returnValue)
+SetVariable(name , value)
+SetZoomRect(left , top , right , bottom)
+Stop()
+StopPlay()
+TCallFrame(target , FrameNum)
+TCallLabel(target , label)
+TCurrentFrame(target)
+TCurrentLabel(target)
+TGetProperty(target , property)
+TGetPropertyAsNumber(target , property)
+TGetPropertyNum(target , property)
+TGotoFrame(target , FrameNum)
+TGotoLabel(target , label)
+TPlay(target)
+TSetProperty(target , property , value)
+TSetPropertyNum(target , property , value)
+TStopPlay(target)
+Zoom(factor)
 
 =head2 Properties
 
-Properties For ShockwaveFlash.ShockwaveFlash
-
-	AlignMode
-	AllowFullScreen
-	AllowNetworking
-	AllowScriptAccess
-	BackgroundColor
-	Base
-	BGColor
-	DeviceFont
-	EmbedMovie
-	FlashVars
-	FrameNum
-	InlineData
-	Loop
-	Menu
-	Movie
-	MovieData
-	Playing
-	Profile
-	ProfileAddress
-	ProfilePort
-	Quality
-	Quality2
-	ReadyState
-	SAlign
-	Scale
-	ScaleMode
-	SeamlessTabbing
-	SWRemote
-	TotalFrames
-	WMode
-
-
-=head1 NOTE
-
-This is a Win32 only package as it uses ActiveX.
-
-=head1 SEE ALSO
-
-L<Wx::ActiveX>, L<Wx>
+AlignMode
+AllowFullScreen
+AllowNetworking
+AllowScriptAccess
+BackgroundColor
+Base
+BGColor
+DeviceFont
+EmbedMovie
+FlashVars
+FrameNum
+InlineData
+Loop
+Menu
+Movie
+MovieData
+Playing
+Profile
+ProfileAddress
+ProfilePort
+Quality
+Quality2
+ReadyState
+SAlign
+Scale
+ScaleMode
+SeamlessTabbing
+SWRemote
+TotalFrames
+WMode
 
 =head1 AUTHOR
 

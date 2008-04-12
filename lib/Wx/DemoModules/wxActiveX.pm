@@ -19,7 +19,7 @@ BEGIN {
  package Wx::DemoModules::wxActiveX;
 #----------------------------------------------------
 
-use Wx qw( wxYES_NO wxICON_QUESTION wxCENTRE wxYES wxFD_OPEN wxFD_FILE_MUST_EXIST wxFD_OPEN wxID_CANCEL);
+use Wx qw( :sizer wxYES_NO wxICON_QUESTION wxCENTRE wxYES wxFD_OPEN wxFD_FILE_MUST_EXIST wxFD_OPEN wxID_CANCEL :misc);
 use Wx::ActiveX;
 use base qw( Wx::Panel );
 use Wx::ActiveX::Document qw( :document );
@@ -39,6 +39,45 @@ sub new {
     EVT_ACTIVEX_DOCUMENT_FRAME_CLOSING($toplevel, \&OnDocumentFrameClosing);
     
     return $self;
+}
+
+sub test_activex {
+    my ($self, $activex) = @_;
+    
+    my( @events, @methods, @props );
+    
+    eval {
+        @events = $activex->ListEvents;
+        @methods = $activex->ListMethods_and_Args;
+        @props = $activex->ListProps;
+    };
+    if($@) {
+        Wx::LogError('Unable to access ActiveX interface. %s', $@);
+        $activex->Show(0);
+        $self->set_panel_blank();
+        return 0;
+    }
+    
+    # got anything
+    if( (@events == 0) && (@methods == 0) && (@props == 0) ) {
+        Wx::LogError('Unable to access ActiveX interface for control. The control is not installed.');
+        $activex->Show(0);
+        $self->set_panel_blank();
+        return 0;
+    } else {
+        Wx::LogMessage('ActiveX Events' . "\n" . join("\n", @events) );
+        Wx::LogMessage('ActiveX Methods' . "\n" . join("\n", @methods) );
+        Wx::LogMessage('ActiveX Properties' . "\n" . join("\n", @props) );
+        return 1;
+    }
+}
+
+sub set_panel_blank {
+    my $self = shift;
+    my $label = Wx::StaticText->new($self, -1, 'The ActiveX Control could not be loaded', wxDefaultPosition, wxDefaultSize);
+    my $sizer = Wx::BoxSizer->new(wxVERTICAL);
+    $sizer->Add($label, 1, wxALL|wxEXPAND, 25 );
+    $self->SetSizer($sizer);
 }
 
 sub top_level_window {
@@ -136,13 +175,12 @@ sub InitBrowser {
     # before creating a Mozilla browser, we need to check if it is actually installed.
     # if it isn't, loading will crash the perl interpreter
     if($browserclass eq 'Wx::ActiveX::Mozilla') {
-        my $qmsg = qq(Do you have the Mozilla Browser ActiveX Control Installed?\n);
-        $qmsg .= qq(If you do not, and you attempt to load this module, the Perl\n);
-        $qmsg .= qq(Interpreter will crash\n);
-        $qmsg .= qq(You can get the latest Mozilla ActiveX Control (2005) from\n);
-        $qmsg .= qq(http://www.iol.ie/~locka/mozilla/control.htm\n);
-        $qmsg .= qq(Do you still want to load the demo module?\n);
-        return undef if(!$self->question_message($qmsg));
+        # try default interface
+        my $checkbrowser = Wx::ActiveX->new( $self , 'Mozilla.Browser', wxID_ANY, wxDefaultPosition, wxDefaultSize );
+        $checkbrowser->Show(0);
+        return $self if(!$self->test_activex( $checkbrowser ));
+        $checkbrowser->Close;
+        $checkbrowser = undef;
     }
     
     my $top_s = Wx::BoxSizer->new( wxVERTICAL );
@@ -400,9 +438,13 @@ use base qw( Wx::DemoModules::wxActiveX::BrowserPanel );
 sub new {
     my $class = shift;
     my $self = $class->SUPER::new( @_ );
-    $self->InitBrowser('Wx::ActiveX::Mozilla');
-    $self->{BROWSER}->LoadUrl('http://wxperl.sourceforge.net');
-    return $self;
+    my $refor1 = $self->InitBrowser('Wx::ActiveX::Mozilla');
+    if( ref $refor1) {
+        return $refor1;
+    } else {
+        $self->{BROWSER}->LoadUrl('http://wxperl.sourceforge.net');
+        return $self;
+    }
 }
 
 sub add_to_tags { qw(windows/activex) }
@@ -423,6 +465,9 @@ sub new {
     my $self = $class->SUPER::new( @_ );
     
     $self->{acropdf} = Wx::ActiveX::Acrobat->new( $self, wxID_ANY, wxDefaultPosition, wxDefaultSize );
+    return $self if(!$self->test_activex( $self->{acropdf} ));
+    
+    
     $self->{btnLoad} = Wx::Button->new($self,wxID_ANY,'Load PDF',wxDefaultPosition, wxDefaultSize);
     $self->{btnPrint} = Wx::Button->new($self,wxID_ANY,'Print Dialog',wxDefaultPosition, wxDefaultSize);
     $self->{btnToggle} = Wx::Button->new($self,wxID_ANY,'Toggle Toolbar',wxDefaultPosition, wxDefaultSize);
@@ -501,6 +546,8 @@ sub new {
     my $class = shift;
     my $self = $class->SUPER::new( @_ );
     $self->{wmp} = Wx::ActiveX::WMPlayer->new( $self, wxID_ANY, wxDefaultPosition, wxDefaultSize );
+    return $self if(!$self->test_activex( $self->{wmp} ));
+    
     $self->{btnLoad} = Wx::Button->new($self,wxID_ANY,'Load Media File',wxDefaultPosition, wxDefaultSize);
    
     my $buttonsizer = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -604,6 +651,8 @@ sub new {
     my $class = shift;
     my $self = $class->SUPER::new( @_ );
     $self->{flash} = Wx::ActiveX::Flash->new( $self, wxID_ANY, wxDefaultPosition, wxDefaultSize );
+    return $self if(!$self->test_activex( $self->{flash} ));
+    
     $self->{btnLoad} = Wx::Button->new($self,wxID_ANY,'Load SWF File',wxDefaultPosition, wxDefaultSize);
    
     my $buttonsizer = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -659,6 +708,89 @@ sub title { 'Adobe Shockwave' }
 sub file { __FILE__ }
 
 #----------------------------------------------------
+ package Wx::DemoModules::wxActiveX::QuickTime;
+#----------------------------------------------------
+use strict;
+use Wx qw( :sizer wxID_ANY wxDefaultPosition wxDefaultSize wxSYS_COLOUR_BTNFACE );
+use Wx::ActiveX::QuickTime qw(:quicktime);
+use base qw( Wx::DemoModules::wxActiveX );
+use Wx::Event qw( EVT_BUTTON );
+
+sub new {
+    my $class = shift;
+    my $self = $class->SUPER::new( @_ );
+    $self->{quicktime} = Wx::ActiveX::QuickTime->new( $self, wxID_ANY, wxDefaultPosition, wxDefaultSize );
+    return $self if(!$self->test_activex( $self->{quicktime} ));
+    
+    $self->{btnAbout} = Wx::Button->new($self,wxID_ANY,'About Control',wxDefaultPosition, wxDefaultSize);
+    $self->{btnClose} = Wx::Button->new($self,wxID_ANY,'Close File',wxDefaultPosition, wxDefaultSize);
+    $self->{btnLoad} = Wx::Button->new($self,wxID_ANY,'Open File',wxDefaultPosition, wxDefaultSize);
+    
+    my $buttonsizer = Wx::BoxSizer->new(wxHORIZONTAL);
+    my $panelsizer = Wx::BoxSizer->new(wxVERTICAL);
+    $panelsizer->Add($self->{quicktime}, 1, wxALL|wxEXPAND, 3);
+    $buttonsizer->Add($self->{btnAbout}, 0, wxALL|wxEXPAND, 3);
+    $buttonsizer->Add($self->{btnClose}, 0, wxALL|wxEXPAND, 3);
+    $buttonsizer->Add($self->{btnLoad}, 0, wxALL|wxEXPAND, 3);
+    $panelsizer->Add($buttonsizer, 0, wxALL|wxALIGN_RIGHT, 3);
+    
+    $self->SetSizer($panelsizer);
+    
+    EVT_BUTTON($self,$self->{btnLoad},\&on_event_button_load);
+    EVT_BUTTON($self,$self->{btnAbout},\&on_event_button_about);
+    EVT_BUTTON($self,$self->{btnClose},\&on_event_button_close);
+   
+    
+    # don't inherit nbook backcolour
+    $self->SetBackgroundColour( Wx::SystemSettings::GetColour(wxSYS_COLOUR_BTNFACE ) ); 
+    
+    $self->Layout;
+    
+    my $file = Wx::Demo->get_data_file( 'activex/sample.mov' );
+    
+    
+    $self->{quicktime}->PropSet('URL', $file);
+    $self->{quicktime}->PropSet('AutoPlay', 1);
+    #$self->{quicktime}->ShowAboutBox;
+    
+    return $self;
+}
+
+sub on_event_button_load {
+    my ($self, $event) = @_;
+    $event->Skip(1);
+    
+    #$obj->open_filename ($prompt, $mustexist, $filters, $priorfile, $defaultpath) = @_;
+    my $filename = $self->open_filename( 'Please Select a QuickTime File to Load',
+                                         1,
+                                         [ { text => 'All QuickTime Files', mask => '*.mov' }, ]
+                                        );
+    return if(!$filename );
+    
+    $self->{quicktime}->PropSet('URL', $filename);
+    
+}
+
+sub on_event_button_about{
+    my ($self, $event) = @_;
+    $event->Skip(1);
+    $self->{quicktime}->ShowAboutBox();
+    
+}
+
+sub on_event_button_close{
+    my ($self, $event) = @_;
+    $event->Skip(1);
+    $self->{quicktime}->PropSet('URL', '');
+    
+}
+
+
+sub add_to_tags { qw(windows/activex) }
+sub title { 'QuickTime ActiveX Control' }
+sub file { __FILE__ }
+
+#----------------------------------------------------
  package Wx::DemoModules::wxActiveX::ScriptControl;
 #----------------------------------------------------
 use strict;
@@ -682,8 +814,10 @@ sub new {
     my $class = shift;
     my $self = $class->SUPER::new( @_ );
     
-    $self->{script} = Wx::ActiveX::ScriptControl->new( $self, wxID_ANY, wxDefaultPosition, wxDefaultSize );
-    $self->{script}->Show(0);
+    $self->{script} = Wx::ActiveX::ScriptControl->newVersion( 1, $self, wxID_ANY, wxDefaultPosition, wxDefaultSize );
+
+    return $self if(!$self->test_activex( $self->{script} ) );
+    
     $self->{script}->PropSet('Language','VBScript');
     
     $self->{editor} = Wx::DemoModules::wxActiveX::ScriptControl::ScriptBox->new(
@@ -871,6 +1005,5 @@ End Function
     $self->ClearAll;
     $self->AddText($code);
 }
-
 
 1;

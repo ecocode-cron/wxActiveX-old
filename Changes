@@ -3,6 +3,11 @@
 
 Revision history for Perl extension Wx::ActiveX.
 
+0.10  2008-04-12
+    - Added newVersion constructor to wrapped modules
+    - Added QuickTime module
+    - Added Tempate Creator
+
 0.09  2008-04-10
     - Discovered correct operation of Acrobat ActiveX
     - Documented AxAcroPDFLib.AxAcroPDF interface from AcroPDF.PDF

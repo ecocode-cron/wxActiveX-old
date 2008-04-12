@@ -15,7 +15,7 @@ use Wx::ActiveX::IE qw( :iexplorer );
 use base qw( Wx::ActiveX::IE );
 use Wx qw( wxID_ANY wxDefaultPosition wxDefaultSize);
 
-our $VERSION = '0.09'; # Wx::ActiveX Version
+our $VERSION = '0.10'; # Wx::ActiveX Version
 
 our (@EXPORT_OK, %EXPORT_TAGS);
 $EXPORT_TAGS{everything} = \@EXPORT_OK;
@@ -95,7 +95,7 @@ use Wx qw( wxTheApp wxDEFAULT_FRAME_STYLE wxID_ANY wxVERTICAL wxALL wxEXPAND );
 use base qw( Wx::Frame );
 use Wx::Event qw( EVT_CLOSE );
 
-our $VERSION = 0.07;
+our $VERSION = 0.10;
 
 # class data
 my $__wxadf_sessiondata = {};
