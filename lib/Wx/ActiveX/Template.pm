@@ -458,7 +458,7 @@ sub run_query {
         my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
         $dateyear = $year + 1900;
         $mon ++;
-        my $date = $year . '-' . sprintf("%02d", $mon ) . '-' . sprintf("%02d", $mday);
+        my $date = $dateyear . '-' . sprintf("%02d", $mon ) . '-' . sprintf("%02d", $mday);
         my $packagefile = $modulename;
         $packagefile =~ s/::/\//g;
         $staticcode =~ s/HeadERamENDPAckAgeNAMe/$packagefile/g;
@@ -832,8 +832,7 @@ Version 0.10
 =head1 DESCRIPTION
 
 Utility to create module code for new ActiveX control interfaces.
-The modules for QuickTime and QuickTimeBrowser were created using
-this utility.
+The module for QuickTime was created using this utility.
 
 Start the GUI using one of the above methods, enter the required
 module name, ActiveX Control ProgID and a code identifier, and
