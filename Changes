@@ -3,8 +3,8 @@
 
 Revision history for Perl extension Wx::ActiveX.
 
-0.11
-
+0.12  2009-09-26
+    - various minor fixes for cpan release.
 
 0.10  2008-04-12
     - Added newVersion constructor to wrapped modules

@@ -5,7 +5,7 @@
 use Test::More tests => 12;
 
 BEGIN {
-	use_ok( 'Wx::ActiveX' );
+    use_ok( 'Wx::ActiveX' );
         use_ok( 'Wx::ActiveX::IE' );
         use_ok( 'Wx::ActiveX::Event' );
         use_ok( 'Wx::ActiveX::Acrobat' );
@@ -18,6 +18,8 @@ BEGIN {
         use_ok( 'Wx::ActiveX::Template' );
         use_ok( 'Wx::ActiveX::QuickTime' );
 }
+
+use Wx::ActiveX 0.12;
 
 1;
 
