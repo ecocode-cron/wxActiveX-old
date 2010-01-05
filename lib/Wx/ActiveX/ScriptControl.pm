@@ -18,7 +18,7 @@ use Wx qw( :misc );
 use Wx::ActiveX;
 use base qw( Wx::ActiveX );
 
-our $VERSION = '0.11';
+our $VERSION = '0.13';
 
 our (@EXPORT_OK, %EXPORT_TAGS);
 $EXPORT_TAGS{everything} = \@EXPORT_OK;
@@ -44,16 +44,16 @@ sub EVT_ACTIVEX_SCRIPTCONTROL_TIMEOUT { &Wx::ActiveX::EVT_ACTIVEX($_[0],$_[1],"T
 # Exports & Tags
 
 {
-	my @eventexports = qw(
-			EVENTID_AX_SCRIPTCONTROL_ERROR
-			EVENTID_AX_SCRIPTCONTROL_TIMEOUT
-			EVT_ACTIVEX_SCRIPTCONTROL_ERROR
-			EVT_ACTIVEX_SCRIPTCONTROL_TIMEOUT
-	);
+    my @eventexports = qw(
+            EVENTID_AX_SCRIPTCONTROL_ERROR
+            EVENTID_AX_SCRIPTCONTROL_TIMEOUT
+            EVT_ACTIVEX_SCRIPTCONTROL_ERROR
+            EVT_ACTIVEX_SCRIPTCONTROL_TIMEOUT
+    );
 
-	$EXPORT_TAGS{"scriptcontrol"} = [] if not exists $EXPORT_TAGS{"scriptcontrol"};
-	push @EXPORT_OK, ( @eventexports ) ;
-	push @{ $EXPORT_TAGS{"scriptcontrol"} }, ( @eventexports );
+    $EXPORT_TAGS{"scriptcontrol"} = [] if not exists $EXPORT_TAGS{"scriptcontrol"};
+    push @EXPORT_OK, ( @eventexports ) ;
+    push @{ $EXPORT_TAGS{"scriptcontrol"} }, ( @eventexports );
 }
 
 
@@ -152,8 +152,8 @@ MSScriptControl.ScriptControl.4
 
 The module provides the following exportable event subs
 
-	EVT_ACTIVEX_SCRIPTCONTROL_ERROR( $evthandler, $activexcontrol, \&on_event_scriptcontrol_sub );
-	EVT_ACTIVEX_SCRIPTCONTROL_TIMEOUT( $evthandler, $activexcontrol, \&on_event_scriptcontrol_sub );
+    EVT_ACTIVEX_SCRIPTCONTROL_ERROR( $evthandler, $activexcontrol, \&on_event_scriptcontrol_sub );
+    EVT_ACTIVEX_SCRIPTCONTROL_TIMEOUT( $evthandler, $activexcontrol, \&on_event_scriptcontrol_sub );
 
 
 =head1 ACTIVEX INFO

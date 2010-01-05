@@ -17,7 +17,7 @@ use Exporter;
 use base qw( Exporter );
 use Wx;
 
-our $VERSION = '0.11';
+our $VERSION = '0.13';
 
 our @EXPORT = qw( run_wxactivex_template );
 
@@ -34,7 +34,6 @@ package Wx::ActiveX::Template::App;
 use strict;
 use Wx qw( :everything );
 use base qw( Wx::App );
-use Wx::ActiveX::Template::Lang;
 
 sub new {
     my $class = shift;
@@ -76,8 +75,7 @@ sub SetConfig { shift->{_myconfig} = @_; }
 
 sub GetStandardTitle {
     my $self = shift;
-    
-    $self->GetAppName() . ' - ' . T( 'Version' ) .  '  ' .  $Wx::ActiveX::Template::VERSION;
+    $self->GetAppName() . ' - Version ' .  $Wx::ActiveX::Template::VERSION;
 }
 
 #----------------------------------------------------------------------------
@@ -90,7 +88,6 @@ use base qw ( Wx::Frame );
 use Wx::Event qw( :everything );
 use Wx::ActiveX;
 use Wx::Perl::TextValidator;
-use Wx::ActiveX::Template::Lang;
 
 sub new {
     my $class = shift;
@@ -258,8 +255,8 @@ sub on_menu_help_about {
 
 sub __not_implemented {
     my $self = shift;
-    Wx::MessageBox( T( 'This action is not yet implemented in the application.' ),
-                T( wxTheApp->GetStandardTitle() ),
+    Wx::MessageBox( 'This action is not yet implemented in the application.',
+                 wxTheApp->GetStandardTitle(),
                   wxCENTRE,
                   $self
                 );

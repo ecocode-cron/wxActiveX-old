@@ -11,12 +11,12 @@
 
                        wxActiveX LIBRARY LICENCE
      TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
-  
+
   This library is free software; you can redistribute it and/or modify it
   under the terms of the GNU Library General Public Licence as published by
   the Free Software Foundation; either version 2 of the Licence, or (at
   your option) any later version.
-  
+
   This library is distributed in the hope that it will be useful, but
   WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Library
@@ -49,7 +49,7 @@
   accordingly.
 
   4. If you write modifications of your own for this library, it is your
-  choice whether to permit this exception to apply to your modifications. 
+  choice whether to permit this exception to apply to your modifications.
   If you do not wish that, you must delete the exception notice from such
   code and/or adjust the licensing conditions notice accordingly.
 */
@@ -75,6 +75,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+
 
 using namespace std;
 
@@ -468,7 +469,7 @@ public:
     void SetProp(MEMBERID name, VARIANTARG& value);
     /// Set property using wxVariant by name.
     void SetProp(const wxString &name, const wxVariant &value);
-    
+
     void ActivateOLEWindowDirect( bool activate = TRUE );
 
     class wxPropertySetter

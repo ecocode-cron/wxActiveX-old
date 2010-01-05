@@ -18,7 +18,7 @@ use Wx qw( :misc );
 use Wx::ActiveX;
 use base qw( Wx::ActiveX );
 
-our $VERSION = '0.11';
+our $VERSION = '0.13';
 
 our (@EXPORT_OK, %EXPORT_TAGS);
 $EXPORT_TAGS{everything} = \@EXPORT_OK;
@@ -59,26 +59,26 @@ sub EVT_ACTIVEX_QUICKTIME_QTEVENT { &Wx::ActiveX::EVT_ACTIVEX($_[0],$_[1],"QTEve
 # Exports & Tags
 
 {
-	my @eventexports = qw(
-			EVENTID_AX_QUICKTIME_MOUSEMOVE
-			EVENTID_AX_QUICKTIME_MOUSEUP
-			EVENTID_AX_QUICKTIME_STATUSUPDATE
-			EVENTID_AX_QUICKTIME_ERROR
-			EVENTID_AX_QUICKTIME_MOUSEDOWN
-			EVENTID_AX_QUICKTIME_SIZECHANGED
-			EVENTID_AX_QUICKTIME_QTEVENT
-			EVT_ACTIVEX_QUICKTIME_MOUSEMOVE
-			EVT_ACTIVEX_QUICKTIME_MOUSEUP
-			EVT_ACTIVEX_QUICKTIME_STATUSUPDATE
-			EVT_ACTIVEX_QUICKTIME_ERROR
-			EVT_ACTIVEX_QUICKTIME_MOUSEDOWN
-			EVT_ACTIVEX_QUICKTIME_SIZECHANGED
-			EVT_ACTIVEX_QUICKTIME_QTEVENT
-	);
+    my @eventexports = qw(
+            EVENTID_AX_QUICKTIME_MOUSEMOVE
+            EVENTID_AX_QUICKTIME_MOUSEUP
+            EVENTID_AX_QUICKTIME_STATUSUPDATE
+            EVENTID_AX_QUICKTIME_ERROR
+            EVENTID_AX_QUICKTIME_MOUSEDOWN
+            EVENTID_AX_QUICKTIME_SIZECHANGED
+            EVENTID_AX_QUICKTIME_QTEVENT
+            EVT_ACTIVEX_QUICKTIME_MOUSEMOVE
+            EVT_ACTIVEX_QUICKTIME_MOUSEUP
+            EVT_ACTIVEX_QUICKTIME_STATUSUPDATE
+            EVT_ACTIVEX_QUICKTIME_ERROR
+            EVT_ACTIVEX_QUICKTIME_MOUSEDOWN
+            EVT_ACTIVEX_QUICKTIME_SIZECHANGED
+            EVT_ACTIVEX_QUICKTIME_QTEVENT
+    );
 
-	$EXPORT_TAGS{"quicktime"} = [] if not exists $EXPORT_TAGS{"quicktime"};
-	push @EXPORT_OK, ( @eventexports ) ;
-	push @{ $EXPORT_TAGS{"quicktime"} }, ( @eventexports );
+    $EXPORT_TAGS{"quicktime"} = [] if not exists $EXPORT_TAGS{"quicktime"};
+    push @EXPORT_OK, ( @eventexports ) ;
+    push @{ $EXPORT_TAGS{"quicktime"} }, ( @eventexports );
 }
 
 
@@ -177,13 +177,13 @@ QTOControl.QTControl.4
 
 The module provides the following exportable event subs
 
-	EVT_ACTIVEX_QUICKTIME_QTEVENT( $evthandler, $activexcontrol, \&on_event_quicktime_sub );
-	EVT_ACTIVEX_QUICKTIME_SIZECHANGED( $evthandler, $activexcontrol, \&on_event_quicktime_sub );
-	EVT_ACTIVEX_QUICKTIME_ERROR( $evthandler, $activexcontrol, \&on_event_quicktime_sub );
-	EVT_ACTIVEX_QUICKTIME_STATUSUPDATE( $evthandler, $activexcontrol, \&on_event_quicktime_sub );
-	EVT_ACTIVEX_QUICKTIME_MOUSEDOWN( $evthandler, $activexcontrol, \&on_event_quicktime_sub );
-	EVT_ACTIVEX_QUICKTIME_MOUSEUP( $evthandler, $activexcontrol, \&on_event_quicktime_sub );
-	EVT_ACTIVEX_QUICKTIME_MOUSEMOVE( $evthandler, $activexcontrol, \&on_event_quicktime_sub );
+    EVT_ACTIVEX_QUICKTIME_QTEVENT( $evthandler, $activexcontrol, \&on_event_quicktime_sub );
+    EVT_ACTIVEX_QUICKTIME_SIZECHANGED( $evthandler, $activexcontrol, \&on_event_quicktime_sub );
+    EVT_ACTIVEX_QUICKTIME_ERROR( $evthandler, $activexcontrol, \&on_event_quicktime_sub );
+    EVT_ACTIVEX_QUICKTIME_STATUSUPDATE( $evthandler, $activexcontrol, \&on_event_quicktime_sub );
+    EVT_ACTIVEX_QUICKTIME_MOUSEDOWN( $evthandler, $activexcontrol, \&on_event_quicktime_sub );
+    EVT_ACTIVEX_QUICKTIME_MOUSEUP( $evthandler, $activexcontrol, \&on_event_quicktime_sub );
+    EVT_ACTIVEX_QUICKTIME_MOUSEMOVE( $evthandler, $activexcontrol, \&on_event_quicktime_sub );
 
 
 =head1 ACTIVEX INFO

@@ -18,7 +18,7 @@ use Wx qw( :misc );
 use Wx::ActiveX;
 use base qw( Wx::ActiveX );
 
-our $VERSION = '0.11';
+our $VERSION = '0.13';
 
 our (@EXPORT_OK, %EXPORT_TAGS);
 $EXPORT_TAGS{everything} = \@EXPORT_OK;
@@ -50,20 +50,20 @@ sub EVT_ACTIVEX_FLASH_FSCOMMAND { &Wx::ActiveX::EVT_ACTIVEX($_[0],$_[1],"FSComma
 # Exports & Tags
 
 {
-	my @eventexports = qw(
-			EVENTID_AX_FLASH_ONREADYSTATECHANGE
-			EVENTID_AX_FLASH_FLASHCALL
-			EVENTID_AX_FLASH_ONPROGRESS
-			EVENTID_AX_FLASH_FSCOMMAND
-			EVT_ACTIVEX_FLASH_ONREADYSTATECHANGE
-			EVT_ACTIVEX_FLASH_FLASHCALL
-			EVT_ACTIVEX_FLASH_ONPROGRESS
-			EVT_ACTIVEX_FLASH_FSCOMMAND
-	);
+    my @eventexports = qw(
+            EVENTID_AX_FLASH_ONREADYSTATECHANGE
+            EVENTID_AX_FLASH_FLASHCALL
+            EVENTID_AX_FLASH_ONPROGRESS
+            EVENTID_AX_FLASH_FSCOMMAND
+            EVT_ACTIVEX_FLASH_ONREADYSTATECHANGE
+            EVT_ACTIVEX_FLASH_FLASHCALL
+            EVT_ACTIVEX_FLASH_ONPROGRESS
+            EVT_ACTIVEX_FLASH_FSCOMMAND
+    );
 
-	$EXPORT_TAGS{"flash"} = [] if not exists $EXPORT_TAGS{"flash"};
-	push @EXPORT_OK, ( @eventexports ) ;
-	push @{ $EXPORT_TAGS{"flash"} }, ( @eventexports );
+    $EXPORT_TAGS{"flash"} = [] if not exists $EXPORT_TAGS{"flash"};
+    push @EXPORT_OK, ( @eventexports ) ;
+    push @{ $EXPORT_TAGS{"flash"} }, ( @eventexports );
 }
 
 
@@ -162,10 +162,10 @@ ShockwaveFlash.ShockwaveFlash.4
 
 The module provides the following exportable event subs
 
-	EVT_ACTIVEX_FLASH_ONREADYSTATECHANGE( $evthandler, $activexcontrol, \&on_event_flash_sub );
-	EVT_ACTIVEX_FLASH_FSCOMMAND( $evthandler, $activexcontrol, \&on_event_flash_sub );
-	EVT_ACTIVEX_FLASH_FLASHCALL( $evthandler, $activexcontrol, \&on_event_flash_sub );
-	EVT_ACTIVEX_FLASH_ONPROGRESS( $evthandler, $activexcontrol, \&on_event_flash_sub );
+    EVT_ACTIVEX_FLASH_ONREADYSTATECHANGE( $evthandler, $activexcontrol, \&on_event_flash_sub );
+    EVT_ACTIVEX_FLASH_FSCOMMAND( $evthandler, $activexcontrol, \&on_event_flash_sub );
+    EVT_ACTIVEX_FLASH_FLASHCALL( $evthandler, $activexcontrol, \&on_event_flash_sub );
+    EVT_ACTIVEX_FLASH_ONPROGRESS( $evthandler, $activexcontrol, \&on_event_flash_sub );
 
 
 =head1 ACTIVEX INFO

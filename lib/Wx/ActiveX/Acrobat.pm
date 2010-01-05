@@ -17,7 +17,7 @@ use Wx qw( :misc );
 use Wx::ActiveX;
 use base qw( Wx::ActiveX );
 
-our $VERSION = '0.11';
+our $VERSION = '0.13';
 
 our (@EXPORT_OK, %EXPORT_TAGS);
 $EXPORT_TAGS{everything} = \@EXPORT_OK;
@@ -42,16 +42,16 @@ sub EVT_ACTIVEX_ACROBAT_ONMESSAGE { &Wx::ActiveX::EVT_ACTIVEX($_[0],$_[1],"OnMes
 # Exports & Tags
 
 {
-	my @eventexports = qw(
-			EVENTID_AX_ACROBAT_ONERROR
-			EVENTID_AX_ACROBAT_ONMESSAGE
-			EVT_ACTIVEX_ACROBAT_ONERROR
-			EVT_ACTIVEX_ACROBAT_ONMESSAGE
-	);
+    my @eventexports = qw(
+            EVENTID_AX_ACROBAT_ONERROR
+            EVENTID_AX_ACROBAT_ONMESSAGE
+            EVT_ACTIVEX_ACROBAT_ONERROR
+            EVT_ACTIVEX_ACROBAT_ONMESSAGE
+    );
 
-	$EXPORT_TAGS{"acrobat"} = [] if not exists $EXPORT_TAGS{"acrobat"};
-	push @EXPORT_OK, ( @eventexports ) ;
-	push @{ $EXPORT_TAGS{"acrobat"} }, ( @eventexports );
+    $EXPORT_TAGS{"acrobat"} = [] if not exists $EXPORT_TAGS{"acrobat"};
+    push @EXPORT_OK, ( @eventexports ) ;
+    push @{ $EXPORT_TAGS{"acrobat"} }, ( @eventexports );
 }
 
 

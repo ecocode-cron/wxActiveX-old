@@ -28,7 +28,6 @@ lib/Wx/ActiveX/ScriptControl.pm
 lib/Wx/ActiveX/WMPlayer.pm
 lib/Wx/ActiveX/QuickTime.pm
 lib/Wx/ActiveX/Template.pm
-lib/Wx/ActiveX/Template/Lang.pm
 lib/Wx/DemoModules/wxActiveX.pm
 lib/Wx/DemoModules/files/activex/dumy.fla
 lib/Wx/DemoModules/files/activex/dumy.swf
