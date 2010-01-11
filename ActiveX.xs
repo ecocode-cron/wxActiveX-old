@@ -7,9 +7,6 @@
 // Licence:     This program is free software; you can redistribute it and/or
 //              modify it under the same terms as Perl itself
 ////////////////////////////////////////////////////////////////////////////////
-
-
-
 #define PERL_NO_GET_CONTEXT
 
 #ifdef __WXMSW__
@@ -22,6 +19,7 @@
 
 #include <cpp/wxapi.h>
 #include <cpp/wxactivex.cpp>
+
 #undef THIS
 
 #include <cpp/v_cback.h>
@@ -30,6 +28,7 @@ MODULE=Wx__ActiveX
 
 BOOT:
   INIT_PLI_HELPERS( wx_pli_helpers );
+
 
 #include <cpp/IEHtmlWin.cpp>
 #include <cpp/MozillaHtmlWin.cpp>

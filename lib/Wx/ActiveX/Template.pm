@@ -17,7 +17,7 @@ use Exporter;
 use base qw( Exporter );
 use Wx;
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 our @EXPORT = qw( run_wxactivex_template );
 
@@ -124,21 +124,21 @@ sub new {
     #controls
     {
         $self->{pnlMain} = Wx::Panel->new($self, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL );
-        $self->{lblModuleName} = Wx::StaticText->new($self->{pnlMain}, wxID_ANY, T('Required Module Name'), wxDefaultPosition, wxDefaultSize);
-        $self->{txtModuleName} = Wx::TextCtrl->new($self->{pnlMain}, wxID_ANY, T('Wx::ActiveX::ACME'), wxDefaultPosition, wxDefaultSize);
-        $self->{lblPROGID} = Wx::StaticText->new($self->{pnlMain}, wxID_ANY, T('ActiveX Class To Query'), wxDefaultPosition, wxDefaultSize);
+        $self->{lblModuleName} = Wx::StaticText->new($self->{pnlMain}, wxID_ANY, 'Required Module Name', wxDefaultPosition, wxDefaultSize);
+        $self->{txtModuleName} = Wx::TextCtrl->new($self->{pnlMain}, wxID_ANY, 'Wx::ActiveX::ACME', wxDefaultPosition, wxDefaultSize);
+        $self->{lblPROGID} = Wx::StaticText->new($self->{pnlMain}, wxID_ANY, 'ActiveX Class To Query', wxDefaultPosition, wxDefaultSize);
         $self->{txtPROGID} = Wx::TextCtrl->new($self->{pnlMain}, wxID_ANY, 'ACMEWonderControls.DWIMControl', wxDefaultPosition, wxDefaultSize);
-        $self->{lblCodeID} = Wx::StaticText->new($self->{pnlMain}, wxID_ANY, T('Code Identifier'), wxDefaultPosition, wxDefaultSize);
+        $self->{lblCodeID} = Wx::StaticText->new($self->{pnlMain}, wxID_ANY, 'Code Identifier', wxDefaultPosition, wxDefaultSize);
         $self->{txtCodeID} = Wx::TextCtrl->new($self->{pnlMain}, wxID_ANY, 'ACME', wxDefaultPosition, wxDefaultSize);
-        $self->{btnQuery} = Wx::Button->new($self->{pnlMain}, wxID_DEFAULT, T('Query'), wxDefaultPosition, wxDefaultSize );
+        $self->{btnQuery} = Wx::Button->new($self->{pnlMain}, wxID_DEFAULT, 'Query', wxDefaultPosition, wxDefaultSize );
         $self->{nbkMain} = Wx::Notebook->new($self->{pnlMain}, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER);
         $self->{pnlList} = Wx::Panel->new($self->{nbkMain}, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNO_BORDER|wxTAB_TRAVERSAL );
         $self->{txtList} = Wx::TextCtrl->new($self->{pnlList}, wxID_ANY, '', wxDefaultPosition, wxDefaultSize, wxTE_READONLY|wxTE_MULTILINE);
         $self->{pnlStatic} = Wx::ActiveX::Template::CodePanel->new($self->{nbkMain});
         $self->{pnlDynamic} = Wx::ActiveX::Template::CodePanel->new($self->{nbkMain});
-        $self->{nbkMain}->AddPage($self->{pnlList}, T('Interface Query'));
-        $self->{nbkMain}->AddPage($self->{pnlStatic}, T('Module Static Code Template') );
-        $self->{nbkMain}->AddPage($self->{pnlDynamic}, T('Dynamic Event Template') );
+        $self->{nbkMain}->AddPage($self->{pnlList}, 'Interface Query');
+        $self->{nbkMain}->AddPage($self->{pnlStatic}, 'Module Static Code Template' );
+        $self->{nbkMain}->AddPage($self->{pnlDynamic}, 'Dynamic Event Template' );
     }
  
     # - layout & sizers
@@ -211,38 +211,38 @@ sub new {
 
 sub on_button_query {
     my ($self, $event) = @_;
-    $event->Skip(1);
+    
     $self->run_query;
 }
 
 
 sub on_menu_file_query {
     my ($self, $event) = @_;
-    $event->Skip(1);
+    
     $self->run_query;
 }
 
 sub on_menu_file_exit {
     my ($self, $event) = @_;
-    $event->Skip(1);
+    
     $self->Close;
 }
 
 sub on_menu_options_lang {
     my ($self, $event) = @_;
-    $event->Skip(1);
+    
     $self->__not_implemented;
 }
 
 sub on_menu_help_contents {
     my ($self, $event) = @_;
-    $event->Skip(1);
+    
     $self->__not_implemented;
 }
 
 sub on_menu_help_about {
     my ($self, $event) = @_;
-    $event->Skip(1);
+    
     my $info = Wx::AboutDialogInfo->new;
 
     $info->SetName( 'Wx::ActiveX Templates' );
@@ -266,7 +266,7 @@ sub on_event_close {
     my ($self, $event ) = @_;
     
     if(!$self->question_message(
-        T('Are you sure you wish to exit the application?')
+        'Are you sure you wish to exit the application?'
             )
       )
     {
@@ -297,7 +297,7 @@ sub add_menu {
     
     $self->GetMenuBar()->Append(
         $self->{menus}->{$menuname}->{menu},
-        T( $self->{menus}->{$menuname}->{labelno} )
+        $self->{menus}->{$menuname}->{labelno}
     ); 
 }
 
@@ -309,10 +309,10 @@ sub add_menuseparator {
 sub add_menuitem {
     my( $self, $menuname, $itemname, $labelno, $helpno, $coderef, $shortkeys ) = @_;
     
-    my $menulabel = T($labelno);
+    my $menulabel = $labelno;
     $menulabel .= "\t" . $shortkeys if $shortkeys;
     
-    my $helpstring = T($helpno);
+    my $helpstring = $helpno;
     my $menu = $self->{menus}->{$menuname}->{menu};
     
     my $menuitem = Wx::MenuItem->new($menu, -1, $menulabel, $helpstring, 0);
@@ -381,7 +381,7 @@ sub run_query {
     };
     if($@) {
         Wx::LogError("%s", $@);
-        Wx::LogError(T('Unable to access ActiveX interface for') . '%s', $progid);
+        Wx::LogError('Unable to access ActiveX interface for' . '%s', $progid);
         
         return;
     }
@@ -389,13 +389,13 @@ sub run_query {
     # got anything
     if( (@events == 0) && (@methods == 0) && (@props == 0) ) {
         $busy = undef;
-        Wx::LogError(T('Unable to access ActiveX interface for') . '%s', $progid);
+        Wx::LogError('Unable to access ActiveX interface for' . '%s', $progid);
         return 1;
     }
     
     my @output = ();
     
-    push @output, T('Events For') . ' ' . $progid;
+    push @output, 'Events For' . ' ' . $progid;
     push @output, '';
     
     for (@events) {
@@ -403,7 +403,7 @@ sub run_query {
     }
     
     push @output, '';
-    push @output, T('Methods For') . ' ' . $progid;
+    push @output, 'Methods For' . ' ' . $progid;
     push @output, '';
     
     for (@methods) {
@@ -411,7 +411,7 @@ sub run_query {
     }
     
     push @output, '';
-    push @output, T('Properties For') . ' ' . $progid;
+    push @output, 'Properties For' . ' ' . $progid;
     push @output, '';
     
     for (@props) {
@@ -467,6 +467,7 @@ sub run_query {
     $staticcode =~ s/ModUlEPacKAgENaME/$modulename/g;
     $staticcode =~ s/ModuLEPROgiD/$progid/g;
     $staticcode =~ s/STOPCONFUSION//g;
+    $staticcode =~ s/REPLpackageINST/package/g;
     
     my $dynamiccode = $staticcode;
     
@@ -532,7 +533,7 @@ sub standard_code_header {
 #######################################################################
 
 #----------------------------------------------------------------------
-STOPCONFUSION package ModUlEPacKAgENaME;
+STOPCONFUSION REPLpackageINST ModUlEPacKAgENaME;
 #----------------------------------------------------------------------
 
 use strict;

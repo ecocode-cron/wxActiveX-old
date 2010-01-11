@@ -3,6 +3,11 @@
 
 Revision history for Perl extension Wx::ActiveX.
 
+0.14  2010-01-11
+    - fixed wxactivex_template
+    - fixed VC6 & MinGW builds
+    - fixed pause module parsing
+
 0.13  2010-01-04
     - compilation fix for mingw headers + select macro
     - POD update for WMPlayer

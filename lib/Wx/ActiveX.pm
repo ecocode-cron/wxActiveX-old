@@ -21,7 +21,7 @@ require Exporter;
 our @ISA = qw( Wx::Window Exporter );
 use XSLoader;
 
-our $VERSION = '0.13'; # Wx::ActiveX Version
+our $VERSION = '0.14'; # Wx::ActiveX Version
 
 our $__wxax_debug;
 our @EXPORT_OK = qw ( wxACTIVEX_CLSID_MOZILLA_BROWSER wxACTIVEX_CLSID_WEB_BROWSER );
@@ -401,7 +401,7 @@ sub activex_get_event_code {
 
 use base qw( Wx::CommandEvent Wx::EvtHandler );
 
-our $VERSION = '0.13'; # Wx::ActiveX Version
+our $VERSION = '0.14'; # Wx::ActiveX Version
 
 my (%EVT_HANDLES) ;
 
@@ -474,7 +474,7 @@ Wx::ActiveX - ActiveX Control Interface for Wx
 
 =head1 VERSION
 
-Version 0.10
+Version 0.14
 
 =head1 SYNOPSIS
     
