@@ -3,6 +3,9 @@
 
 Revision history for Perl extension Wx::ActiveX.
 
+0.15  ----
+    - fixed datestamp in template output
+
 0.14  2010-01-11
     - fixed wxactivex_template
     - fixed VC6 & MinGW builds

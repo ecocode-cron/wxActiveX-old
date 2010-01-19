@@ -21,7 +21,7 @@ require Exporter;
 our @ISA = qw( Wx::Window Exporter );
 use XSLoader;
 
-our $VERSION = '0.14'; # Wx::ActiveX Version
+our $VERSION = '0.15'; # Wx::ActiveX Version
 
 our $__wxax_debug;
 our @EXPORT_OK = qw ( wxACTIVEX_CLSID_MOZILLA_BROWSER wxACTIVEX_CLSID_WEB_BROWSER );

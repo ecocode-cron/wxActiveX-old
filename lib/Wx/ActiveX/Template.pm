@@ -17,7 +17,7 @@ use Exporter;
 use base qw( Exporter );
 use Wx;
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 our @EXPORT = qw( run_wxactivex_template );
 
@@ -460,7 +460,7 @@ sub run_query {
         $packagefile =~ s/::/\//g;
         $staticcode =~ s/HeadERamENDPAckAgeNAMe/$packagefile/g;
         $staticcode =~ s/HEAderLoginNaME/$user/g;
-        $staticcode =~ s/HeadEARdateFormatEdYear/$year/g;
+        $staticcode =~ s/HeadEARdateFormatEdYear/$dateyear/g;
         $staticcode =~ s/HeadEARdateFormatEdCreated/$date/g;
     }
  
