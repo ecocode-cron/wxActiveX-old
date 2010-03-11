@@ -18,16 +18,15 @@ if( $Config{cc} =~ /^cl/i ) { $libs = 'msvcprt.lib' ;}
 wxWriteMakefile( NAME           => 'Wx::ActiveX',
                  ABSTRACT_FROM  => 'lib/Wx/ActiveX.pm',
                  VERSION_FROM   => 'lib/Wx/ActiveX.pm',
-                 AUTHOR		    => 'Graciliano M. P',
+                 AUTHOR         => 'Graciliano M. P',
                  LIBS           => $libs ,
-                 WX_CORE_LIB	=> 'core base',
+                 WX_CORE_LIB    => 'core base',
                  EXE_FILES      => [ qw(script/wxactivex_template.pl) ],
-                 NO_META 		=> 1,
-                 WX_OVERLOAD	=> {	header  => 'cpp/ovl_const.h',
+                 NO_META        => 1,
+                 WX_OVERLOAD    => {    header  => 'cpp/ovl_const.h',
                                         source  => 'cpp/ovl_const.cpp',
                                     },
-                 PREREQ_PM	=> { Wx   => '0.57',
-                                        },
+                 PREREQ_PM  => { Wx   => '0.57' },                                        },
                );
 
 # 

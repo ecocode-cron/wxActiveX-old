@@ -602,7 +602,7 @@ protected:
     // Methods
     FuncXStringMap  m_methods;
 
-    long MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
+    WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
 };
 
 // events

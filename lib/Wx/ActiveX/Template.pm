@@ -4,7 +4,7 @@
 ## Author:      Mark Dootson
 ## Created:     2008-04-7
 ## SVN-ID:      $Id$
-## Copyright:   (c) 2008 Mark Dootson
+## Copyright:   (c) 2008 - 2010 Mark Dootson
 ## Licence:     This program is free software; you can redistribute it and/or
 ##              modify it under the same terms as Perl itself
 #############################################################################
@@ -526,7 +526,6 @@ sub standard_code_header {
 ## Purpose:     ActiveX Interface for ModuLEPROgiD
 ## Author:      HEAderLoginNaME
 ## Created:     HeadEARdateFormatEdCreated
-## SVN-ID:      $Id$
 ## Copyright:   (c) HeadEARdateFormatEdYear  HEAderLoginNaME
 ## Licence:     This program is free software; you can redistribute it
 ##              and/or modify it under the same terms as Perl itself
@@ -817,7 +816,7 @@ Wx::ActiveX::Template - ActiveX Control Module Creation Utility
 
 =head1 VERSION
 
-Version 0.10
+Version 0.15
 
 =head1 SYNOPSIS
 
@@ -855,7 +854,7 @@ pick list rather than accepting freeform input.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (C) 2008 Mark Dootson.
+Copyright (C) 2008 - 2010 Mark Dootson.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
