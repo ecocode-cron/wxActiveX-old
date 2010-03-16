@@ -26,7 +26,7 @@ wxWriteMakefile( NAME           => 'Wx::ActiveX',
                  WX_OVERLOAD    => {    header  => 'cpp/ovl_const.h',
                                         source  => 'cpp/ovl_const.cpp',
                                     },
-                 PREREQ_PM  => { Wx   => '0.57' },                                        },
+                 PREREQ_PM  => { Wx   => '0.57' },
                );
 
 # 
