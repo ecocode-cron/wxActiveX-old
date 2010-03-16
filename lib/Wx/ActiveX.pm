@@ -401,7 +401,7 @@ sub activex_get_event_code {
 
 use base qw( Wx::CommandEvent Wx::EvtHandler );
 
-our $VERSION = '0.14'; # Wx::ActiveX Version
+our $VERSION = '0.15'; # Wx::ActiveX Version
 
 my (%EVT_HANDLES) ;
 
@@ -474,7 +474,7 @@ Wx::ActiveX - ActiveX Control Interface for Wx
 
 =head1 VERSION
 
-Version 0.14
+Version 0.15
 
 =head1 SYNOPSIS
     

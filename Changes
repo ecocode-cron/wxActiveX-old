@@ -3,7 +3,9 @@
 
 Revision history for Perl extension Wx::ActiveX.
 
-0.15  ----
+0.15  2010-03-16
+    - fixes for mingw-w64 / w32 build 
+    - fixes for msvc 64bit builds
     - fixed datestamp in template output
 
 0.14  2010-01-11

@@ -950,8 +950,8 @@ public:
         {
 			// cdecl call
             // sometimes the pDispParams does not match the param info for a activex control
-            int nArg = min(func.params.size(), pDispParams->cArgs);
-            for (int i = nArg - 1; i >= 0; i--)
+            IV nArg = min((IV)func.params.size(), (IV)pDispParams->cArgs);
+            for (IV i = nArg - 1; i >= 0; i--)
             {
                 VARIANTARG& va = pDispParams->rgvarg[i];
 				wxActiveX::ParamX &px = func.params[nArg - i - 1];
@@ -965,9 +965,9 @@ public:
 
 		if (func.hasOut)
 		{
-            int nArg = min(func.params.size(), pDispParams->cArgs);
+            IV nArg = min((IV)func.params.size(), (IV)pDispParams->cArgs);
     		m_activeX->GetParent()->ProcessEvent(event);
-            for (int i = 0; i < nArg; i++)
+            for (IV i = 0; i < nArg; i++)
             {
                 VARIANTARG& va = pDispParams->rgvarg[i];
 				wxActiveX::ParamX &px = func.params[nArg - i - 1];
