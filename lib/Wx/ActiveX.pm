@@ -21,7 +21,7 @@ require Exporter;
 our @ISA = qw( Wx::Window Exporter );
 use XSLoader;
 
-our $VERSION = '0.15'; # Wx::ActiveX Version
+our $VERSION = '0.16'; # Wx::ActiveX Version
 
 our $__wxax_debug;
 our @EXPORT_OK = qw ( wxACTIVEX_CLSID_MOZILLA_BROWSER wxACTIVEX_CLSID_WEB_BROWSER );
@@ -401,7 +401,7 @@ sub activex_get_event_code {
 
 use base qw( Wx::CommandEvent Wx::EvtHandler );
 
-our $VERSION = '0.15'; # Wx::ActiveX Version
+our $VERSION = '0.16'; # Wx::ActiveX Version
 
 my (%EVT_HANDLES) ;
 
@@ -474,7 +474,7 @@ Wx::ActiveX - ActiveX Control Interface for Wx
 
 =head1 VERSION
 
-Version 0.15
+Version 0.16
 
 =head1 SYNOPSIS
     
@@ -717,7 +717,7 @@ who wrote the C classes for wxActiveX and wxIEHtmlWin.
 
 =head1 COPYRIGHT & LICENSE
 
-Copyright (C) 2002-2008 Authors & Contributors, all rights reserved.
+Copyright (C) 2002-2011 Authors & Contributors, all rights reserved.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

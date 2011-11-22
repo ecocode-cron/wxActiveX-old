@@ -13,7 +13,12 @@ use Wx::build::MakeMaker ;
 use Config ;
 
 my $libs = '' ;
-if( $Config{cc} =~ /^cl/i ) { $libs = 'msvcprt.lib' ;}
+my $ccflags = $Config{ccflags};
+if( $Config{cc} =~ /^cl/i ) { 
+    $libs = 'msvcprt.lib' ;
+} else {
+    $ccflags .= ' -Wno-multichar -Wno-write-strings';
+}
 
 wxWriteMakefile( NAME           => 'Wx::ActiveX',
                  ABSTRACT_FROM  => 'lib/Wx/ActiveX.pm',
@@ -27,6 +32,7 @@ wxWriteMakefile( NAME           => 'Wx::ActiveX',
                                         source  => 'cpp/ovl_const.cpp',
                                     },
                  PREREQ_PM  => { Wx   => '0.57' },
+                 CCFLAGS    => $ccflags,
                );
 
 # 
