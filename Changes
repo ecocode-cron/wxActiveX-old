@@ -3,6 +3,8 @@
 
 Revision history for Perl extension Wx::ActiveX.
 
+0.17  TBR
+
 0.16  2012-02-28
     - fixes for wxWidgets 2.9.3
 
