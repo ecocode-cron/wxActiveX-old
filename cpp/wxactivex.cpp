@@ -110,7 +110,8 @@ class FrameSite :
     public IOleCommandTarget,
     public IOleDocumentSite,
     public IAdviseSink,
-    public IOleControlSite
+    public IOleControlSite,
+    public IDocHostUIHandler2
 {
 private:
     DECLARE_OLE_UNKNOWN(FrameSite);
@@ -162,6 +163,9 @@ public:
     STDMETHODIMP ShowObject();
     STDMETHODIMP OnShowWindow(BOOL);
     STDMETHODIMP RequestNewObjectLayout();
+    
+    //IDocHostUIHandler2
+    STDMETHODIMP GetOverrideKeyPath(LPOLESTR *pchKey, DWORD dwReserved);
 
     //IOleControlSite
     STDMETHODIMP OnControlInfoChanged();
@@ -240,6 +244,7 @@ DEFINE_OLE_TABLE(FrameSite)
     OLE_IINTERFACE(IOleInPlaceUIWindow)
     OLE_IINTERFACE(IOleInPlaceFrame)
 
+    OLE_IINTERFACE(IDocHostUIHandler2)
     OLE_IINTERFACE(IParseDisplayName)
     OLE_IINTERFACE(IOleContainer)
     OLE_IINTERFACE(IOleItemContainer)
@@ -2464,6 +2469,39 @@ HRESULT FrameSite::RequestNewObjectLayout()
     WXOLE_TRACE("IOleClientSite::RequestNewObjectLayout");
     return E_NOTIMPL;
 }
+
+// IDocHostUIHandler2
+
+HRESULT FrameSite::GetOverrideKeyPath(LPOLESTR *pchKey, DWORD dwReserved) 
+{
+    WXOLE_TRACE("IDocHostUIHandler2::GetOverrideKeyPath");
+    HRESULT hr;
+
+    #define CCHMAX 256
+    size_t cchLength;
+
+    if (pchKey)
+    {
+        WCHAR* szMyKey = L"Software\\wxWidgets\\wxActiveX\\IEWebBrowser";
+        hr = StringCchLengthW(szMyKey, CCHMAX, &cchLength);
+        // TODO: Add error handling code here.
+        
+        *pchKey = (LPOLESTR)CoTaskMemAlloc((cchLength + 1) * sizeof(WCHAR));
+        if (*pchKey)
+            hr = StringCchCopyW(*pchKey, cchLength + 1, szKey);
+            // TODO: Add error handling code here.
+
+        hr = (*pchKey) ? S_OK : E_OUTOFMEMORY;
+    }
+    else
+        hr = E_INVALIDARG;
+
+    return hr;
+}
+
+
+
+
 
 // IParseDisplayName
 

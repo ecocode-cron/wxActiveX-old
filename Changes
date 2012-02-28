@@ -3,6 +3,10 @@
 
 Revision history for Perl extension Wx::ActiveX.
 
+0.16  2012-02-28
+    - fixes for wxWidgets 2.9.3
+
+
 0.15  2010-03-16
     - fixes for mingw-w64 / w32 build 
     - fixes for msvc 64bit builds
